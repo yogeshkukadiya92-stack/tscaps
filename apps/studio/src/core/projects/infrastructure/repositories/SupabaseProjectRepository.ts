@@ -4,6 +4,7 @@ import type { Project } from '@core/projects/domain/Project';
 import { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ProjectSerializer, SerializedProject } from '@core/projects/services/ProjectSerializer';
 import type { VideoBlobLookup } from '@core/videos/domain/VideoBlobLookup';
+import type { VideoBlobCache } from '@core/videos/domain/VideoBlobCache';
 
 const TABLE = 'reelstudio_projects';
 const BUCKET = 'reelstudio-videos';
@@ -30,7 +31,8 @@ function decodeThumbnail(value: string | null): Blob | null {
 /** Remote data is authoritative; failed uploads/saves never silently become local-only saves. */
 export class SupabaseProjectRepository implements ProjectRepository {
   private readonly pendingVideos = new Map<string, Blob>();
-  constructor(private readonly client: SupabaseClient, private readonly serializer: ProjectSerializer) {}
+  private readonly videoVersions = new Map<string, string>();
+  constructor(private readonly client: SupabaseClient, private readonly serializer: ProjectSerializer, private readonly videoCache?: VideoBlobCache) {}
 
   private async owner(): Promise<string> {
     const { data, error } = await this.client.auth.getSession();
@@ -62,6 +64,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
     await this.assertOwner(owner);
     if (!data) return null;
     const row = data as CloudProjectRow;
+    this.videoVersions.set(this.path(owner, id), new Date(row.updated_at).toISOString());
     return this.serializer.deserialize(row.payload, decodeThumbnail(row.thumbnail_data));
   }
   async has(id: string): Promise<boolean> {
@@ -83,6 +86,21 @@ export class SupabaseProjectRepository implements ProjectRepository {
     }, { onConflict: 'user_id,id' });
     if (error) throw error;
     await this.assertOwner(owner);
+    const path = this.path(owner, project.id);
+    const previousVersion = this.videoVersions.get(path);
+    const version = project.updatedAt.toISOString();
+    this.videoVersions.set(path, version);
+    // Caption/name saves do not replace the source video. Carry its cached
+    // bytes forward to the committed revision so ordinary edits stay fast.
+    if (!pending && previousVersion && previousVersion !== version && this.videoCache) {
+      const cache = this.videoCache;
+      const oldKey = `cloud/${owner}/${project.id}/${previousVersion}`;
+      void cache.load(oldKey).then(async lookup => {
+        if (lookup.outcome !== 'found') return;
+        await cache.store(`cloud/${owner}/${project.id}/${version}`, lookup.blob);
+        await cache.delete(oldKey);
+      }).catch(() => {});
+    }
   }
   async delete(id: string): Promise<void> {
     const owner = await this.owner();
@@ -116,10 +134,26 @@ export class SupabaseProjectRepository implements ProjectRepository {
     const { error } = await this.client.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' });
     if (error) throw error;
     await this.assertOwner(owner);
+    const previousVersion = this.videoVersions.get(path);
+    this.videoVersions.delete(path);
+    if (previousVersion && this.videoCache) await this.videoCache.delete(`cloud/${owner}/${projectId}/${previousVersion}`).catch(() => {});
     if (this.pendingVideos.get(path) === blob) this.pendingVideos.delete(path);
   }
   async loadVideoBlob(projectId: string, onProgress?: LoadVideoBlobProgressCallback, signal?: AbortSignal): Promise<VideoBlobLookup> {
     const owner = await this.owner();
+    signal?.throwIfAborted();
+    const version = this.videoVersions.get(this.path(owner, projectId));
+    const cacheKey = version ? `cloud/${owner}/${projectId}/${version}` : null;
+    if (cacheKey && this.videoCache) {
+      const cached = await this.videoCache.load(cacheKey).catch(() => null);
+      signal?.throwIfAborted();
+      await this.assertOwner(owner);
+      if (cached?.outcome === 'found') {
+        onProgress?.(1);
+        return cached;
+      }
+    }
+    onProgress?.(null);
     const { data, error } = await this.client.storage.from(BUCKET).createSignedUrl(this.path(owner, projectId), 300);
     if (error) {
       if (Number(error.statusCode) === 404 || error.message.toLowerCase().includes('not found')) return { outcome: 'missing', reason: 'remote-provider-absent' };
@@ -142,6 +176,11 @@ export class SupabaseProjectRepository implements ProjectRepository {
     } else chunks.push(new Uint8Array(await response.arrayBuffer()));
     await this.assertOwner(owner);
     onProgress?.(1);
-    return { outcome: 'found', blob: new Blob(chunks, { type: response.headers.get('content-type') ?? 'application/octet-stream' }), source: 'server' };
+    signal?.throwIfAborted();
+    const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'application/octet-stream' });
+    // Cache failure must not prevent opening a valid cloud video. Versioned,
+    // owner-scoped keys prevent reuse after a remote edit or account change.
+    if (cacheKey && this.videoCache) void this.videoCache.store(cacheKey, blob).catch(() => {});
+    return { outcome: 'found', blob, source: 'server' };
   }
 }

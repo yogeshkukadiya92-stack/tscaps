@@ -33,3 +33,58 @@ describe('Cloud project failure and account boundaries', () => {
     expect(from).not.toHaveBeenCalled();
   });
 });
+
+describe('Cloud video reuse', () => {
+  function setup() {
+    const session = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'owner' } } } });
+    const row = { updated_at: '2026-10-14T00:00:00.000Z', payload: {}, thumbnail_data: null };
+    const chain = { select: vi.fn(), eq: vi.fn(), is: vi.fn(), maybeSingle: vi.fn().mockResolvedValue({ data: row }) };
+    chain.select.mockReturnValue(chain); chain.eq.mockReturnValue(chain); chain.is.mockReturnValue(chain);
+    const signed = vi.fn().mockResolvedValue({ data: { signedUrl: 'https://storage.example/video' } });
+    const client = { auth: { getSession: session }, from: () => chain, storage: { from: () => ({ createSignedUrl: signed }) } } as unknown as SupabaseClient;
+    const cache = { load: vi.fn().mockResolvedValue({ outcome: 'missing', reason: 'absent' }), store: vi.fn().mockResolvedValue(undefined), delete: vi.fn() };
+    const serializer = { deserialize: vi.fn().mockResolvedValue({}) } as unknown as ProjectSerializer;
+    return { repository: new SupabaseProjectRepository(client, serializer, cache), session, row, signed, cache };
+  }
+  it('reopens cached video without signing or downloading, keyed by owner and remote revision', async () => {
+    const { repository, cache, signed, row } = setup();
+    const blob = new Blob(['video']);
+    cache.load.mockResolvedValue({ outcome: 'found', blob, source: 'device' });
+    await repository.load('project');
+    expect(await repository.loadVideoBlob('project')).toEqual({ outcome: 'found', blob, source: 'device' });
+    expect(cache.load).toHaveBeenCalledWith('cloud/owner/project/2026-10-14T00:00:00.000Z');
+    expect(signed).not.toHaveBeenCalled();
+    row.updated_at = '2026-10-14T01:00:00.000Z';
+    await repository.load('project');
+    await repository.loadVideoBlob('project');
+    expect(cache.load).toHaveBeenLastCalledWith('cloud/owner/project/2026-10-14T01:00:00.000Z');
+  });
+  it('rejects cached bytes if the account changes while reading them', async () => {
+    const { repository, cache, session } = setup();
+    await repository.load('project');
+    cache.load.mockImplementation(async () => {
+      session.mockResolvedValue({ data: { session: { user: { id: 'other' } } } });
+      return { outcome: 'found', blob: new Blob(['private']), source: 'device' };
+    });
+    await expect(repository.loadVideoBlob('project')).rejects.toThrow('Your account changed');
+  });
+  it('downloads and retains video when local cache reads fail', async () => {
+    const { repository, cache } = setup();
+    await repository.load('project');
+    cache.load.mockRejectedValue(new Error('Unavailable storage'));
+    const fetchMock = vi.fn().mockResolvedValue(new Response('video', { headers: { 'content-type': 'video/mp4' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const result = await repository.loadVideoBlob('project');
+      expect(result.outcome).toBe('found');
+      expect(cache.store).toHaveBeenCalledWith('cloud/owner/project/2026-10-14T00:00:00.000Z', expect.any(Blob));
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it('does not start a download for an aborted project open', async () => {
+    const { repository, signed } = setup();
+    const controller = new AbortController(); controller.abort();
+    await expect(repository.loadVideoBlob('project', undefined, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    expect(signed).not.toHaveBeenCalled();
+  });
+});

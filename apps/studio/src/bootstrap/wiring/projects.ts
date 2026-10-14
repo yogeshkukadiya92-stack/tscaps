@@ -116,7 +116,7 @@ export function bootProjects(deps: ProjectsDependencies) {
 
   const localRepository = new IndexedDbProjectRepository(deps.indexedDb, serializer, deps.videoFiles.blobCache);
   const cloudClient = getSupabaseClient();
-  const cloudRepository = cloudClient ? new SupabaseProjectRepository(cloudClient, serializer) : null;
+  const cloudRepository = cloudClient ? new SupabaseProjectRepository(cloudClient, serializer, deps.videoFiles.blobCache) : null;
   const repository: ProjectRepository = cloudRepository ?? localRepository;
   const unsavedWorkPolicy: UnsavedWorkPolicy = editorStatePolicy;
 

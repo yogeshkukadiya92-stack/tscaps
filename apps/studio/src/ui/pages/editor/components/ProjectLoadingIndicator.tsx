@@ -34,7 +34,9 @@ export function ProjectLoadingIndicator({ downloadStatus, proxyDownloadStatus }:
   const blocking = proxyDownloadStatus.kind === 'downloading' ? proxyDownloadStatus : downloadStatus;
   const isDownloading = blocking.kind === 'downloading';
   const hasProgress = isDownloading && blocking.progress !== null;
-  const downloadingCaption = 'Opening';
+  const downloadingCaption = proxyDownloadStatus.kind === 'downloading'
+    ? 'Loading video preview…'
+    : hasProgress && blocking.progress >= 1 ? 'Preparing video…' : 'Loading your saved video…';
   return (
     <div className={CLUSTER}>
       {hasProgress
