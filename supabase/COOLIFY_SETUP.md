@@ -12,7 +12,7 @@ A Supabase template service named `reelstudio-supabase` was created in the exist
 - Additional redirect URLs: `https://cap.yogeshaihub.in/**,https://www.cap.yogeshaihub.in/**`.
 - Verify GoTrue's public API/external URL and storage public URL resolve to the HTTPS Kong origin.
 - The owner explicitly approved signup without email verification because SMTP is unavailable. Set email autoconfirm to true and keep frontend `AUTH_EMAIL_ENABLED=false` to hide unavailable email recovery. Configure SMTP and re-enable verification when mail is available.
-- Set storage `FILE_SIZE_LIMIT` to `536870912` to match the private bucket's 512 MB limit.
+- Storage `UPLOAD_FILE_SIZE_LIMIT` and `UPLOAD_FILE_SIZE_LIMIT_STANDARD` are both `524288000`, matching the private bucket's 500 MB limit.
 - Apply `migrations/20261014_reelstudio_projects.sql` to the dedicated database after initialization. It is idempotent for this initial schema.
 - Verify signup confirmation, login, recovery emails, project save/reopen from a fresh browser, video upload/download, and denial of cross-user access against the live service.
 - Schedule backups for both Postgres and the storage volume.

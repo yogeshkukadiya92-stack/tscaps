@@ -110,7 +110,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
     await this.upload(owner, projectId, blob);
   }
   private async upload(owner: string, projectId: string, blob: Blob): Promise<void> {
-    if (blob.size > 536870912) throw new Error('Account video uploads support files up to 512 MB.');
+    if (blob.size > 524288000) throw new Error('Account video uploads support files up to 500 MB.');
     await this.assertOwner(owner);
     const path = this.path(owner, projectId);
     const { error } = await this.client.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' });

@@ -22,7 +22,7 @@ create policy reelstudio_projects_owner on public.reelstudio_projects for all to
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
 insert into storage.buckets (id, name, public, file_size_limit)
-values ('reelstudio-videos', 'reelstudio-videos', false, 536870912)
+values ('reelstudio-videos', 'reelstudio-videos', false, 524288000)
 on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit;
 drop policy if exists reelstudio_videos_owner on storage.objects;
 create policy reelstudio_videos_owner on storage.objects for all to authenticated

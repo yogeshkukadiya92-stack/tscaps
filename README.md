@@ -8,7 +8,7 @@ ReelStudio is a subtitle editor for short-form video (TikTok, Reels, Shorts). Dr
 
 ## Supabase accounts and Coolify deployment
 
-Provision a dedicated Supabase service and apply `supabase/migrations/20261014_reelstudio_projects.sql` to its Postgres database. It creates owner-protected project records and a private `reelstudio-videos` bucket. Videos up to 512 MB are supported. Database row-level security and storage policies restrict each account to its own data.
+Provision a dedicated Supabase service and apply `supabase/migrations/20261014_reelstudio_projects.sql` to its Postgres database. It creates owner-protected project records and a private `reelstudio-videos` bucket. Videos up to 500 MB are supported. Database row-level security and storage policies restrict each account to its own data.
 
 Set these **runtime** environment variables on the ReelStudio application in Coolify:
 
