@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ACCEPTED_VIDEO_TYPES, VIDEO_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
+import { MEDIA_FILE_ACCEPT, isAcceptedMediaFile, isAudioFile, VIDEO_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
 
 const ERROR_TIMEOUT_MS = 4000;
 
@@ -24,6 +24,8 @@ const ERROR_BOX =
 export function VideoDropzone({ onFile }: VideoDropzoneProps) {
   const [error, setError] = useState<string | null>(null);
   const errorTimerRef = useRef<number | null>(null);
+  const busyRef = useRef(false);
+  const [busy, setBusy] = useState(false);
 
   // Clear any pending auto-dismiss when the component unmounts. Without
   // this a successful upload that navigates away would still try to
@@ -42,13 +44,20 @@ export function VideoDropzone({ onFile }: VideoDropzoneProps) {
   }, []);
 
   const handleFile = useCallback(
-    (file: File) => {
-      if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+    async (file: File) => {
+      if (busyRef.current) return;
+      if (!isAcceptedMediaFile(file)) {
         showError(VIDEO_UNSUPPORTED_MESSAGE);
         return;
       }
       setError(null);
-      onFile(file);
+      if (!isAudioFile(file)) { onFile(file); return; }
+      busyRef.current = true; setBusy(true);
+      try {
+        const { buildAudioCaptionVideo } = await import('@core/audio/services/AudioCaptionVideoBuilder');
+        onFile(await buildAudioCaptionVideo(file));
+      } catch (cause) { showError(cause instanceof Error ? cause.message : 'Could not open this audio file.'); }
+      finally { busyRef.current = false; setBusy(false); }
     },
     [onFile, showError],
   );
@@ -77,12 +86,13 @@ export function VideoDropzone({ onFile }: VideoDropzoneProps) {
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
       >
-        <p className={ZONE_TITLE}>Drop your video here</p>
+        <p className={ZONE_TITLE}>{busy ? 'Preparing audio for captions…' : 'Drop your video or audio here'}</p>
         <label className={ZONE_HINT}>
           or <span className={BROWSE_LINK}>browse files</span>
           <input
             type="file"
-            accept={ACCEPTED_VIDEO_TYPES.join(',')}
+            accept={MEDIA_FILE_ACCEPT}
+            disabled={busy}
             onChange={handleInputChange}
             hidden
           />

@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowUpFromLine } from 'lucide-react';
 import { Toast, TOAST_AUTO_DISMISS_MS } from '@ui/_shared/components/Toast/Toast';
 import {
   ACCEPTED_VIDEO_LABEL,
-  ACCEPTED_VIDEO_TYPES,
+  isAcceptedMediaFile,
   VIDEO_UNSUPPORTED_MESSAGE,
 } from '@ui/_shared/video/videoAcceptance';
 
@@ -57,7 +57,7 @@ export function ProjectsDropCatcher({ onVideo, onVideoIntent, onProjectFile }: P
       onProjectFile(file);
       return;
     }
-    if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+    if (!isAcceptedMediaFile(file)) {
       setError(VIDEO_UNSUPPORTED_MESSAGE);
       return;
     }

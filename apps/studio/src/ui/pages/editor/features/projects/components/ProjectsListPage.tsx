@@ -9,6 +9,7 @@ import { StatusPill } from '@ui/_shared/components/StatusPill/StatusPill';
 import { AppErrorMessage, getAppErrorTitle } from '@ui/_shared/components/AppErrorMessage/AppErrorMessage';
 import { ProjectCard } from '@ui/pages/editor/features/projects/components/ProjectCard';
 import { ProjectsDropCatcher } from '@ui/pages/editor/features/projects/components/ProjectsDropCatcher';
+import { MEDIA_FILE_ACCEPT } from '@ui/_shared/video/videoAcceptance';
 
 interface ProjectsListPageProps {
   projects: ProjectMetadata[] | null;
@@ -173,7 +174,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
                 <Plus size={14} />
                 <span>New project</span>
               </button>
-              <input ref={newInputRef} type="file" accept="video/*" onChange={handleNewSelected} hidden />
+              <input ref={newInputRef} type="file" accept={MEDIA_FILE_ACCEPT} onChange={handleNewSelected} hidden />
               {onImportProject && (
                 <input ref={importInputRef} type="file" accept=".tscaps,application/json" onChange={handleImportSelected} hidden />
               )}

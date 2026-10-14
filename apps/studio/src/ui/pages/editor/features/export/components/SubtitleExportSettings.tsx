@@ -42,7 +42,7 @@ interface FormatMeta {
 const FORMAT_OPTIONS: Record<SubtitleFileFormat, FormatMeta> = {
   srt: {
     label: 'SubRip (.srt)',
-    hint: 'The safe choice. Every player and editor reads it.',
+    hint: 'Text and timing for video editors. SRT does not preserve fonts, colours or animation; choose ASS for styling.',
     wordTiming: {
       explanation:
         'SubRip cannot time words inside an entry. When on, every word becomes an entry of '
@@ -60,7 +60,7 @@ const FORMAT_OPTIONS: Record<SubtitleFileFormat, FormatMeta> = {
   },
   ass: {
     label: 'Advanced SubStation Alpha (.ass)',
-    hint: 'Karaoke and fansub tooling: Aegisub, ffmpeg. Your caption design is not carried over.',
+    hint: 'Keeps base font, size, colours, position and karaoke timing. Requires the fonts installed in your player/editor. For the full animated design, export video.',
     wordTiming: {
       explanation: NATIVE_WORD_TIMING_INFO,
       enabledByDefault: true,
@@ -132,6 +132,7 @@ export function SubtitleExportSettings({
         onCancel={onCancel}
         onConfirm={() => onConfirm({
           format,
+          includeDesign: format === 'ass',
           granularity: wordTiming && meta.wordTiming !== null ? 'word' : 'segment',
         })}
       />

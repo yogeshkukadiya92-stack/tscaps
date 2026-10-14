@@ -6,18 +6,21 @@ import type { SubtitleFileFormat } from '@core/export/domain/SubtitleFileFormat'
 import type { SubtitleFileSerializerRegistry } from '@core/export/services/SubtitleFileSerializerRegistry';
 import type { Telemetry } from '@core/telemetry/domain/Telemetry';
 import type { ExportAccessPolicy } from '@core/export/domain/ExportAccessPolicy';
+import { serializeStyledAss } from '@core/export/services/StyledAssSubtitleSerializer';
 
 export interface ExportSubtitlesOptions {
   readonly format: SubtitleFileFormat;
   readonly granularity: SubtitleGranularity;
+  readonly includeDesign?: boolean;
 }
 
 /**
  * Writes the captions to a subtitle file and hands it to the user, so
  * the timings can be carried into other editing software.
  *
- * Only the text and its timings travel: styling, decorations and
- * placement have no representation in a subtitle file and are dropped.
+ * Plain formats carry text and timing. Styled ASS additionally carries
+ * the sheet's base typography, colours, placement and karaoke timing.
+ * CSS motion, artwork and depth require a burned-in video export.
  * Cut words are left out and the remaining times follow the same
  * timeline a video export would produce, so both files line up against
  * the same footage.
@@ -47,8 +50,11 @@ export class ExportSubtitlesAction {
     if (!document) return;
 
     const serializer = this.serializers.get(options.format);
-    const body = serializer.serialize({
-      document: this.cutAwareDocumentBuilder.build(document, cuts),
+    const outputDocument = this.cutAwareDocumentBuilder.build(document, cuts);
+    const body = options.format === 'ass' && options.includeDesign
+      ? serializeStyledAss(outputDocument, state.sheets, state.video.layout, options.granularity, cuts.list())
+      : serializer.serialize({
+      document: outputDocument,
       granularity: options.granularity,
       ...(cuts.isEmpty() ? {} : { skipRanges: cuts.list() }),
     });

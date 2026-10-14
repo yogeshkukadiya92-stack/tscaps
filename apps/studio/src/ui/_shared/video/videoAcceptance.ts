@@ -9,7 +9,12 @@ export const ACCEPTED_VIDEO_TYPES = [
   'video/quicktime',
 ];
 
-export const ACCEPTED_VIDEO_LABEL = 'MP4 · WEBM · MOV';
+export const ACCEPTED_AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/x-flac', 'audio/webm'];
+export const MEDIA_FILE_ACCEPT = 'video/mp4,video/webm,video/quicktime,audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac';
+export const isAudioFile = (file: File): boolean => ACCEPTED_AUDIO_TYPES.includes(file.type) || /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(file.name);
+export const isAcceptedMediaFile = (file: File): boolean => ACCEPTED_VIDEO_TYPES.includes(file.type) || isAudioFile(file);
+
+export const ACCEPTED_VIDEO_LABEL = 'Video or audio · MP4 · WEBM · MOV · MP3 · WAV · M4A';
 
 export const VIDEO_UNSUPPORTED_MESSAGE =
-  'Unsupported format. Please use MP4, WebM, or MOV.';
+  'Please use a video (MP4, WebM, MOV) or audio (MP3, WAV, M4A, AAC, OGG, FLAC) file.';
