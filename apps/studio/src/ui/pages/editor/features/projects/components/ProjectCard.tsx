@@ -3,6 +3,7 @@ import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ProjectThumbnailSource } from '@core/projects/domain/ProjectThumbnailSource';
 import { ConfirmDialog } from '@ui/_shared/components/Dialog/ConfirmDialog';
 import { ProjectActionsMenu } from '@ui/pages/editor/features/projects/components/ProjectActionsMenu';
+import { useCloudAuth } from '@bootstrap/CloudAuthContext';
 
 interface ProjectCardProps {
   project: ProjectMetadata;
@@ -23,6 +24,7 @@ const DURATION_BADGE =
   'bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded-xs';
 
 export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete, onExport }: ProjectCardProps) {
+  const { client } = useCloudAuth();
   const thumbUrl = useThumbnailRenderUrl(project.thumbnail);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -79,7 +81,7 @@ export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete
       </div>
       <ConfirmDialog
         open={confirmOpen}
-        message={`Delete "${project.name}"? This cannot be undone.`}
+        message={client ? `Delete "${project.name}"? You can restore it from Recently deleted.` : `Delete "${project.name}"? This cannot be undone.`}
         confirmLabel="Delete"
         danger
         loading={deleting}

@@ -1,10 +1,10 @@
 # ReelStudio deployment checklist
 
-The code supports Supabase Auth and private account projects. The existing live app remains on its previous pinned archive until its inline Dockerfile is updated.
+Supabase Auth and private account projects are deployed for ReelStudio at `https://cap.yogeshaihub.in`.
 
 ## Dedicated service
 
-A Supabase template service named `reelstudio-supabase` was created in the existing tscaps/production Coolify project. Resource ID: `f4ywxz8fg8ytzlzepjnx02as`. It has not yet been deployed or validated.
+A Supabase template service named `reelstudio-supabase` was created in the existing tscaps/production Coolify project. Resource ID: `f4ywxz8fg8ytzlzepjnx02as`. It is running. The project migration has been applied; signup/signin, owner isolation, private video upload/download, and soft-delete/restore have been verified against the live service.
 
 - Keep the generated database/JWT/admin secrets internal; retain dashboard authentication.
 - Set the Kong route to HTTPS and verify its certificate before connecting the browser app.
@@ -33,3 +33,15 @@ Coolify frontend resource ID: `hx7cwhzutj6hzkduvyarin7x`. It uses an inline Dock
 4. Deploy and verify `https://cap.yogeshaihub.in/projects` presents sign in/sign up, with account projects after authentication.
 
 No SMTP credentials, public anon key, or server secrets are stored in this repository. The browser's existing local projects remain available for import after login, or through `.tscaps` export/import between origins.
+
+## Validated deployment
+
+Kong HTTPS API: `https://supabasekong-f4ywxz8fg8ytzlzepjnx02as.13.140.130.27.sslip.io`. Its certificate was validated by normal HTTPS requests. The service uses its own stack network; Postgres is not published as a public database port.
+
+Coolify's template referenced an unavailable `minio/mc` image. The bucket initialization helper now uses the same pinned `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z` image as the server; that image includes `mc`. The remaining template and generated secrets were preserved.
+
+The frontend's inline Dockerfile preserves its custom caption templates and includes the runtime public-config entrypoint. Runtime configuration uses only the public anon key and keeps `AUTH_EMAIL_ENABLED=false`.
+
+A synthetic test video and Roman Hinglish caption were saved through the live editor, then reopened from a separate origin with no preview cache. Generated QA accounts use `@example.invalid` email addresses and hold only synthetic test data. No real user password was created or changed.
+
+The configured `www.cap.yogeshaihub.in` application alias currently lacks DNS; use the working `cap.yogeshaihub.in` domain. Scheduled off-server backups have not been configured.
