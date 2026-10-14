@@ -18,6 +18,8 @@ import { useSheets } from '@ui/_shared/contexts/modules/SheetsContext';
 import { useEditorCuts } from '@ui/_shared/contexts/EditorStoreContext';
 import { usePlayback } from '@ui/pages/editor/contexts/PlaybackContext';
 import { useElements } from '@ui/_shared/contexts/modules/ElementsContext';
+import { useTranscription } from '@ui/_shared/contexts/modules/TranscriptionContext';
+import { BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
 
 interface TranscriptHostProps {
   document: Document | null;
@@ -46,6 +48,8 @@ export function TranscriptHost(props: TranscriptHostProps) {
   const sheets = useSheets();
   const playback = usePlayback();
   const elements = useElements();
+  const transcription = useTranscription();
+  const hasHindi = props.document?.getWords().some(word => /[\u0900-\u097f]/u.test(word.text)) ?? false;
   const textareaFocus = useMemo(() => new SegmentTextareaFocuser(), []);
   const textareaArrowNav = useMemo(() => new SegmentTextareaArrowNavigationController(), []);
   const scenePickController = useMemo(() => new ScenePickController(), []);
@@ -58,6 +62,10 @@ export function TranscriptHost(props: TranscriptHostProps) {
   return (
     <ScenePickProvider value={scenePickController}>
       <TranscriptTabShell bulkModeActive={bulkModeActive}>
+        {hasHindi && <div className="flex flex-col gap-1 mb-3">
+          <button className={BTN_SECONDARY_SM} onClick={() => transcription.actions.romanize.execute()}>Convert Hindi to Roman Hinglish</button>
+          <p className="text-2xs text-fg-muted m-0">Keeps word timing and English text. Use Undo to restore the original script.</p>
+        </div>}
         <TranscriptPanel
           {...props}
           cuts={cutRegistry}

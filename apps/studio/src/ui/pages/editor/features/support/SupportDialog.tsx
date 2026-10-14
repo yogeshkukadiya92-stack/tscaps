@@ -9,8 +9,8 @@ const GITHUB_SPONSOR_URL = 'https://github.com/sponsors/francozanardi';
 const BUY_ME_A_COFFEE_URL = 'https://www.buymeacoffee.com/francozanardi';
 const TRUSTPILOT_URL = 'https://www.trustpilot.com/review/tscaps.io';
 const FEEDBACK_EMAIL = 'franco@tscaps.io';
-const SHARE_URL = 'https://tscaps.io';
-const SHARE_TITLE = 'tscaps';
+const SHARE_URL = window.location.origin;
+const SHARE_TITLE = 'ReelStudio';
 const SHARE_TEXT = 'Animated subtitles in your browser. Open source.';
 
 const SHARE_FEEDBACK_MS = 2400;
@@ -25,7 +25,7 @@ interface SupportDialogProps {
 }
 
 /**
- * "Support tscaps" modal. Lists the concrete ways a user can help the
+ * "Support ReelStudio" modal. Lists the concrete ways a user can help the
  * project — free (share, review, star, feedback) and paid (donation,
  * sponsorship, and on close builds the hosted plan). Every row that
  * hits an external site opens in a new tab with `noopener`.
@@ -36,8 +36,8 @@ export function SupportDialog({ open, onClose }: SupportDialogProps) {
       open={open}
       onClose={onClose}
       size="lg"
-      title="Support tscaps"
-      description="Hey, I'm Franco. I build tscaps on my own. Here are some ways you can help."
+      title="Support ReelStudio"
+      description="ReelStudio is built on the open-source Tscaps editor. Share ReelStudio or support the original project below."
       showCloseButton
     >
       <div className="flex flex-col gap-6">
@@ -177,7 +177,7 @@ function ShareRow() {
     <button type="button" className={ROW} onClick={handleShare}>
       <RowLayout
         icon={<Share2 size={18} strokeWidth={1.75} />}
-        title="Share tscaps"
+        title="Share ReelStudio"
         subtitle={subtitle}
       />
     </button>

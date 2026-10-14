@@ -17,6 +17,7 @@ import type { PreprocessingProgressStore } from '@core/preprocessing/store/Prepr
 import type { UntranscribedRegionsStore } from '@core/transcription/store/UntranscribedRegionsStore';
 import type { WordOverlapClamper } from '@core/transcription/services/WordOverlapClamper';
 import type { Telemetry } from '@core/telemetry/domain/Telemetry';
+import { HinglishRomanizer } from '@core/transcription/services/HinglishRomanizer';
 
 /**
  * Transcribes a video file into a `Document` whose words carry their
@@ -56,8 +57,10 @@ export class TranscribeAction {
     this.progress.start(this.transcriber.initialPhase);
 
     try {
-      const transcribed = await this.transcriber.transcribe(videoFile, options);
-      const document = this.assemble(transcribed.getWords(), regions, languageCode ?? null);
+      const hinglish = preference.captionStyle === 'roman-hinglish';
+      const transcribed = await this.transcriber.transcribe(videoFile, hinglish ? { ...options, language: 'hi' } : options);
+      const words = hinglish ? new HinglishRomanizer().words(transcribed.getWords()) : transcribed.getWords();
+      const document = this.assemble(words, regions, hinglish ? 'hi-Latn' : languageCode ?? null);
       if (regions.length > 0) {
         this.untranscribedRegionsStore.publish(regions, preference.model);
         this.telemetry.capture('transcription_gaps_detected', {

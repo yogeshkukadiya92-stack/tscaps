@@ -10,19 +10,19 @@ export type EditorBlockedReason =
 const TITLES: Record<EditorBlockedReason, string> = {
   webcodecs: "Your browser can't export video",
   'no-templates': "Your browser can't render any caption template",
-  'db-blocked': 'Tscaps is already open in another tab',
+  'db-blocked': 'ReelStudio is already open in another tab',
 };
 
 const DESCRIPTIONS: Record<EditorBlockedReason, ReactNode> = {
   webcodecs:
-    "Tscaps relies on WebCodecs to encode the exported video, and your browser doesn't support it. " +
+    "ReelStudio relies on WebCodecs to encode the exported video, and your browser doesn't support it. " +
     'Please open this page in a Chromium-based browser (Chrome, Edge, Brave, Arc) on a recent device.',
   'no-templates':
     'None of the caption templates render correctly in this browser. ' +
     'Please open this page in a Chromium-based browser (Chrome, Edge, Brave, Arc) on a recent device.',
   'db-blocked':
-    'Another tab is holding an older version of tscaps open and blocking this one from starting. ' +
-    'Close every other tscaps tab in this browser and reload this page.',
+    'Another tab is holding an older version of ReelStudio open and blocking this one from starting. ' +
+    'Close every other ReelStudio tab in this browser and reload this page.',
 };
 
 /** The reasons a reader can act on without leaving the page. */

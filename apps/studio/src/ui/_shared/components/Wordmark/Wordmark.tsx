@@ -19,22 +19,9 @@ const SIZE_CLASS: Record<NonNullable<WordmarkProps['size']>, string> = {
 };
 
 const BASE =
-  'inline-flex items-baseline font-sans font-semibold tracking-[-0.04em] select-none';
+  'inline-flex items-center font-sans font-semibold tracking-[-0.04em] select-none';
 
-/**
- * The single brand mark for the app. Reads as two words and a dot:
- * `ts` in the default foreground (the quiet prefix), `caps` in the
- * accent (the noun the product is named after), and the accent dot —
- * the "punto final" of a caption. Render as a link by passing `href`;
- * pass `working` to make the dot blink as the universal "the app is
- * doing something" indicator.
- *
- * At `size="lg"` (splash) the accent paints across `caps` once on
- * mount — a one-shot karaoke flourish. Chrome-sized marks (`sm`,
- * `md`) render statically.
- *
- * Never used decoratively or inline — see DESIGN_IDENTITY.md §Wordmark.
- */
+/** Shared ReelStudio brand mark, with a blinking activity indicator. */
 export function Wordmark({ href, onClick, size = 'md', working = false, className = '' }: WordmarkProps) {
   const sizeClass = SIZE_CLASS[size];
   const isLink = href !== undefined;
@@ -49,8 +36,9 @@ export function Wordmark({ href, onClick, size = 'md', working = false, classNam
 
   const content = (
     <>
-      <span className="text-fg-primary">ts</span>
-      <span className={capsClass}>caps</span>
+      <img src="/reelstudio-logo.svg" alt="" aria-hidden="true" className="mr-2 h-[1.6em] w-[1.6em] shrink-0" />
+      <span className="text-fg-primary">Reel</span>
+      <span className={capsClass}>Studio</span>
       <span className={dotClass} aria-hidden="true">.</span>
     </>
   );
@@ -61,7 +49,7 @@ export function Wordmark({ href, onClick, size = 'md', working = false, classNam
         href={href}
         onClick={onClick}
         className={`${BASE} group ${sizeClass} focus-visible:outline-none ${className}`}
-        aria-label="tscaps — home"
+        aria-label="ReelStudio — home"
       >
         {content}
       </a>
@@ -69,7 +57,7 @@ export function Wordmark({ href, onClick, size = 'md', working = false, classNam
   }
 
   return (
-    <span className={`${BASE} ${sizeClass} ${className}`} aria-label="tscaps">
+    <span className={`${BASE} ${sizeClass} ${className}`} aria-label="ReelStudio">
       {content}
     </span>
   );

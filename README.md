@@ -1,4 +1,6 @@
-# Tscaps
+# ReelStudio
+
+ReelStudio is a browser-based Reels editing studio, built on the open-source Tscaps editor.
 
 **Add animated captions to any video, in your browser. Free, open source, no account, no upload.**
 
@@ -257,3 +259,17 @@ Issues, PRs, and template contributions are welcome. The repo is a pnpm monorepo
 - `packages/engine`: [MIT](packages/engine/LICENSE)
 - `apps/studio`: [AGPL-3.0](apps/studio/LICENSE)
 - `templates/`: [MIT](templates/LICENSE)
+
+## ReelStudio Creative Studio
+
+Open a video and choose **Creative → Open Creative Studio**. This editing pass includes six color looks, brightness/contrast/saturation controls, slow zoom, beat zoom, shake, beat flash, trim, 0.5–2× speed, audio-based silence removal, manual-BPM beat jump cuts, music mixing, and a title overlay. Existing Timeline cuts can be included.
+
+Preview and export share one canvas renderer. Creative exports run in real time at up to 1080p/30 fps; keep the tab visible. The browser selects MP4 where its recorder supports H.264/AAC, otherwise WebM. Download the result or choose **Add captions in a new project** to transcribe the edited timeline. To style a video with captions already burned in, choose that exported video inside Creative Studio. Creative settings and uploaded music are session-only; render and download before closing the studio.
+
+## Roman Hinglish captions
+
+New transcription defaults to **Roman Hinglish — Hindi + English**, using multilingual Whisper **Small** instead of Base. The Start dialog offers **Balanced · Small** and **Accuracy · Medium**, and remembers the selection. Medium needs a larger model download, more memory, and more processing time. Existing legacy Base preferences migrate to Small; explicit model choices made with the new caption-style setting are preserved.
+
+Hinglish mode requests Hindi transcription with Whisper's existing `transcribe` task, then romanizes Hindi-script words into readable Latin captions. English text, word IDs, timestamps, and speaker information are preserved. Common caption spellings and English loanwords are normalized; other Hindi words use Sanscript with conservative Hindi schwa handling. This is a model configuration and spelling-conversion upgrade, not a fine-tuned Hinglish model or a guarantee of speech accuracy. Review names and uncommon words in the Transcript editor.
+
+Choose **Original script / other languages** to use the normal language picker. Imported subtitle files retain their original text. Existing Hindi captions can be converted with **Transcript → Convert Hindi to Roman Hinglish**; Undo restores the original script. Roman captions are stored in the project and included in video and subtitle exports.

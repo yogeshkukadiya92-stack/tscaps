@@ -30,6 +30,7 @@ declare global {
       setVideo: (blob: Blob, opts?: { publishPreview?: boolean }) => Promise<void>;
       setVideoLayout: (width: number, height: number) => void;
       setDocument: (json: unknown) => Promise<void>;
+      documentWords: () => Array<{ id: string; text: string; start: number; end: number }>;
       triggerExport: () => Promise<void>;
       playPreview: () => Promise<void>;
       pausePreview: () => void;
@@ -224,6 +225,10 @@ export function attachE2EHook(deps: E2EHookDeps): void {
       const doc = buildDocumentFromJson(json);
       deps.editorStore.patch({ document: doc, status: 'ready' });
     },
+
+    documentWords: () => (deps.editorStore.snapshot().document?.getWords() ?? []).map(word => ({
+      id: word.id, text: word.text, start: word.time.start, end: word.time.end,
+    })),
 
     playPreview: () => deps.previewSurface.play(),
 

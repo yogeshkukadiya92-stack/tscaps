@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode, type Ref } from 'react';
-import { AudioWaveform, Captions, Check } from 'lucide-react';
+import { AudioWaveform, Captions, Check, Clapperboard } from 'lucide-react';
+import { CreativeStudio } from '@ui/pages/editor/features/creative/CreativeStudio';
 import type { Document, Segment } from '@tscaps/engine';
 import type { EditorState } from '@core/editor/domain/EditorState';
 import type { SheetCreationOption } from '@core/sheets/domain/SheetCreationOption';
@@ -229,6 +230,7 @@ export function EditorPage({
 
   const workspaceModes: readonly EditorModeDescriptor[] = [
     { id: 'captions', label: 'Captions', role: 'content', icon: <Captions size={MODE_ICON_SIZE} />, panel: captionsPanel },
+    { id: 'creative', label: 'Creative', role: 'content', icon: <Clapperboard size={MODE_ICON_SIZE} />, panel: <CreativeStudio state={state} /> },
     { id: 'timeline', label: 'Timeline', role: 'tool', icon: <AudioWaveform size={MODE_ICON_SIZE} />, panel: (
       <TimelineHost
         document={state.document}

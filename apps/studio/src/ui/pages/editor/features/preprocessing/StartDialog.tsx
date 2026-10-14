@@ -123,6 +123,7 @@ export function StartDialog({
   const [subtitleFileError, setSubtitleFileError] = useState<string | null>(null);
   const subtitleInputRef = useRef<HTMLInputElement>(null);
   const fromSubtitleFile = inBrowserTranscription && subtitleFile !== null;
+  const romanHinglish = inBrowserTranscription && preference.captionStyle === 'roman-hinglish';
 
   const pickSubtitleFile = () => subtitleInputRef.current?.click();
 
@@ -151,14 +152,15 @@ export function StartDialog({
     if (fromSubtitleFile) {
       return preprocessVideo.execute({ transcriber: {}, multipleSpeakers: false, subtitleFile });
     }
-    if (!allowAutoDetect && language === '') {
+    if (!romanHinglish && !allowAutoDetect && language === '') {
       setLanguageError('Please pick a language.');
       document.getElementById('td-language')?.focus();
       return;
     }
-    const isExplicit = language !== '' && language !== AUTO_DETECT_LANGUAGE_VALUE;
-    const transcriber: TranscriberOptions = isExplicit ? { language } : {};
-    const picked = isExplicit ? languages.find((l) => l.code === language) : undefined;
+    const selectedLanguage = romanHinglish ? 'hi' : language;
+    const isExplicit = selectedLanguage !== '' && selectedLanguage !== AUTO_DETECT_LANGUAGE_VALUE;
+    const transcriber: TranscriberOptions = isExplicit ? { language: selectedLanguage } : {};
+    const picked = isExplicit ? languages.find((l) => l.code === selectedLanguage) : undefined;
     if (picked !== undefined) onLanguagePicked?.(picked);
     return preprocessVideo.execute({
       transcriber,
@@ -191,7 +193,28 @@ export function StartDialog({
         <SubtitleFileField file={subtitleFile} onChange={pickSubtitleFile} />
       ) : (
         <>
-          <LanguagePicker
+          {inBrowserTranscription && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary">
+            Caption language & script
+            <select aria-label="Caption language & script" className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"
+              value={preference.captionStyle ?? 'original'} onChange={event => {
+                updatePreference.execute({ ...preference, captionStyle: event.target.value as 'roman-hinglish' | 'original' });
+                setLanguageError(null);
+              }}>
+              <option value="roman-hinglish">Roman Hinglish — Hindi + English</option>
+              <option value="original">Original script / other languages</option>
+            </select>
+          </label>}
+          {romanHinglish ? <div className="flex flex-col gap-2">
+            <p className="text-xs text-fg-secondary m-0">Hindi + English speech → Roman captions. Example: “aaj hum video edit karenge”. English words stay in English.</p>
+            <p className="text-xs text-fg-muted m-0">Hindi words are romanized after transcription. Review names and spellings in the Transcript editor.</p>
+            <div className="flex gap-2">
+              <button type="button" className={preference.model === 'small' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'small'}
+                onClick={() => updatePreference.execute({ ...preference, model: 'small' })}>Balanced · Small</button>
+              <button type="button" className={preference.model === 'medium' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'medium'}
+                onClick={() => updatePreference.execute({ ...preference, model: 'medium' })}>Accuracy · Medium</button>
+            </div>
+            <p className="text-2xs text-fg-muted m-0">{preference.model === 'medium' ? 'Medium has a larger first download and needs more memory and processing time.' : 'Small is the default balance of model size and transcription quality.'}</p>
+          </div> : <LanguagePicker
             id="td-language"
             label="Language"
             languages={languages}
@@ -202,7 +225,7 @@ export function StartDialog({
             lastUsedCode={lastUsedCode}
             placeholder="Select a language"
             errorMessage={languageError ?? undefined}
-          />
+          />}
 
           {extraFields}
         </>

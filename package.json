@@ -1,8 +1,8 @@
 {
-  "name": "tscaps",
+  "name": "reelstudio",
   "version": "0.0.0",
   "private": true,
-  "description": "tscaps — burn subtitles into your videos in the browser.",
+  "description": "ReelStudio \u2014 edit reels and add animated captions in your browser.",
   "homepage": "https://tscaps.io",
   "repository": {
     "type": "git",

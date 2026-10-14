@@ -31,10 +31,14 @@ export class LocalStorageTranscribePreferenceRepository implements TranscribePre
     const backend = VALID_BACKENDS.has(raw.backend as TranscribeBackend)
       ? (raw.backend as TranscribeBackend)
       : this.defaultPreference.backend;
-    const model = VALID_MODELS.has(raw.model as TranscribeModel)
+    const model = raw.captionStyle === undefined && raw.model === 'base'
+      ? this.defaultPreference.model
+      : VALID_MODELS.has(raw.model as TranscribeModel)
       ? (raw.model as TranscribeModel)
       : this.defaultPreference.model;
-    return { backend, model };
+    const captionStyle = raw.captionStyle === 'original' || raw.captionStyle === 'roman-hinglish'
+      ? raw.captionStyle : this.defaultPreference.captionStyle ?? 'original';
+    return { backend, model, captionStyle };
   }
 
   save(pref: TranscribePreference): void {

@@ -15,8 +15,8 @@ export interface PreviewFrame {
  * Build once and share — the instance carries no per-template state.
  */
 export class TemplatePreviewMock {
-  private static readonly WORDS: ReadonlyArray<string> = ['This', 'is', 'tscaps'];
-  private static readonly SINGLE_WORD_TEXT: string = 'tscaps';
+  private static readonly WORDS: ReadonlyArray<string> = ['This', 'is', 'ReelStudio'];
+  private static readonly SINGLE_WORD_TEXT: string = 'ReelStudio';
 
   readonly wordDuration: number = 0.5;
   readonly totalDuration: number;

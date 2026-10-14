@@ -5,6 +5,8 @@ import { WHISPER_SAMPLE_RATE } from '@tscaps/engine';
 import type { ConfigurableTranscriber } from '@core/transcription/domain/ConfigurableTranscriber';
 import { WorkerTranscriber } from '@core/transcription/infrastructure/WorkerTranscriber';
 import { WordOverlapClamper } from '@core/transcription/services/WordOverlapClamper';
+import { HinglishRomanizer } from '@core/transcription/services/HinglishRomanizer';
+import { RomanizeCaptionsAction } from '@core/transcription/actions/RomanizeCaptionsAction';
 import { TranscribeAction } from '@core/transcription/actions/TranscribeAction';
 import { UpdateTranscribePreferenceAction } from '@core/transcription/actions/UpdateTranscribePreferenceAction';
 import { UntranscribedRegionsStore } from '@core/transcription/store/UntranscribedRegionsStore';
@@ -50,11 +52,13 @@ export function bootTranscription(deps: TranscriptionDependencies) {
 
   const untranscribedRegionsStore = new UntranscribedRegionsStore();
   const skippedCueBlocksStore = new SkippedCueBlocksStore();
+  const hinglishRomanizer = new HinglishRomanizer();
 
   return {
     untranscribedRegionsStore,
     skippedCueBlocksStore,
     actions: {
+      romanize: new RomanizeCaptionsAction(deps.store, hinglishRomanizer),
       transcribe: new TranscribeAction(
         transcriber,
         deps.progressStore,

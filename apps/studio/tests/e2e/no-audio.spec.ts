@@ -26,8 +26,9 @@ test('video without an audio track warns, starts, and opens the editor', async (
   // language from the audio offers Auto-detect, and the in-browser one
   // cannot, so it refuses to start until a language is chosen. Choosing one
   // is valid either way; relying on the default only exercises one surface.
-  await page.getByLabel('Language').fill('English');
-  await page.getByRole('option', { name: 'English' }).first().click();
+  await page.getByLabel('Caption language & script', { exact: true }).selectOption('original');
+  await page.getByLabel('Language', { exact: true }).fill('English');
+  await page.getByRole('option', { name: /^English/ }).first().click();
 
   const start = page.getByTestId('start-flow-primary');
   await expect(start).toBeEnabled();

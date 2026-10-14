@@ -13,9 +13,11 @@ export type TranscribeModel = Extract<WhisperModel, 'tiny' | 'base' | 'small' | 
 export interface TranscribePreference {
   readonly backend: TranscribeBackend;
   readonly model: TranscribeModel;
+  readonly captionStyle?: 'roman-hinglish' | 'original';
 }
 
 export const DEFAULT_TRANSCRIBE_PREFERENCE: TranscribePreference = {
   backend: 'wasm',
-  model: 'base',
+  model: 'small',
+  captionStyle: 'roman-hinglish',
 };

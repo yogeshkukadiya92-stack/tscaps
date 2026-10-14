@@ -7,6 +7,7 @@ declare global {
       setVideo: (blob: Blob, opts?: { publishPreview?: boolean }) => Promise<void>;
       setVideoLayout: (width: number, height: number) => void;
       setDocument: (json: unknown) => Promise<void>;
+      documentWords: () => Array<{ id: string; text: string; start: number; end: number }>;
       seekPreview: (sourceTimeSec: number) => void;
       triggerExport: () => Promise<void>;
       lastResult: { blob: Blob; sizeBytes: number; mimeType: string } | { error: string } | undefined;

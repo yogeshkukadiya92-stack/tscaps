@@ -1,4 +1,4 @@
-export type EditorModeId = 'captions' | 'timeline';
+export type EditorModeId = 'captions' | 'creative' | 'timeline';
 
 /**
  * What the editor's right pane is showing: which mode is open, and
