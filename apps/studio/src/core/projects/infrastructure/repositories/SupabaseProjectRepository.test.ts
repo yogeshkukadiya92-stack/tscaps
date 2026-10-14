@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Project } from '@core/projects/domain/Project';
 import type { ProjectSerializer } from '@core/projects/services/ProjectSerializer';
 import { SupabaseProjectRepository } from '@core/projects/infrastructure/repositories/SupabaseProjectRepository';
+import { CloudVideoUploadManager } from '@core/projects/services/CloudVideoUploadManager';
+import type { VideoUploadRequest } from '@core/projects/domain/VideoUploadTransport';
 
 describe('Cloud project failure and account boundaries', () => {
   it('retries a failed video upload before saving metadata, and refuses to mark an unsynced video saved', async () => {
@@ -86,5 +88,46 @@ describe('Cloud video reuse', () => {
     const controller = new AbortController(); controller.abort();
     await expect(repository.loadVideoBlob('project', undefined, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
     expect(signed).not.toHaveBeenCalled();
+  });
+});
+
+describe('Resumable cloud saves', () => {
+  it('never writes metadata for a cancelled video; explicit Resume shares its transfer with Save', async () => {
+    const attempts: VideoUploadRequest[] = [];
+    let finish!: () => void;
+    const transport = { upload: vi.fn((request: VideoUploadRequest) => {
+      attempts.push(request);
+      return new Promise<void>((resolve, reject) => {
+        finish = resolve;
+        request.signal.addEventListener('abort', () => reject(request.signal.reason), { once: true });
+      });
+    }) };
+    const uploads = new CloudVideoUploadManager(transport);
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    const standardUpload = vi.fn();
+    const client = { auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'owner' } } } }) },
+      storage: { from: () => ({ upload: standardUpload }) }, from: () => ({ upsert }) } as unknown as SupabaseClient;
+    const serializer = { serialize: vi.fn().mockReturnValue({}) } as unknown as ProjectSerializer;
+    const repository = new SupabaseProjectRepository(client, serializer, undefined, uploads);
+    const project = { id: 'project', name: 'Holiday', createdAt: new Date(), updatedAt: new Date(),
+      document: null, thumbnail: null, video: {} } as Project;
+    const caching = repository.cacheVideoBlob('project', new Blob(['source']));
+    await vi.waitFor(() => expect(attempts.length).toBe(1));
+    attempts[0]!.onUrl('https://storage.test/resumable/retained');
+    uploads.cancel('owner/project');
+    await expect(caching).rejects.toMatchObject({ name: 'AbortError' });
+    await expect(repository.save(project)).rejects.toMatchObject({ name: 'AbortError' });
+    expect(upsert).not.toHaveBeenCalled();
+    expect(transport.upload).toHaveBeenCalledTimes(1);
+    const retry = repository.retryVideoUpload('project');
+    await vi.waitFor(() => expect(attempts.length).toBe(2));
+    const saving = repository.save(project);
+    expect(attempts[1]!.resumeUrl).toBe('https://storage.test/resumable/retained');
+    finish();
+    await Promise.all([retry, saving]);
+    expect(transport.upload).toHaveBeenCalledTimes(2);
+    expect(standardUpload).not.toHaveBeenCalled();
+    expect(upsert).toHaveBeenCalledTimes(1);
+    expect(uploads.store.statuses).toEqual([]);
   });
 });

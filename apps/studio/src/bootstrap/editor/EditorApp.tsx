@@ -18,6 +18,7 @@ import { PostExportPromptSlotProvider, type PostExportPromptRenderer } from '@bo
 import type { AppModules } from '@bootstrap/AppModules';
 import { CloudAuthGate } from '@bootstrap/CloudAuthContext';
 import { CloudAccountBar } from '@ui/pages/auth/CloudAccountBar';
+import { VideoUploadPanel } from '@ui/pages/editor/components/VideoUploadPanel';
 
 interface EditorAppProps {
   modules: AppModules;
@@ -75,6 +76,7 @@ export function EditorApp({
                   never against the viewport. */}
               <div className="flex flex-col h-dvh">
                 <CloudAccountBar />
+                <VideoUploadPanel />
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   <Routes>
                     {exitHref === null && <Route path={routes.projectsList()} element={projectsHost} />}

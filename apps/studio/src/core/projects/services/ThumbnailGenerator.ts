@@ -12,6 +12,7 @@ export class ThumbnailGenerator {
     private readonly seekSeconds: number = 0.1,
     private readonly maxWidth: number = 480,
     private readonly quality: number = 0.7,
+    private readonly timeoutMs: number = 5000,
   ) {}
 
   generate(source: Blob): Promise<Blob> {
@@ -21,20 +22,22 @@ export class ThumbnailGenerator {
       video.muted = true;
       video.playsInline = true;
       video.preload = 'auto';
-      video.src = url;
-
       const cleanup = () => {
+        clearTimeout(timeout);
+        video.removeEventListener('loadedmetadata', onMetadata);
+        video.removeEventListener('seeked', onSeeked);
+        video.removeEventListener('error', onError);
         URL.revokeObjectURL(url);
         video.removeAttribute('src');
         video.load();
       };
 
-      video.addEventListener('loadedmetadata', () => {
+      const onMetadata = () => {
         const target = Math.min(this.seekSeconds, Math.max(0, video.duration - 0.05));
         video.currentTime = target;
-      });
+      };
 
-      video.addEventListener('seeked', () => {
+      const onSeeked = () => {
         try {
           const blob = this.captureFrame(video);
           cleanup();
@@ -43,12 +46,20 @@ export class ThumbnailGenerator {
           cleanup();
           reject(err);
         }
-      }, { once: true });
+      };
 
-      video.addEventListener('error', () => {
+      const onError = () => {
         cleanup();
         reject(new Error('Failed to load video for thumbnail generation'));
-      });
+      };
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Thumbnail generation timed out'));
+      }, this.timeoutMs);
+      video.addEventListener('loadedmetadata', onMetadata, { once: true });
+      video.addEventListener('seeked', onSeeked, { once: true });
+      video.addEventListener('error', onError, { once: true });
+      video.src = url;
     });
   }
 

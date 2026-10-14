@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CreateProjectAction } from '@core/projects/actions/CreateProjectAction';
 import { EditorStore } from '@core/editor/store/EditorStore';
 import { ProjectName } from '@core/projects/domain/ProjectName';
@@ -57,6 +57,26 @@ describe('CreateProjectAction', () => {
     const outcome = await action.execute();
 
     expect(outcome.videoStoreFailure).toBeNull();
+  });
+
+  it('starts caching the video while its thumbnail is still decoding', async () => {
+    let finishThumbnail!: (blob: Blob) => void;
+    const thumbnail = new Promise<Blob>(resolve => { finishThumbnail = resolve; });
+    const cacheVideoBlob = vi.fn().mockResolvedValue(undefined);
+    const store = new EditorStore();
+    const file = new File(['frames'], 'holiday.mp4');
+    store.patchVideo({ file });
+    const action = new CreateProjectAction(store,
+      substitute<ProjectRepository>({ cacheVideoBlob }),
+      substitute<ThumbnailGenerator>({ generate: () => thumbnail }), new ProjectName());
+    const creating = action.execute();
+    expect(cacheVideoBlob).toHaveBeenCalledWith(expect.any(String), file);
+    expect(store.snapshot().projectId).toBeNull();
+    const image = new Blob(['thumbnail']);
+    finishThumbnail(image);
+    await creating;
+    expect(store.snapshot().projectThumbnail).toBe(image);
+    expect(store.snapshot().projectId).not.toBeNull();
   });
 
   it('does not resurrect an old project after signing out during its upload', async () => {

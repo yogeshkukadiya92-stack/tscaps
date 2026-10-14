@@ -47,6 +47,14 @@ export function ProjectsHost() {
   }, [projects]);
 
   useEffect(() => {
+    const store = projects.videoUploads?.store;
+    if (!store) return;
+    const completed = () => { void refresh(); };
+    store.addEventListener('completed', completed);
+    return () => store.removeEventListener('completed', completed);
+  }, [projects, refresh]);
+
+  useEffect(() => {
     let active = true;
     void projects.actions.list.execute().then(all => {
       if (active) setMine(all);

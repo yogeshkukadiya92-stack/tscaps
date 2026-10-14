@@ -7,11 +7,16 @@ declare global {
 }
 
 let client: SupabaseClient | null | undefined;
+export function getSupabaseUrl(): string | null {
+  return window.__REELSTUDIO_CONFIG__?.supabaseUrl || import.meta.env.VITE_SUPABASE_URL || null;
+}
+export function getSupabasePublicKey(): string | null {
+  return window.__REELSTUDIO_CONFIG__?.supabaseAnonKey || import.meta.env.VITE_SUPABASE_ANON_KEY || null;
+}
 export function getSupabaseClient(): SupabaseClient | null {
   if (client !== undefined) return client;
-  const config = window.__REELSTUDIO_CONFIG__;
-  const url = config?.supabaseUrl || import.meta.env.VITE_SUPABASE_URL;
-  const key = config?.supabaseAnonKey || import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const url = getSupabaseUrl();
+  const key = getSupabasePublicKey();
   if (!url || !key) return client = null;
   // Only a public anon/publishable key belongs in a browser bundle.
   if (key.startsWith('sb_secret_')) throw new Error('Use a public Supabase key, never a server secret.');

@@ -42,9 +42,13 @@ export class CreateProjectAction {
 
   async execute(): Promise<ProjectCreationOutcome> {
     const file = this.requireLoadedVideoFile();
-    const thumbnail = await this.generateThumbnailBestEffort(file);
     const id = crypto.randomUUID();
-    const videoStoreFailure = await this.cacheVideoBlobBestEffort(id, file);
+    // Start transferring the original immediately; thumbnail decoding must
+    // not delay the largest write in the import flow.
+    const [thumbnail, videoStoreFailure] = await Promise.all([
+      this.generateThumbnailBestEffort(file),
+      this.cacheVideoBlobBestEffort(id, file),
+    ]);
     // Loading another video or signing out while an upload runs cancels this creation.
     if (this.store.snapshot().video.file !== file) return { videoStoreFailure };
     this.store.patch({

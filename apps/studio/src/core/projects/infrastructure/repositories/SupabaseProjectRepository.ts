@@ -5,6 +5,7 @@ import { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ProjectSerializer, SerializedProject } from '@core/projects/services/ProjectSerializer';
 import type { VideoBlobLookup } from '@core/videos/domain/VideoBlobLookup';
 import type { VideoBlobCache } from '@core/videos/domain/VideoBlobCache';
+import type { CloudVideoUploadManager } from '@core/projects/services/CloudVideoUploadManager';
 
 const TABLE = 'reelstudio_projects';
 const BUCKET = 'reelstudio-videos';
@@ -32,7 +33,8 @@ function decodeThumbnail(value: string | null): Blob | null {
 export class SupabaseProjectRepository implements ProjectRepository {
   private readonly pendingVideos = new Map<string, Blob>();
   private readonly videoVersions = new Map<string, string>();
-  constructor(private readonly client: SupabaseClient, private readonly serializer: ProjectSerializer, private readonly videoCache?: VideoBlobCache) {}
+  constructor(private readonly client: SupabaseClient, private readonly serializer: ProjectSerializer,
+    private readonly videoCache?: VideoBlobCache, private readonly uploads?: CloudVideoUploadManager) {}
 
   private async owner(): Promise<string> {
     const { data, error } = await this.client.auth.getSession();
@@ -44,6 +46,30 @@ export class SupabaseProjectRepository implements ProjectRepository {
     if (await this.owner() !== id) throw new Error('Your account changed. Please reopen the project.');
   }
   private path(owner: string, projectId: string): string { return `${owner}/${projectId}/original`; }
+
+  async restoreUploads(): Promise<void> {
+    const owner = await this.owner();
+    await this.restorePending(owner);
+  }
+
+  private async restorePending(owner: string): Promise<void> {
+    await this.uploads?.restore(owner);
+    await this.assertOwner(owner);
+    for (const status of this.uploads?.store.statuses ?? []) {
+      if (status.key !== `${owner}/${status.projectId}` || status.phase === 'ready') continue;
+      const blob = this.uploads?.source(owner, status.projectId);
+      if (blob) this.pendingVideos.set(this.path(owner, status.projectId), blob);
+    }
+  }
+
+  async saveUploadDraft(projectId: string): Promise<void> {
+    const owner = await this.owner();
+    const draft = this.uploads?.draft(owner, projectId);
+    if (!draft) throw new Error('Open the project and save it to finish recovery.');
+    const project = await this.serializer.deserialize(draft.payload, draft.thumbnail);
+    await this.assertOwner(owner);
+    await this.save(project);
+  }
 
   async list(): Promise<ProjectMetadata[]> {
     const owner = await this.owner();
@@ -59,6 +85,13 @@ export class SupabaseProjectRepository implements ProjectRepository {
   }
   async load(id: string): Promise<Project | null> {
     const owner = await this.owner();
+    await this.restorePending(owner);
+    const draft = this.uploads?.draft(owner, id);
+    if (draft) {
+      const project = await this.serializer.deserialize(draft.payload, draft.thumbnail);
+      await this.assertOwner(owner);
+      return project;
+    }
     const { data, error } = await this.client.from(TABLE).select('*').eq('user_id', owner).eq('id', id).is('deleted_at', null).maybeSingle();
     if (error) throw error;
     await this.assertOwner(owner);
@@ -76,6 +109,10 @@ export class SupabaseProjectRepository implements ProjectRepository {
   }
   async save(project: Project): Promise<void> {
     const owner = await this.owner();
+    await this.restorePending(owner);
+    // Keep the latest captions locally before waiting for a large transfer.
+    this.uploads?.setDraft(owner, project.id, { payload: this.serializer.serialize(project), thumbnail: project.thumbnail });
+    await this.uploads?.flush(owner, project.id);
     const pending = this.pendingVideos.get(this.path(owner, project.id));
     if (pending) await this.upload(owner, project.id, pending);
     const thumbnail = await encodeThumbnail(project.thumbnail);
@@ -87,6 +124,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
     if (error) throw error;
     await this.assertOwner(owner);
     const path = this.path(owner, project.id);
+    this.uploads?.complete(`${owner}/${project.id}`);
     const previousVersion = this.videoVersions.get(path);
     const version = project.updatedAt.toISOString();
     this.videoVersions.set(path, version);
@@ -108,6 +146,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
     const { error } = await this.client.from(TABLE).update({ deleted_at: new Date().toISOString() }).eq('user_id', owner).eq('id', id);
     if (error) throw error;
     this.pendingVideos.delete(this.path(owner, id));
+    this.uploads?.discard(`${owner}/${id}`);
   }
   async listDeleted(): Promise<{ id: string; name: string }[]> {
     const owner = await this.owner();
@@ -124,15 +163,37 @@ export class SupabaseProjectRepository implements ProjectRepository {
   }
   async cacheVideoBlob(projectId: string, blob: Blob): Promise<void> {
     const owner = await this.owner();
+    if (blob.size > 524288000) throw new Error('Account video uploads support files up to 500 MB.');
+    const previous = this.pendingVideos.get(this.path(owner, projectId));
+    if (previous && previous !== blob) throw new Error('Finish the previous video upload before replacing it.');
     this.pendingVideos.set(this.path(owner, projectId), blob);
     await this.upload(owner, projectId, blob);
+  }
+
+  async retryVideoUpload(projectId: string, automatic = false): Promise<void> {
+    const owner = await this.owner();
+    await this.restorePending(owner);
+    const blob = this.pendingVideos.get(this.path(owner, projectId));
+    if (!blob) return;
+    if (this.uploads) await this.uploads.retry(owner, projectId, automatic);
+    await this.upload(owner, projectId, blob);
+  }
+
+  resetUploads(): void {
+    this.uploads?.reset();
+    this.pendingVideos.clear();
+    this.videoVersions.clear();
   }
   private async upload(owner: string, projectId: string, blob: Blob): Promise<void> {
     if (blob.size > 524288000) throw new Error('Account video uploads support files up to 500 MB.');
     await this.assertOwner(owner);
     const path = this.path(owner, projectId);
-    const { error } = await this.client.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' });
-    if (error) throw error;
+    if (this.uploads) {
+      await this.uploads.upload(owner, projectId, blob);
+    } else {
+      const { error } = await this.client.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' });
+      if (error) throw error;
+    }
     await this.assertOwner(owner);
     const previousVersion = this.videoVersions.get(path);
     this.videoVersions.delete(path);
@@ -142,6 +203,10 @@ export class SupabaseProjectRepository implements ProjectRepository {
   async loadVideoBlob(projectId: string, onProgress?: LoadVideoBlobProgressCallback, signal?: AbortSignal): Promise<VideoBlobLookup> {
     const owner = await this.owner();
     signal?.throwIfAborted();
+    await this.restorePending(owner);
+    signal?.throwIfAborted();
+    const pendingSource = this.uploads?.source(owner, projectId);
+    if (pendingSource) { onProgress?.(1); return { outcome: 'found', blob: pendingSource, source: 'device' }; }
     const version = this.videoVersions.get(this.path(owner, projectId));
     const cacheKey = version ? `cloud/${owner}/${projectId}/${version}` : null;
     if (cacheKey && this.videoCache) {

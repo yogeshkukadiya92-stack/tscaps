@@ -24,6 +24,7 @@ export function CloudAuthGate({ modules, children }: { modules: AppModules; chil
       resolvedByEvent = true;
       // Account transitions destroy previous in-memory work before the next account renders.
       if (event === 'SIGNED_OUT' || (accountId && next?.user.id !== accountId)) {
+        modules.projects.cloudRepository?.resetUploads();
         modules.editor.store.reset();
         // Navigation also destroys in-flight transcription and media pipelines from the old account.
         window.location.replace(`${import.meta.env.BASE_URL}projects`);
@@ -39,7 +40,7 @@ export function CloudAuthGate({ modules, children }: { modules: AppModules; chil
       setSession(data.session); setReady(true);
     }).catch(() => { if (active) { setError('Could not restore your session. Please sign in again.'); setReady(true); } });
     return () => { active = false; listener.subscription.unsubscribe(); };
-  }, [client, modules.editor.store]);
+  }, [client, modules.editor.store, modules.projects.cloudRepository]);
 
   return <CloudAuthContext.Provider value={{ client, session }}>
     {!ready ? <div className="h-dvh grid place-items-center bg-surface-0 text-fg-muted" role="status">Opening your account…</div>

@@ -16,7 +16,11 @@ import { ProjectName } from '@core/projects/domain/ProjectName';
 import type { UnsavedWorkPolicy } from '@core/projects/domain/UnsavedWorkPolicy';
 import { IndexedDbProjectRepository } from '@core/projects/infrastructure/repositories/IndexedDbProjectRepository';
 import { SupabaseProjectRepository } from '@core/projects/infrastructure/repositories/SupabaseProjectRepository';
-import { getSupabaseClient } from '@core/auth/infrastructure/SupabaseClient';
+import { getSupabaseClient, getSupabaseUrl, getSupabasePublicKey } from '@core/auth/infrastructure/SupabaseClient';
+import { CloudVideoUploadManager } from '@core/projects/services/CloudVideoUploadManager';
+import { TusVideoUploadTransport, resumableUploadEndpoint } from '@core/projects/infrastructure/TusVideoUploadTransport';
+import { IndexedDbPendingVideoUploadRepository } from '@core/projects/infrastructure/IndexedDbPendingVideoUploadRepository';
+import { VideoUploadStore } from '@core/projects/store/VideoUploadStore';
 import type { TemplateRepository } from '@core/templates/domain/TemplateRepository';
 import { TemplateSubstitutionNotifier } from '@core/templates/domain/TemplateSubstitutionNotifier';
 import { FallbackingTemplateReferenceResolver } from '@core/templates/services/FallbackingTemplateReferenceResolver';
@@ -116,7 +120,24 @@ export function bootProjects(deps: ProjectsDependencies) {
 
   const localRepository = new IndexedDbProjectRepository(deps.indexedDb, serializer, deps.videoFiles.blobCache);
   const cloudClient = getSupabaseClient();
-  const cloudRepository = cloudClient ? new SupabaseProjectRepository(cloudClient, serializer, deps.videoFiles.blobCache) : null;
+  const uploadEndpoint = cloudClient ? resumableUploadEndpoint(getSupabaseUrl()!) : null;
+  const videoUploads = cloudClient ? new CloudVideoUploadManager(
+    new TusVideoUploadTransport(cloudClient, uploadEndpoint!, getSupabasePublicKey()!),
+    new VideoUploadStore(), {
+      persistence: new IndexedDbPendingVideoUploadRepository(uploadEndpoint!),
+      scope: uploadEndpoint!,
+      captureDraft: (projectId, blob, createdAt) => {
+        const snapshot = deps.store.snapshot();
+        if (snapshot.video.file !== blob && snapshot.projectId !== projectId) return null;
+        const project = projectBuilder.build({ ...snapshot, projectId,
+          projectCreatedAt: snapshot.projectId === projectId ? snapshot.projectCreatedAt : new Date(createdAt),
+          projectName: snapshot.projectId === projectId ? snapshot.projectName : projectName.clamp(blob instanceof File ? blob.name.replace(/\.[^.]+$/, '') : 'Recovered video'),
+        });
+        return project ? { payload: serializer.serialize(project), thumbnail: project.thumbnail } : null;
+      },
+    },
+  ) : null;
+  const cloudRepository = cloudClient ? new SupabaseProjectRepository(cloudClient, serializer, deps.videoFiles.blobCache, videoUploads!) : null;
   const repository: ProjectRepository = cloudRepository ?? localRepository;
   const unsavedWorkPolicy: UnsavedWorkPolicy = editorStatePolicy;
 
@@ -150,9 +171,11 @@ export function bootProjects(deps: ProjectsDependencies) {
     originalVideoDownloadStore,
     repository,
   );
+  const save = new SaveProjectAction(deps.store, repository, projectBuilder, serializer);
   return {
     cloudEnabled: cloudClient !== null,
     cloudRepository,
+    videoUploads,
     localRepository,
     repository,
     serializer,
@@ -164,7 +187,18 @@ export function bootProjects(deps: ProjectsDependencies) {
     unsavedWorkPolicy,
     actions: {
       create: new CreateProjectAction(deps.store, repository, thumbnails, projectName),
-      save: new SaveProjectAction(deps.store, repository, projectBuilder, serializer),
+      save,
+      retryUpload: async (projectId: string, automatic = false) => {
+        if (!cloudRepository) return;
+        const file = deps.store.snapshot().video.file;
+        await cloudRepository.retryVideoUpload(projectId, automatic);
+        // A retry may finish after the user switches projects or accounts.
+        if (deps.store.snapshot().projectId === projectId && deps.store.snapshot().video.file === file) {
+          await save.execute();
+        } else {
+          await cloudRepository.saveUploadDraft(projectId);
+        }
+      },
       load: new LoadProjectAction(
         deps.store,
         deps.exportStore,
