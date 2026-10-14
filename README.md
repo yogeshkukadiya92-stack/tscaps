@@ -21,6 +21,12 @@ For local development, use `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in a
 
 Configure Supabase Auth's site URL and redirect allow list for your ReelStudio domain. Keep email confirmation enabled and configure working SMTP for signup confirmation and password recovery. Sign up, sign in, restored sessions, sign out, and password recovery use Supabase Auth. Import existing projects with **Import projects from this browser**; originals are retained locally. Missing local videos still need relinking. Deleted cloud projects can be recovered using **Recently deleted → Restore**.
 
+### Automatic deployments from main
+
+The running `tscaps-custom-styles` application receives signed GitHub **push** webhooks for `yogeshkukadiya92-stack/tscaps` and deploys changes to `main`. Coolify's repository and branch must match that source, and **Auto deploy** must remain enabled. The existing inline Dockerfile keeps the additional custom styles and uses `ARG SOURCE_COMMIT=main` in its source archive URL. **Source commit availability for builds** is enabled so a webhook deployment downloads the pushed commit, rather than a fixed older archive or a cached branch build.
+
+Configure the repository webhook with Coolify's **Manual Git webhooks → GitHub** URL, JSON content, SSL verification enabled, the application's existing webhook secret and push events only. Keep the secret in GitHub/Coolify settings; never commit it. After a push, confirm a **Webhook** deployment with the same commit appears in Coolify's Deployment Logs. Manual deployments remain available.
+
 Back up both Postgres and the storage volume: database backups alone do not contain video objects. Editing the same project on multiple devices concurrently uses the last completed save.
 
 Every caption template is CSS. You can pick one from the gallery and tune it with the editor controls (font, size, colour, timing, animation). Or open the CSS tab and write whatever you want. The controls are the surface; CSS is the escape hatch that keeps the door open.
