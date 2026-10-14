@@ -1,3 +1,9 @@
+import { StartDialog } from '@ui/pages/editor/features/preprocessing/StartDialog';
+import { useEditorState } from '@ui/_shared/hooks/useEditorState';
+import { usePreprocessing } from '@ui/_shared/contexts/modules/PreprocessingContext';
+import { useUtils } from '@ui/_shared/contexts/modules/UtilsContext';
+import { AsyncButton } from '@ui/_shared/components/AsyncButton/AsyncButton';
+import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Document, Segment } from '@tscaps/engine';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -49,6 +55,10 @@ export function TranscriptHost(props: TranscriptHostProps) {
   const playback = usePlayback();
   const elements = useElements();
   const transcription = useTranscription();
+  const preprocessing = usePreprocessing();
+  const state = useEditorState();
+  const { userAgentInspector } = useUtils();
+  const [retranscribeOpen, setRetranscribeOpen] = useState(false);
   const hasHindi = props.document?.getWords().some(word => /[\u0900-\u097f]/u.test(word.text)) ?? false;
   const textareaFocus = useMemo(() => new SegmentTextareaFocuser(), []);
   const textareaArrowNav = useMemo(() => new SegmentTextareaArrowNavigationController(), []);
@@ -62,6 +72,33 @@ export function TranscriptHost(props: TranscriptHostProps) {
   return (
     <ScenePickProvider value={scenePickController}>
       <TranscriptTabShell bulkModeActive={bulkModeActive}>
+        <div className="flex flex-col gap-1 mb-3">
+          <button type="button" className={BTN_SECONDARY_SM}
+            disabled={!state.video.file || state.status === 'preprocessing'}
+            onClick={() => { playback.pause(); setRetranscribeOpen(true); }}>
+            Change language / Retranscribe
+          </button>
+          <p className="text-2xs text-fg-muted m-0">Choose a speech language or regenerate captions for the whole video.</p>
+        </div>
+        {retranscribeOpen && <StartDialog
+          open title="Change language / Retranscribe"
+          initialLanguage={props.document?.language?.split('-')[0] ?? ''}
+          description="Regenerate all captions from the original audio in the selected speech language. This replaces caption edits and individual styling; your template and video cuts stay. Use Undo to restore previous captions."
+          preference={state.transcribePreference}
+          isMobileDevice={userAgentInspector.isMobile()}
+          error={state.error}
+          preprocessVideo={preprocessing.actions.preprocessVideo}
+          updatePreference={transcription.actions.updatePreference}
+          onCancel={() => setRetranscribeOpen(false)}
+          onStart={async (options) => {
+            if (await preprocessing.actions.preprocessVideo.retranscribe(options)) setRetranscribeOpen(false);
+          }}
+          onLanguagePicked={(language) => preprocessing.languageUsageRepository.recordPick(language)}
+          renderActions={(start) => <>
+            <button type="button" className={BTN_SECONDARY_SM} onClick={() => setRetranscribeOpen(false)}>Cancel</button>
+            <AsyncButton className={BTN_PRIMARY_SM} onClick={start}>Replace all captions</AsyncButton>
+          </>}
+        />}
         {hasHindi && <div className="flex flex-col gap-1 mb-3">
           <button className={BTN_SECONDARY_SM} onClick={() => transcription.actions.romanize.execute()}>Convert Hindi to Roman Hinglish</button>
           <p className="text-2xs text-fg-muted m-0">Keeps word timing and English text. Use Undo to restore the original script.</p>

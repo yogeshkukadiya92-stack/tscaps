@@ -8,7 +8,7 @@ import { BTN_PRIMARY_SM, BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
 import type { AppError } from '@core/errors/domain/AppError';
 import { WHISPER_SUPPORTED_LANGUAGES, type SupportedLanguage } from '@shared/transcription-languages';
 import type { TranscribePreference } from '@core/transcription/domain/TranscribePreference';
-import type { PreprocessVideoAction } from '@core/preprocessing/actions/PreprocessVideoAction';
+import type { PreprocessVideoOptions, PreprocessVideoAction } from '@core/preprocessing/actions/PreprocessVideoAction';
 import type { UpdateTranscribePreferenceAction } from '@core/transcription/actions/UpdateTranscribePreferenceAction';
 import {
   LanguagePicker,
@@ -32,6 +32,9 @@ const SOURCE_TOGGLE_CLS =
 
 interface StartDialogProps {
   readonly open: boolean;
+  readonly title?: string;
+  readonly initialLanguage?: string;
+  readonly onStart?: (options: PreprocessVideoOptions) => Promise<void>;
   readonly preference: TranscribePreference;
   readonly isMobileDevice: boolean;
   readonly error: AppError | null;
@@ -96,6 +99,9 @@ interface StartDialogProps {
  */
 export function StartDialog({
   open,
+  title = "Start your video",
+  initialLanguage,
+  onStart,
   preference,
   isMobileDevice,
   error,
@@ -116,7 +122,7 @@ export function StartDialog({
   lastUsedCode = null,
   onLanguagePicked,
 }: StartDialogProps) {
-  const [language, setLanguage] = useState<string>(allowAutoDetect ? AUTO_DETECT_LANGUAGE_VALUE : '');
+  const [language, setLanguage] = useState<string>(initialLanguage ?? (allowAutoDetect ? AUTO_DETECT_LANGUAGE_VALUE : ''));
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [languageError, setLanguageError] = useState<string | null>(null);
   const [subtitleFile, setSubtitleFile] = useState<SubtitleFile | null>(null);
@@ -150,7 +156,7 @@ export function StartDialog({
 
   const handleStart = async (): Promise<void> => {
     if (fromSubtitleFile) {
-      return preprocessVideo.execute({ transcriber: {}, multipleSpeakers: false, subtitleFile });
+      return (onStart ?? ((options) => preprocessVideo.execute(options)))({ transcriber: {}, multipleSpeakers: false, subtitleFile });
     }
     if (!romanHinglish && !allowAutoDetect && language === '') {
       setLanguageError('Please pick a language.');
@@ -162,7 +168,7 @@ export function StartDialog({
     const transcriber: TranscriberOptions = isExplicit ? { language: selectedLanguage } : {};
     const picked = isExplicit ? languages.find((l) => l.code === selectedLanguage) : undefined;
     if (picked !== undefined) onLanguagePicked?.(picked);
-    return preprocessVideo.execute({
+    return (onStart ?? ((options) => preprocessVideo.execute(options)))({
       transcriber,
       multipleSpeakers: false,
       ...(picked ? { language: picked } : {}),
@@ -175,7 +181,7 @@ export function StartDialog({
       onClose={onCancel}
       closeOnOutsideClick={false}
       size="md"
-      title="Start your video"
+      title={title}
       description={fromSubtitleFile ? SUBTITLE_FILE_DESCRIPTION : description ?? DEFAULT_DESCRIPTION}
     >
       {inBrowserTranscription && (

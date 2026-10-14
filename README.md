@@ -41,6 +41,12 @@ Every caption template is CSS. You can pick one from the gallery and tune it wit
 
 ## Sample outputs
 
+### Change transcription language or replace captions
+
+In an existing project, open **Captions → Transcript → Change language / Retranscribe**. Choose the speech language and original script or Roman Hinglish, then **Replace all captions**. You can also replace the transcript with an SRT or VTT file. This uses the original source and cached transcription model without regenerating the video preview. Processing time still depends on the model and device.
+
+Existing captions remain intact if transcription fails. A successful replacement keeps the caption templates, video cuts and project identity, replaces caption edits and individual styling, and can be restored with **Undo**. Click **Save** to persist the replacement. Language selection controls speech recognition; it does not translate speech into another language.
+
 ### Audio to subtitles
 
 Choose **New project** and upload MP3, WAV, M4A, AAC, OGG or FLAC audio. The browser prepares a neutral vertical caption canvas with your audio. Transcribe it, correct the words and choose a caption template as usual. Under **Export → Subtitles**, download SRT for text/timing or ASS for base font, size, colours, position and karaoke timing. ASS playback requires the chosen fonts installed; full CSS animation, layered artwork and depth are preserved through video export.

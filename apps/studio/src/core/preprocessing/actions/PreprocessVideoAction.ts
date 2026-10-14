@@ -1,3 +1,7 @@
+import { FrozenSegmentSet } from '@core/captions/domain/FrozenSegmentSet';
+import { ElementStyles } from '@core/elements/domain/ElementStyles';
+import { DecorationOverrideRegistry } from '@core/captions/domain/DecorationOverrideRegistry';
+import { BehindActorSegmentOverrideRegistry } from '@core/person-segmentation/domain/BehindActorSegmentOverrideRegistry';
 import { Document, Section, type TranscriberOptions } from '@tscaps/engine';
 import type { SupportedLanguage } from '@shared/transcription-languages';
 import type { EditorStore } from '@core/editor/store/EditorStore';
@@ -66,6 +70,48 @@ export class PreprocessVideoAction {
     private readonly storagePersistence: StoragePersistence,
     private readonly languageCanonicalCode: LanguageCanonicalCodeResolver,
   ) {}
+
+  /** Reuses the source and cached model; keeps the old captions until transcription succeeds. */
+  async retranscribe(options: PreprocessVideoOptions): Promise<boolean> {
+    const previous = this.store.snapshot();
+    if (!previous.video.file || previous.status === 'preprocessing') return false;
+    this.store.patch({ status: 'preprocessing', error: null });
+    try {
+      const document = await this.resolveTranscription(
+        previous.video.file, previous.transcribePreference, options, null,
+      );
+      this.store.commit();
+      this.store.patch({
+        document,
+        captionTracks: [],
+        activeCaptionTrackId: null,
+        frozenSegments: FrozenSegmentSet.empty(),
+        elementStyles: ElementStyles.empty(),
+        decorationOverrides: DecorationOverrideRegistry.empty(),
+        behindActorOverrides: BehindActorSegmentOverrideRegistry.empty(),
+      });
+      await this.applyDocumentPasses(options);
+      this.store.patch({ status: 'ready' });
+      this.store.markDirty();
+      this.progressStore.markComplete();
+      return true;
+    } catch (error) {
+      this.progressStore.cancel();
+      this.store.patch({
+        document: previous.document,
+        sheets: previous.sheets,
+        captionTracks: previous.captionTracks,
+        activeCaptionTrackId: previous.activeCaptionTrackId,
+        frozenSegments: previous.frozenSegments,
+        elementStyles: previous.elementStyles,
+        decorationOverrides: previous.decorationOverrides,
+        behindActorOverrides: previous.behindActorOverrides,
+        status: previous.status,
+        error: this.errorClassifier.wrap(error),
+      });
+      return false;
+    }
+  }
 
   async execute(options: PreprocessVideoOptions): Promise<void> {
     const { video, transcribePreference } = this.store.snapshot();

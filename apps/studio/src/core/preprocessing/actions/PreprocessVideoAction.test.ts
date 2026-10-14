@@ -300,6 +300,33 @@ describe('PreprocessVideoAction', () => {
     store.patchVideo({ file: new File(['video'], 'clip.mp4', { type: 'video/mp4' }), duration: 30 });
   }
 
+  it('retranscribes without rebuilding the proxy and can undo caption replacement', async () => {
+    const harness = buildHarness();
+    seedVideo(harness.store);
+    const original = documentWithOneWord();
+    harness.store.patch({ document: original, status: 'ready', projectId: 'existing-project' });
+    expect(await harness.action.retranscribe({ transcriber: { language: 'gu' }, multipleSpeakers: false })).toBe(true);
+    expect(harness.transcribeCalls()).toBe(1);
+    expect(harness.proxyResolveCalls()).toBe(0);
+    expect(harness.store.snapshot().document).not.toBe(original);
+    expect(harness.store.snapshot().projectId).toBe('existing-project');
+    expect(harness.store.snapshot().dirty).toBe(true);
+    expect(harness.store.undo()).toBe(true);
+    expect(harness.store.snapshot().document).toBe(original);
+  });
+
+  it('keeps existing captions and ready state when retranscription fails', async () => {
+    const harness = buildHarness({ transcribe: async () => { throw new Error('transcription failed'); } });
+    seedVideo(harness.store);
+    const original = documentWithOneWord();
+    harness.store.patch({ document: original, status: 'ready' });
+    expect(await harness.action.retranscribe({ multipleSpeakers: false })).toBe(false);
+    expect(harness.store.snapshot().document).toBe(original);
+    expect(harness.store.snapshot().status).toBe('ready');
+    expect(harness.store.snapshot().error).not.toBeNull();
+    expect(harness.store.snapshot().canUndo).toBe(false);
+  });
+
   it('rejects an over-cap video before spending any work on it', async () => {
     const harness = buildHarness({ audioLengthPolicy: new CappedAudioLength(10) });
     seedVideo(harness.store);
