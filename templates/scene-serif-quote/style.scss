@@ -1,0 +1,10 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'DM Serif Display', $size: 3.8cqh, $weight: 400, $case: none,
+  $ink: #ffffff, $accent: #ffd9a8, $paper: #151515,
+  $treatment: highlight, $motion: fade, $hero-font: 'DM Serif Display',
+  $hero-italic: normal, $tilt: -2deg
+);
+
+.segment { font-style: var(--tscaps-font-style, italic); }

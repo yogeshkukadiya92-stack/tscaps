@@ -1,0 +1,77 @@
+{
+  "name": "Searchlight",
+  "category": "retro",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "montserrat",
+    "fontSize": 3.5,
+    "fontWeight": 700,
+    "textCase": "none",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#ffffff",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#d9ff2f",
+      "group": "style",
+      "subgroup": "colors"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 4
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 34
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.69,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#d9ff2f"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

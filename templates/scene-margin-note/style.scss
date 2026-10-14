@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Caveat Variable', $size: 3.6cqh, $weight: 500, $case: none,
+  $ink: #f8ede2, $accent: #ffe08a, $paper: #151515,
+  $treatment: hero, $motion: wobble, $hero-font: 'Permanent Marker',
+  $hero-italic: normal, $tilt: -2deg
+);

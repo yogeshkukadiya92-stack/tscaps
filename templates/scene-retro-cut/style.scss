@@ -1,0 +1,12 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'JetBrains Mono Variable', $size: 3.0cqh, $weight: 500, $case: none,
+  $ink: #f6efe2, $accent: #f25fa0, $paper: #151515,
+  $treatment: hero, $motion: type, $hero-font: 'Press Start 2P',
+  $hero-italic: normal, $tilt: -2deg
+);
+
+.segment.behind-actor-active {
+  translate: 0 calc(-1 * var(--tscaps-behind-lift, 22cqh));
+}

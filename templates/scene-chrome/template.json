@@ -1,0 +1,92 @@
+{
+  "name": "Chrome",
+  "category": "editorial",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "anton",
+    "fontSize": 5.0,
+    "fontWeight": 400,
+    "textCase": "uppercase",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#ffffff",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#dbe7f4",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "behind-lift",
+      "label": "Lift behind speaker",
+      "type": "float",
+      "default": 22,
+      "group": "style",
+      "subgroup": "appearance",
+      "min": 0,
+      "max": 45,
+      "step": 1,
+      "unit": "cqh"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 5
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 24
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.55,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "behindActor": {
+    "required": true
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#dbe7f4"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

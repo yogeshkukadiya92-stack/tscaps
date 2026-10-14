@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Dancing Script Variable', $size: 3.7cqh, $weight: 500, $case: none,
+  $ink: #ffffff, $accent: #d53e3e, $paper: #151515,
+  $treatment: hero, $motion: slide, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);

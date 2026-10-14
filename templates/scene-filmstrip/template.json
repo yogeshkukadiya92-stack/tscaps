@@ -1,0 +1,105 @@
+{
+  "name": "Filmstrip",
+  "category": "retro",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "montserrat",
+    "fontSize": 3.4,
+    "fontWeight": 700,
+    "textCase": "none",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#ffffff",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#ffe500",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "bg-color",
+      "label": "Plate / second ink",
+      "type": "color",
+      "default": "#111111",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-bg-color",
+      "label": "Active word plate",
+      "type": "color",
+      "default": "#ffe500",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "bg-radius",
+      "label": "Plate radius",
+      "type": "float",
+      "default": 0.2,
+      "group": "style",
+      "subgroup": "appearance",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "unit": "em"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 5
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 34
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.69,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#ffe500"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

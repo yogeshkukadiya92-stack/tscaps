@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'DM Sans Variable', $size: 3.3cqh, $weight: 700, $case: none,
+  $ink: #ffffff, $accent: #c4eaff, $paper: #1b2733bb,
+  $treatment: glass, $motion: fade, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);

@@ -1,0 +1,97 @@
+{
+  "name": "Bobblehead",
+  "category": "studio-treatments",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "inter",
+    "fontSize": 4.4,
+    "fontWeight": 700,
+    "textCase": "uppercase",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#ffffff",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#fff47a",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "outline-color",
+      "label": "Outline",
+      "type": "color",
+      "default": "#111111",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "stroke-width",
+      "label": "Outline width",
+      "type": "float",
+      "default": 0.035,
+      "group": "style",
+      "subgroup": "appearance",
+      "min": 0,
+      "max": 0.12,
+      "step": 0.005,
+      "unit": "em"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 1
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 24
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.69,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#fff47a"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

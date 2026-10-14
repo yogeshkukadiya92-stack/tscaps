@@ -2,6 +2,8 @@
 
 This folder is the gallery of caption looks the tscaps editor ships with. Each subfolder is one template: a typography choice, colour palette, animation style, and the set of knobs the editor exposes to the user when that template is active.
 
+The gallery includes 99 original scene caption treatments alongside the existing 41 looks. See [the scene library](./_docs/scene-library.md) for the reviewed references, supported effects and differences from the original demonstrations.
+
 The editor loads every folder under `templates/` automatically. If you want to add a new look — or contribute one back — drop a folder in here.
 
 ## What a template is

@@ -1,4 +1,5 @@
 import { FilesetResolver, ImageSegmenter, PoseLandmarker } from '@mediapipe/tasks-vision';
+import type { ModelFileFetcher } from '@tscaps/engine';
 import type { PoseLandmark } from '@core/person-segmentation/domain/PoseLandmark';
 import { MaskDownsampler } from '@core/person-segmentation/services/MaskDownsampler';
 import { MonotonicTimestampMapper } from '@core/person-segmentation/infrastructure/workers/MonotonicTimestampMapper';
@@ -27,6 +28,8 @@ export class PersonSegmenterWorkerHost {
   private segmenterTimestamps = new MonotonicTimestampMapper();
   private maskDownsampler: MaskDownsampler | null = null;
   private currentInitKey: string | null = null;
+
+  constructor(private readonly modelFiles: ModelFileFetcher) {}
 
   start(): void {
     self.addEventListener('message', this.handleMessage);
@@ -120,13 +123,13 @@ export class PersonSegmenterWorkerHost {
     return { wasmLoaderPath: files.loaderUrl, wasmBinaryPath: files.binaryUrl };
   }
 
-  private createPoseLandmarker(
+  private async createPoseLandmarker(
     vision: Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>>,
     modelUrl: string,
     delegate: InitRequest['delegate'],
   ): Promise<PoseLandmarker> {
     return PoseLandmarker.createFromOptions(vision, {
-      baseOptions: { modelAssetPath: modelUrl, delegate },
+      baseOptions: { modelAssetBuffer: await this.modelBytes(modelUrl), delegate },
       runningMode: 'VIDEO',
       numPoses: 1,
       minPoseDetectionConfidence: 0.5,
@@ -135,17 +138,23 @@ export class PersonSegmenterWorkerHost {
     });
   }
 
-  private createImageSegmenter(
+  private async createImageSegmenter(
     vision: Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>>,
     modelUrl: string,
     delegate: InitRequest['delegate'],
   ): Promise<ImageSegmenter> {
     return ImageSegmenter.createFromOptions(vision, {
-      baseOptions: { modelAssetPath: modelUrl, delegate },
+      baseOptions: { modelAssetBuffer: await this.modelBytes(modelUrl), delegate },
       runningMode: 'VIDEO',
       outputCategoryMask: false,
       outputConfidenceMasks: true,
     });
+  }
+
+  private async modelBytes(url: string): Promise<Uint8Array> {
+    const response = await this.modelFiles.fetch(url);
+    if (!response.ok) throw new Error(`Could not load person model (${response.status})`);
+    return new Uint8Array(await response.arrayBuffer());
   }
 
   private disposeCurrent(): void {

@@ -1,0 +1,77 @@
+{
+  "name": "Beast Mode",
+  "category": "creators",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "bangers",
+    "fontSize": 4.2,
+    "fontWeight": 400,
+    "textCase": "uppercase",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#ffffff",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#3dff7c",
+      "group": "style",
+      "subgroup": "colors"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 2
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 24
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.69,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#3dff7c"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

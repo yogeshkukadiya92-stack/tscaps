@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Montserrat Variable', $size: 3.6cqh, $weight: 700, $case: uppercase,
+  $ink: #ffffff, $accent: #6de8ff, $paper: #151515,
+  $treatment: neon, $motion: rise, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);

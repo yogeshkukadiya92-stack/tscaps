@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Bricolage Grotesque Variable', $size: 3.6cqh, $weight: 700, $case: none,
+  $ink: #111111, $accent: #452351, $paper: #c6ff3d,
+  $treatment: pill, $motion: pop, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);

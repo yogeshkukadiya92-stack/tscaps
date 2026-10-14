@@ -18,8 +18,8 @@ interface PreprocessingScreenProps {
 const defaultSelectCopy: CopyResolver = (status) => {
   if (status.phase === 'model-download') {
     return {
-      primary: 'Downloading the model.',
-      helper: 'First run only — the model is cached after this.',
+      primary: 'Loading your AI model.',
+      helper: 'Saved models are reused. First use downloads the model.',
     };
   }
   if (status.phase === 'preview-proxy') {

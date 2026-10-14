@@ -8,8 +8,9 @@ import { ModelFileCacheUnavailableError } from '@modules/transcription/ModelFile
  * an origin over its quota, a private window, a page outside a secure
  * context — and every refusal costs the next run a full re-download of
  * hundreds of megabytes with nothing on screen to explain it. The
- * refusal is therefore handed to `onKeepFailure` instead of being
- * swallowed, while the run in flight carries on regardless: the files
+ * refusal first tries the optional persistent fallback, then is handed
+ * to `onKeepFailure` if neither store kept the bytes. The run in flight
+ * carries on regardless: the files
  * are already in memory and the transcription does not need them kept.
  *
  * Only the first refusal of an instance's lifetime is announced. A
@@ -29,32 +30,44 @@ export class CacheStorageModelFileCache implements ModelFileCache {
   /**
    * @param onKeepFailure Called at most once per instance, with the
    * refusal that stopped a file from being kept.
+   * @param fallback Used when Cache Storage is unavailable or refuses a
+   * write. Reads consult it even after Cache Storage becomes available.
    */
-  constructor(private readonly onKeepFailure: (error: unknown) => void) {}
+  constructor(
+    private readonly onKeepFailure: (error: unknown) => void,
+    private readonly fallback?: ModelFileCache,
+  ) {}
 
   async match(key: string): Promise<Response | undefined> {
     const cache = await this.open();
-    if (!cache) return undefined;
-    try {
-      return await cache.match(key);
-    } catch {
-      // A cache that cannot be read is indistinguishable from one that
-      // never held the file: both mean it has to be downloaded.
-      return undefined;
+    if (cache) {
+      try {
+        const hit = await cache.match(key);
+        if (hit) return hit;
+      } catch {
+        // A previous run may have stored this file in the fallback.
+      }
     }
+    return this.fallback?.match(key);
   }
 
   async put(key: string, response: Response): Promise<void> {
     const cache = await this.open();
-    if (!cache) {
-      this.announce(new ModelFileCacheUnavailableError('Cache Storage is not exposed in this context'));
-      return;
-    }
+    let failure: unknown = new ModelFileCacheUnavailableError('Cache Storage is not exposed in this context');
     try {
-      await cache.put(key, response);
+      if (cache) {
+        // Keep the original body for the fallback if the first store refuses it.
+        await cache.put(key, this.fallback ? response.clone() : response);
+        return;
+      }
     } catch (error) {
-      this.announce(error);
+      failure = error;
     }
+    if (this.fallback) {
+      await this.fallback.put(key, response);
+      if (await this.fallback.match(key)) return;
+    }
+    this.announce(failure);
   }
 
   private announce(error: unknown): void {
@@ -79,7 +92,7 @@ export class CacheStorageModelFileCache implements ModelFileCache {
       return await caches.open(CacheStorageModelFileCache.CACHE_NAME);
     } catch {
       // Opening is refused outright in some privacy modes. There is
-      // nothing to fall back to, and `put` reports the consequence.
+      // `match` and `put` can still use the persistent fallback.
       return null;
     }
   }

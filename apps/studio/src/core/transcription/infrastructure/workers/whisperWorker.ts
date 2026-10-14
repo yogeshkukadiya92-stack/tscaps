@@ -2,6 +2,7 @@ import {
   WhisperTranscriber,
   PreDecodedAudioDecoder,
   CacheStorageModelFileCache,
+  IndexedDbModelFileCache,
   DirectModelFileFetcher,
   RelayFallbackModelFileFetcher,
   type ModelAssetSources,
@@ -48,7 +49,10 @@ const fileFetcher: ModelFileFetcher = modelRelayBaseUrl
 // keeps what the session has learned: which files are already stored,
 // and which of the two routes to them still works.
 const assetSources: ModelAssetSources = {
-  fileCache: new CacheStorageModelFileCache((error) => host.reportAssetsNotKept(error)),
+  fileCache: new CacheStorageModelFileCache(
+    (error) => host.reportAssetsNotKept(error),
+    new IndexedDbModelFileCache(),
+  ),
   fileFetcher,
   onnxWasmFiles,
 };

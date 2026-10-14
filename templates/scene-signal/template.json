@@ -1,0 +1,101 @@
+{
+  "name": "Signal",
+  "category": "behind-person",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "inter",
+    "fontSize": 3.4,
+    "fontWeight": 700,
+    "textCase": "none",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#ffffff",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#a8ff1a",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "big-word-font-family",
+      "label": "Hero font",
+      "type": "font",
+      "default": "anton",
+      "group": "style",
+      "subgroup": "appearance"
+    },
+    {
+      "id": "behind-lift",
+      "label": "Lift behind speaker",
+      "type": "float",
+      "default": 22,
+      "group": "style",
+      "subgroup": "appearance",
+      "min": 0,
+      "max": 45,
+      "step": 1,
+      "unit": "cqh"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 6
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 34
+    }
+  ],
+  "lineSplitter": {
+    "type": "isolated-word",
+    "minLetters": 3,
+    "minSecondsOnScreen": 0.45,
+    "fallbackMinSecondsOnScreen": 0.2
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.55,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "behindActor": {
+    "required": true
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#a8ff1a"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

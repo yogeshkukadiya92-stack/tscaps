@@ -1,0 +1,10 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Inter Variable', $size: 3.6cqh, $weight: 700, $case: none,
+  $ink: #ffffff, $accent: #67e8f9, $paper: #151515,
+  $treatment: hero, $motion: rise, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);
+
+.first-line-in-segment + .line .word { text-shadow: 0 0 0.3em var(--tscaps-highlight-color, #67e8f9); }

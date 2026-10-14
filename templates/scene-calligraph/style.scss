@@ -1,0 +1,12 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Montserrat Variable', $size: 3.3cqh, $weight: 700, $case: none,
+  $ink: #eaf0ff, $accent: #2b53d4, $paper: #151515,
+  $treatment: hero, $motion: fade, $hero-font: 'Dancing Script Variable',
+  $hero-italic: normal, $tilt: -2deg
+);
+
+.segment.behind-actor-active {
+  translate: 0 calc(-1 * var(--tscaps-behind-lift, 22cqh));
+}

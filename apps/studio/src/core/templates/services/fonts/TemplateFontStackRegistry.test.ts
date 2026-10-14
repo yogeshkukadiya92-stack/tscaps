@@ -67,6 +67,13 @@ async function loadTemplate(css: string, ids: readonly string[]) {
 }
 
 describe('fixed font dependencies declared from Sass', () => {
+  it('keeps the authored display name separate from the stable folder ID', async () => {
+    const built = compileTemplate('');
+    const template = await loadTemplate(built.css, built.ids);
+    expect(template.metadata.name).toBe('Example');
+    expect(template.metadata.id).toBe('example');
+  });
+
   it('loads each referenced stack once, without exposing any controls', async () => {
     const built = compileTemplate(`
       .accent { font-family: font-stack('kalam'); }

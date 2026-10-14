@@ -1,0 +1,85 @@
+{
+  "name": "Keepsake",
+  "category": "studio-treatments",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "playfair-display",
+    "fontSize": 3.3,
+    "fontWeight": 500,
+    "textCase": "none",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#2a2321",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#7a1e2c",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "bg-color",
+      "label": "Plate / second ink",
+      "type": "color",
+      "default": "#f7edda",
+      "group": "style",
+      "subgroup": "colors"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 4
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 34
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.69,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#7a1e2c"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

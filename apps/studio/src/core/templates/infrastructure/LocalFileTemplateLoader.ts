@@ -226,7 +226,7 @@ export class LocalFileTemplateLoader implements TemplateLoader {
   private loadMetadata(name: string, config: JsonTemplateSchema): TemplateMetadata {
     return {
       id: name,
-      name,
+      name: typeof config.name === 'string' && config.name.trim() !== '' ? config.name.trim() : name,
       category: this.resolveCategory(config.category),
       addedOn: this.resolveAddedOn(config.addedOn),
       unsupportedBrowsers: this.resolveUnsupportedBrowsers(config.unsupportedBrowsers),

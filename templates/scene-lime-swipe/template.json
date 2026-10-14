@@ -1,0 +1,121 @@
+{
+  "name": "Lime Swipe",
+  "category": "behind-person",
+  "addedOn": "2026-10-14",
+  "typography": {
+    "fontStack": "inter",
+    "fontSize": 3.7,
+    "fontWeight": 700,
+    "textCase": "none",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12,
+    "italic": true
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "label": "Text",
+      "type": "color",
+      "default": "#121212",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "label": "Accent",
+      "type": "color",
+      "default": "#121212",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "bg-color",
+      "label": "Plate / second ink",
+      "type": "color",
+      "default": "#c7fc35",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-bg-color",
+      "label": "Active word plate",
+      "type": "color",
+      "default": "#121212",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "bg-radius",
+      "label": "Plate radius",
+      "type": "float",
+      "default": 0.2,
+      "group": "style",
+      "subgroup": "appearance",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "unit": "em"
+    },
+    {
+      "id": "behind-lift",
+      "label": "Lift behind speaker",
+      "type": "float",
+      "default": 22,
+      "group": "style",
+      "subgroup": "appearance",
+      "min": 0,
+      "max": 45,
+      "step": 1,
+      "unit": "cqh"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 6
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 34
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "maxLines": 2,
+    "maxWidthRatio": 0.76
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.55,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "behindActor": {
+    "required": true
+  },
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#121212"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Coral",
+      "overrides": {
+        "highlight-color": "#ff897a"
+      }
+    }
+  ]
+}

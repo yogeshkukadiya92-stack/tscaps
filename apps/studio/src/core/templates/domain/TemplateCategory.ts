@@ -3,7 +3,10 @@
  * the gallery lists it once, and a look that could be argued into two
  * is filed where someone would go looking for it first.
  */
-export type TemplateCategory = 'key-moments' | 'modern' | 'viral' | 'classic' | 'lab';
+export type TemplateCategory = 'key-moments' | 'modern' | 'viral' | 'classic' | 'lab'
+  | 'studio-treatments' | 'real-estate' | 'perspective' | 'behind-person'
+  | 'playful' | 'multiline' | 'dynamic' | 'editorial' | 'neon-fx'
+  | 'creators' | 'desi' | 'social' | 'retro';
 
 /**
  * How the gallery shows a family. `clip` plays a burned-in sample over
@@ -46,6 +49,19 @@ export const TEMPLATE_CATEGORIES: Readonly<Record<TemplateCategory, TemplateCate
   viral: { label: 'Viral', preview: 'tile', previewRows: 2 },
   classic: { label: 'Classic', preview: 'tile', previewRows: 2 },
   lab: { label: 'Lab', preview: 'tile', previewRows: 2 },
+  'studio-treatments': { label: 'Studio treatments', preview: 'tile', previewRows: 1 },
+  'real-estate': { label: 'Real estate', preview: 'tile', previewRows: 1 },
+  perspective: { label: 'Perspective', preview: 'tile', previewRows: 1 },
+  'behind-person': { label: 'Behind person', preview: 'tile', previewRows: 1 },
+  playful: { label: 'Playful', preview: 'tile', previewRows: 1 },
+  multiline: { label: 'Multiline', preview: 'tile', previewRows: 1 },
+  dynamic: { label: 'Dynamic', preview: 'tile', previewRows: 1 },
+  editorial: { label: 'Editorial', preview: 'tile', previewRows: 1 },
+  'neon-fx': { label: 'Neon & effects', preview: 'tile', previewRows: 1 },
+  creators: { label: 'Creators', preview: 'tile', previewRows: 1 },
+  desi: { label: 'Desi / Hinglish', preview: 'tile', previewRows: 1 },
+  social: { label: 'Social', preview: 'tile', previewRows: 1 },
+  retro: { label: 'Retro', preview: 'tile', previewRows: 1 },
 };
 
 export const TEMPLATE_CATEGORY_NAMES = Object.keys(TEMPLATE_CATEGORIES) as TemplateCategory[];

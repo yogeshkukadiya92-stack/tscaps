@@ -1,0 +1,10 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'Poppins', $size: 3.1cqh, $weight: 700, $case: none,
+  $ink: #ffffff, $accent: #ec00b5, $paper: #151515,
+  $treatment: hero, $motion: pop, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);
+
+.entity, .emphasis { color: var(--tscaps-highlight-color); text-shadow: 0.04em 0.04em 0 #222; }

@@ -26,6 +26,8 @@ export {
 export { WhisperDeviceUnavailableError } from '@modules/transcription/WhisperDeviceUnavailableError';
 export type { ModelFileCache } from '@modules/transcription/ModelFileCache';
 export { CacheStorageModelFileCache } from '@modules/transcription/CacheStorageModelFileCache';
+export { IndexedDbModelFileCache } from '@modules/transcription/IndexedDbModelFileCache';
+export { CachedModelFileFetcher } from '@modules/transcription/CachedModelFileFetcher';
 export { ModelFileCacheUnavailableError } from '@modules/transcription/ModelFileCacheUnavailableError';
 export type { ModelAssetSources } from '@modules/transcription/ModelAssetSources';
 export type { ModelFileFetcher } from '@modules/transcription/ModelFileFetcher';

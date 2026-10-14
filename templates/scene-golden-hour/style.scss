@@ -1,0 +1,12 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'DM Serif Display', $size: 3.6cqh, $weight: 400, $case: none,
+  $ink: #fff18f, $accent: #fff18f, $paper: #151515,
+  $treatment: hero, $motion: fade, $hero-font: 'DM Serif Display',
+  $hero-italic: normal, $tilt: -2deg
+);
+
+.segment.behind-actor-active {
+  translate: 0 calc(-1 * var(--tscaps-behind-lift, 22cqh));
+}

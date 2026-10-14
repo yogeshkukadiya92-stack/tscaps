@@ -1,0 +1,159 @@
+@use 'segment-typography' as *;
+@use 'word-layout' as *;
+@use 'animation/pop-in' as *;
+@use 'animation/rise-in' as *;
+@use 'animation/fade-in' as *;
+@use 'animation/slide-in' as *;
+@use 'animation/wobble-in' as *;
+@use 'animation/scale-in' as *;
+@use 'animation/typewriter' as *;
+@use 'animation/shimmer' as *;
+
+// Original caption-only treatments. All movement is pinned to narration;
+// no wall-clock transitions, remote assets or hidden video-edit dependencies.
+@mixin caption-treatment(
+  $font, $size, $weight, $case, $ink, $accent, $paper,
+  $treatment: highlight, $motion: fade, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: 0deg, $spacing: 0.08em, $italic: normal
+) {
+  .segment {
+    @include segment-typography($font-family: $font, $font-size: $size,
+      $font-weight: $weight, $font-style: $italic, $text-transform: $case,
+      $color: $ink, $line-height: 1.18);
+    padding: 0.16em 0.24em;
+  }
+  .line { display: block; }
+  .line + .line { margin-top: var(--tscaps-line-spacing, 0.12em); }
+  .word {
+    @include word-layout($spacing);
+    position: relative;
+    isolation: isolate;
+    text-shadow: 0 0.04em 0.12em #000a;
+  }
+  .word-being-narrated { color: var(--tscaps-highlight-color, $accent); }
+
+  @if $treatment == pill or $treatment == paper or $treatment == glass or $treatment == tape {
+    .segment {
+      background: var(--tscaps-bg-color, $paper);
+      @if $treatment == tape { border-radius: 0; }
+      @else { border-radius: var(--tscaps-bg-radius, 0.18em); }
+      box-shadow: 0 0.08em 0.3em #0004;
+    }
+    .word { text-shadow: none; }
+    .word-being-narrated:not(.detached-word-fragment)::before {
+      content: ''; position: absolute; inset: -0.03em -0.06em; z-index: -1;
+      background: var(--tscaps-highlight-bg-color, $accent);
+      border-radius: 0.1em;
+    }
+  }
+  @if $treatment == glass {
+    // An export-safe translucent plate; deliberately no backdrop-filter.
+    .segment { border: 0.04em solid #ffffff80; box-shadow: inset 0 0 0.2em #fff4, 0 0.1em 0.4em #0005; }
+  }
+  @if $treatment == tape {
+    .segment { rotate: $tilt; border-radius: 0; border: 0.05em dashed var(--tscaps-highlight-color, $accent); }
+  }
+  @if $treatment == box {
+    .word-being-narrated:not(.detached-word-fragment)::before {
+      content: ''; position: absolute; inset: -0.06em -0.08em; z-index: -1;
+      background: var(--tscaps-highlight-bg-color, $paper); border-radius: 0.08em;
+    }
+  }
+  @if $treatment == outline or $treatment == fill {
+    .word { -webkit-text-stroke: var(--tscaps-stroke-width, 0.035em) var(--tscaps-outline-color, $paper); paint-order: stroke fill; }
+  }
+  @if $treatment == fill {
+    .word-not-narrated-yet { color: transparent; }
+    .word-being-narrated { color: var(--tscaps-highlight-color, $accent); }
+    .word-already-narrated { color: var(--tscaps-primary-color, $ink); }
+  }
+  @if $treatment == neon {
+    .word { text-shadow: 0 0 0.1em var(--tscaps-highlight-color, $accent), 0 0 0.4em var(--tscaps-highlight-color, $accent), 0 0.04em 0.1em #000; }
+  }
+  @if $treatment == circle or $treatment == underline {
+    .word-being-narrated:not(.detached-word-fragment)::after {
+      content: ''; position: absolute; inset: -0.1em -0.1em;
+      border: 0.05em solid var(--tscaps-highlight-color, $accent);
+      @if $treatment == circle { border-radius: 50%; rotate: -5deg; }
+      @else { border-width: 0 0 0.07em; }
+    }
+  }
+  @if $treatment == grid {
+    .segment {
+      background-color: var(--tscaps-bg-color, $paper);
+      background-image: linear-gradient(#ffffff28 0.025em, transparent 0.025em), linear-gradient(90deg, #ffffff28 0.025em, transparent 0.025em);
+      background-size: 0.65em 0.65em;
+      border: 0.04em solid var(--tscaps-highlight-color, $accent);
+      padding: 0.4em;
+    }
+    .word { text-shadow: none; }
+    .word-being-narrated:not(.detached-word-fragment) { text-decoration: underline; text-underline-offset: 0.15em; }
+  }
+  @if $treatment == duotone {
+    .word { text-shadow: 0.06em 0.04em 0 var(--tscaps-highlight-color, $accent), -0.04em -0.02em 0 var(--tscaps-bg-color, $paper); }
+  }
+  @if $treatment == frame {
+    .segment { border: 0.045em solid var(--tscaps-highlight-color, $accent); padding: 0.3em 0.5em; background: var(--tscaps-bg-color, $paper); }
+  }
+  @if $treatment == hero or $treatment == diagonal or $treatment == perspective {
+    // Isolated-word splitter puts the hero on the second line. Geometry is
+    // structural and never changes when a word becomes active.
+    .first-line-in-segment + .line {
+      font-family: var(--tscaps-big-word-font-family, $hero-font);
+      font-style: $hero-italic;
+      font-weight: 900;
+      font-size: clamp(1em, calc(12em / max(var(--line-char-count, 1), 1)), 2.2em);
+      color: var(--tscaps-highlight-color, $accent);
+      text-transform: uppercase;
+      line-height: 1.06;
+    }
+    .first-line-in-segment + .line .word-being-narrated { color: inherit; }
+  }
+  @if $treatment == diagonal {
+    .first-line-in-segment + .line { rotate: $tilt; translate: 0.2em 0; }
+  }
+  @if $treatment == perspective {
+    .first-line-in-segment + .line {
+      transform: perspective(14em) rotateY($tilt) rotateX(-8deg);
+      text-shadow: 0.03em 0.03em 0 #000, 0.06em 0.06em 0 #000, 0.1em 0.1em 0 #000;
+    }
+  }
+  @if $treatment == chrome {
+    .word {
+      background: linear-gradient(180deg, var(--tscaps-primary-color, $ink) 0%, #aab2ba 38%, var(--tscaps-primary-color, $ink) 46%, #515c6a 53%, var(--tscaps-highlight-color, $accent) 78%, var(--tscaps-primary-color, $ink));
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+      -webkit-text-stroke: 0.02em #ffffff80; text-shadow: none;
+    }
+    .word-being-narrated { color: transparent; }
+  }
+  @if $treatment == sweep {
+    .word-being-narrated {
+      color: transparent;
+      background: linear-gradient(90deg, var(--tscaps-primary-color, $ink), var(--tscaps-highlight-color, $accent), var(--tscaps-primary-color, $ink));
+      background-size: 200% 100%; background-clip: text; -webkit-background-clip: text;
+      text-shadow: none;
+      @include shimmer($element: 'word', $travel: 200%, $duration: 0.7s, $delay: var(--on-word-being-narrated-starts));
+    }
+  }
+  @if $treatment == karaoke {
+    .word { text-shadow: none; }
+    .word-being-narrated {
+      background: linear-gradient(90deg, var(--tscaps-primary-color, $ink) 50%, var(--tscaps-highlight-color, $accent) 50%);
+      background-size: 200% 100%; background-clip: text; -webkit-background-clip: text; color: transparent;
+      @include shimmer($element: 'word', $travel: 100%, $duration: var(--word-being-narrated-duration, 0.3s), $delay: var(--on-word-being-narrated-starts));
+    }
+    .word-already-narrated { color: var(--tscaps-highlight-color, $accent); }
+  }
+
+  .word {
+    @if $motion == pop { @include pop-in($element: 'word', $amount: 0.12, $duration: 0.25s, $delay: var(--on-word-being-narrated-starts)); }
+    @else if $motion == rise { @include rise-in($element: 'word', $distance: 0.35em, $duration: 0.24s, $delay: var(--on-word-being-narrated-starts)); }
+    @else if $motion == slide { @include slide-in($element: 'word', $distance: -0.65em, $duration: 0.28s, $delay: var(--on-word-being-narrated-starts)); }
+    @else if $motion == wobble { @include wobble-in($element: 'word', $swing: 8deg, $duration: 0.4s, $delay: var(--on-word-being-narrated-starts)); }
+    @else if $motion == zoom { @include scale-in($element: 'word', $from: 0.7, $duration: 0.24s, $delay: var(--on-word-being-narrated-starts)); }
+    @else if $motion == fade { @include fade-in($element: 'word', $duration: 0.18s, $delay: var(--on-word-being-narrated-starts)); }
+  }
+  @if $motion == type {
+    .letter { @include typewriter($element: 'letter', $show-caret: false); }
+  }
+}

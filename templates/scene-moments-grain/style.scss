@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'EB Garamond Variable', $size: 3.2cqh, $weight: 500, $case: none,
+  $ink: #1a1a1a, $accent: #c2412d, $paper: #f6f0e7,
+  $treatment: paper, $motion: slide, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);

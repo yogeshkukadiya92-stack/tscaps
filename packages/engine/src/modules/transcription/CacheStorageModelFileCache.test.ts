@@ -12,12 +12,12 @@ class FakeCache {
   constructor(private readonly refusal: Error | null = null) {}
 
   async match(key: string): Promise<Response | undefined> {
-    return this.entries.get(key);
+    return this.entries.get(key)?.clone();
   }
 
   async put(key: string, response: Response): Promise<void> {
     if (this.refusal) throw this.refusal;
-    this.entries.set(key, response);
+    this.entries.set(key, response.clone());
   }
 }
 
@@ -95,5 +95,39 @@ describe('CacheStorageModelFileCache', () => {
     const cache = new CacheStorageModelFileCache(() => undefined);
 
     expect(await cache.match('https://host/model.onnx')).toBeUndefined();
+  });
+
+  it('keeps model bytes in the fallback after Cache Storage refuses a write', async () => {
+    installCacheStorage(new FakeCache(quotaExceeded()));
+    const fallback = new FakeCache();
+    const announce = vi.fn();
+    await new CacheStorageModelFileCache(announce, fallback)
+      .put('https://host/model.onnx', new Response('saved weights'));
+
+    // A fresh owner represents reopening the editor or restarting its worker.
+    const nextSession = new CacheStorageModelFileCache(announce, fallback);
+    expect(await (await nextSession.match('https://host/model.onnx'))?.text()).toBe('saved weights');
+    expect(announce).not.toHaveBeenCalled();
+  });
+
+  it('reads fallback files even after the primary store becomes available again', async () => {
+    installCacheStorage(null);
+    const fallback = new FakeCache();
+    const announce = vi.fn();
+    await new CacheStorageModelFileCache(announce, fallback)
+      .put('https://host/model.onnx', new Response('weights'));
+    installCacheStorage(new FakeCache());
+    expect(await (await new CacheStorageModelFileCache(announce, fallback)
+      .match('https://host/model.onnx'))?.text()).toBe('weights');
+    expect(announce).not.toHaveBeenCalled();
+  });
+
+  it('still reports failure if neither persistent store kept the download', async () => {
+    installCacheStorage(null);
+    const announce = vi.fn();
+    const fallback = { match: async () => undefined, put: async () => undefined };
+    await new CacheStorageModelFileCache(announce, fallback)
+      .put('https://host/model.onnx', new Response('weights'));
+    expect(announce).toHaveBeenCalledOnce();
   });
 });

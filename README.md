@@ -67,6 +67,7 @@ Each of these is a caption template that ships in the repository. All rendered b
 **Transcription and I/O**
 
 - **In-browser transcription.** Whisper runs on the device (tiny, base, small, medium). No API key, no account, no audio uploaded.
+- **Download models once.** Whisper and behind-person models are saved in browser storage and reused after refresh or reopening the browser. Cache Storage has an IndexedDB fallback, and concurrent behind-person requests share one download. Switching models or backend may need different files; clearing site data or blocking browser storage requires downloading again. Loading a saved model into memory is shown as loading, not as another download.
 - **Import SRT or VTT.** The hosted product has free tools at [tscaps.io/tools](https://tscaps.io/tools) for this: drop a video and a subtitle file, style the captions, export. No transcription step, no account.
 - **Export subtitle files.** Write the captions back to SRT, VTT, ASS, SBV, or plain text, with optional word-level timing.
 - **Frame-accurate video export.** The browser rasterizes the caption DOM at each frame, composites it with the video, and encodes the result to mp4 via WebCodecs.

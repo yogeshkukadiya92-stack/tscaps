@@ -25,7 +25,10 @@ Guide: [../AUTHORING.md](../AUTHORING.md) · Controls: [style-controls.md](style
   // The one family the gallery lists this template under: "key-moments", "modern", "viral",
   // "classic" or "lab". Every template is in exactly one — a look that could be argued into
   // two is filed where someone would go looking for it first. Absent means "lab", and the
-  // contract refuses a name that is not one of the five. "key-moments" is the family a template
+  // contract refuses a name outside TEMPLATE_CATEGORIES. Additional caption families are
+  // "studio-treatments", "real-estate", "perspective", "behind-person", "playful",
+  // "multiline", "dynamic", "editorial", "neon-fx", "creators", "desi", "social", "retro".
+  // "key-moments" is the family a template
   // does not choose on looks: it holds the ones composed against the whole frame, which the
   // gallery shows as clips because a caption on its own does not carry them.
   "category": "viral",

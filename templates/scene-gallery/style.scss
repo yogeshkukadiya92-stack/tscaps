@@ -1,0 +1,8 @@
+@use '../_lib/caption-treatment' as *;
+
+@include caption-treatment(
+  $font: 'JetBrains Mono Variable', $size: 2.8cqh, $weight: 500, $case: none,
+  $ink: #141414, $accent: #373737, $paper: #f9f8f4,
+  $treatment: paper, $motion: type, $hero-font: 'Anton',
+  $hero-italic: normal, $tilt: -2deg
+);
