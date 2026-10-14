@@ -8,6 +8,7 @@ type Mode = 'signin' | 'signup' | 'reset';
 const INPUT = 'w-full rounded-md border border-edge-medium bg-surface-1 text-fg-primary p-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
 export function AuthScreen({ initialError, recovering, onRecovered }: { initialError: string; recovering: boolean; onRecovered: () => void }) {
   const { client } = useCloudAuth();
+  const emailEnabled = window.__REELSTUDIO_CONFIG__?.emailEnabled !== false;
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,7 +76,7 @@ export function AuthScreen({ initialError, recovering, onRecovered }: { initialE
           {notice && <p className="text-sm text-accent m-0" role="status">{notice}</p>}
           <button className={BTN_PRIMARY} type="submit" disabled={pending}>{pending ? 'Please wait…' : recovering ? 'Save new password' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}<ArrowRight size={16} /></button>
         </form>
-        {!recovering && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? 'Back to sign in' : 'Forgot password?'}</button>}
+        {!recovering && emailEnabled && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? 'Back to sign in' : 'Forgot password?'}</button>}
         <p className="flex items-center justify-center gap-2 text-xs text-fg-muted m-0"><LockKeyhole size={14} />Your projects and source videos are private.</p>
       </div>
     </div>

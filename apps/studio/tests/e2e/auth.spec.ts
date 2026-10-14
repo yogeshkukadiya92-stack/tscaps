@@ -39,9 +39,10 @@ test('sign up validation, sign in, session restore, and sign out', async ({ page
 
 test('mobile auth page fits the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.route('**/config.js', route => route.fulfill({ contentType: 'application/javascript', body: 'window.__REELSTUDIO_CONFIG__={supabaseUrl:"https://auth.example.test",supabaseAnonKey:"public-test-key"};' }));
+  await page.route('**/config.js', route => route.fulfill({ contentType: 'application/javascript', body: 'window.__REELSTUDIO_CONFIG__={supabaseUrl:"https://auth.example.test",supabaseAnonKey:"public-test-key",emailEnabled:false};' }));
   await page.goto('/projects');
   await expect(page.getByRole('heading', { name: 'Welcome to ReelStudio' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Forgot password?' })).toHaveCount(0);
   await page.screenshot({ path: test.info().outputPath('auth-mobile.png') });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
