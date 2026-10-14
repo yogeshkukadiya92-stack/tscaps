@@ -16,6 +16,8 @@ import { AppExitProvider } from '@bootstrap/AppExitContext';
 import { AppExitRedirect } from '@ui/_shared/components/AppExitRedirect';
 import { PostExportPromptSlotProvider, type PostExportPromptRenderer } from '@bootstrap/PostExportPromptSlotContext';
 import type { AppModules } from '@bootstrap/AppModules';
+import { CloudAuthGate } from '@bootstrap/CloudAuthContext';
+import { CloudAccountBar } from '@ui/pages/auth/CloudAccountBar';
 
 interface EditorAppProps {
   modules: AppModules;
@@ -57,6 +59,7 @@ export function EditorApp({
   const projectRoute = <ProjectRoute />;
 
   return (
+    <CloudAuthGate modules={modules}>
     <EditorAppProviders modules={modules}>
       <AppExitProvider value={exitHref}>
       <StartFlowSlotProvider value={startFlow}>
@@ -71,6 +74,7 @@ export function EditorApp({
                   about. Route subtrees size against the pane (`h-full`),
                   never against the viewport. */}
               <div className="flex flex-col h-dvh">
+                <CloudAccountBar />
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   <Routes>
                     {exitHref === null && <Route path={routes.projectsList()} element={projectsHost} />}
@@ -94,5 +98,6 @@ export function EditorApp({
       </StartFlowSlotProvider>
       </AppExitProvider>
     </EditorAppProviders>
+    </CloudAuthGate>
   );
 }

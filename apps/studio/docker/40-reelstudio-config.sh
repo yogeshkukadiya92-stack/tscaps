@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+export SUPABASE_URL="${SUPABASE_URL:-}" SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-}"
+# Only public client configuration. Reject characters that can escape the JavaScript string.
+case "$SUPABASE_URL" in *[!a-zA-Z0-9_:/.-]*) echo 'Invalid Supabase URL' >&2; exit 1;; esac
+case "$SUPABASE_ANON_KEY" in *[!a-zA-Z0-9_.-]*|sb_secret_*) echo 'Invalid public Supabase key' >&2; exit 1;; esac
+case "$SUPABASE_ANON_KEY" in
+  ''|sb_publishable_*) ;;
+  *.*.*)
+    payload=$(printf '%s' "$SUPABASE_ANON_KEY" | cut -d. -f2 | tr '_-' '/+')
+    case $((${#payload} % 4)) in 2) payload="${payload}==";; 3) payload="${payload}=";; esac
+    if ! printf '%s' "$payload" | base64 -d 2>/dev/null | grep -Eq '"role"[[:space:]]*:[[:space:]]*"anon"'; then
+      echo 'The browser requires a public anon key' >&2; exit 1
+    fi
+    ;;
+  *) echo 'The browser requires a public Supabase key' >&2; exit 1;;
+esac
+envsubst '${SUPABASE_URL} ${SUPABASE_ANON_KEY}' < /usr/share/nginx/html/config.template.js > /usr/share/nginx/html/config.js

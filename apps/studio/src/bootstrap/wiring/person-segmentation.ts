@@ -49,6 +49,7 @@ import { PersonSegmenterModelUrls } from '@core/person-segmentation/infrastructu
 import type { PersonSegmenterModelLocations } from '@core/person-segmentation/infrastructure/PersonSegmenterModelLocations';
 import { SceneValidityScanner } from '@core/person-segmentation/infrastructure/SceneValidityScanner';
 import { IndexedDbPersonSegmentationCacheRepository } from '@core/person-segmentation/infrastructure/repositories/IndexedDbPersonSegmentationCacheRepository';
+import { scopeProjectCache } from '@core/auth/infrastructure/AccountScopedProjectCache';
 import type { RunProfiler } from '@core/person-segmentation/domain/RunProfiler';
 import type { WorkerErrorMonitor } from '@core/_shared/workers/WorkerErrorMonitor';
 import type { AppErrorClassifier } from '@core/errors/services/AppErrorClassifier';
@@ -153,7 +154,7 @@ export function bootPersonSegmentation(deps: PersonSegmentationDependencies) {
   const flowStore = new PersonSegmentationFlowStore();
   const loadedCacheStore = new LoadedPersonSegmentationCacheStore();
   const analysisGateStore = new BehindActorAnalysisGateStore();
-  const cacheRepository = new IndexedDbPersonSegmentationCacheRepository(deps.indexedDb, resultAssembler, MAX_CACHED_SEGMENTATION_PROJECTS);
+  const cacheRepository = scopeProjectCache(new IndexedDbPersonSegmentationCacheRepository(deps.indexedDb, resultAssembler, MAX_CACHED_SEGMENTATION_PROJECTS));
 
   const segmentMaskBackfillStore = new SegmentMaskBackfillStore();
   const scanSourceResolver = new ScanVideoSourceResolver();

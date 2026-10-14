@@ -15,6 +15,8 @@ import type { ProjectRepository } from '@core/projects/domain/ProjectRepository'
 import { ProjectName } from '@core/projects/domain/ProjectName';
 import type { UnsavedWorkPolicy } from '@core/projects/domain/UnsavedWorkPolicy';
 import { IndexedDbProjectRepository } from '@core/projects/infrastructure/repositories/IndexedDbProjectRepository';
+import { SupabaseProjectRepository } from '@core/projects/infrastructure/repositories/SupabaseProjectRepository';
+import { getSupabaseClient } from '@core/auth/infrastructure/SupabaseClient';
 import type { TemplateRepository } from '@core/templates/domain/TemplateRepository';
 import { TemplateSubstitutionNotifier } from '@core/templates/domain/TemplateSubstitutionNotifier';
 import { FallbackingTemplateReferenceResolver } from '@core/templates/services/FallbackingTemplateReferenceResolver';
@@ -112,7 +114,10 @@ export function bootProjects(deps: ProjectsDependencies) {
   const projectBuilder = new ProjectFromEditorStateBuilder();
   const editorStatePolicy = new EditorStateUnsavedWorkPolicy(deps.store);
 
-  const repository: ProjectRepository = new IndexedDbProjectRepository(deps.indexedDb, serializer, deps.videoFiles.blobCache);
+  const localRepository = new IndexedDbProjectRepository(deps.indexedDb, serializer, deps.videoFiles.blobCache);
+  const cloudClient = getSupabaseClient();
+  const cloudRepository = cloudClient ? new SupabaseProjectRepository(cloudClient, serializer) : null;
+  const repository: ProjectRepository = cloudRepository ?? localRepository;
   const unsavedWorkPolicy: UnsavedWorkPolicy = editorStatePolicy;
 
   const thumbnails = new ThumbnailGenerator();
@@ -146,6 +151,9 @@ export function bootProjects(deps: ProjectsDependencies) {
     repository,
   );
   return {
+    cloudEnabled: cloudClient !== null,
+    cloudRepository,
+    localRepository,
     repository,
     serializer,
     thumbnails,

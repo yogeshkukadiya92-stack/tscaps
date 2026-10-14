@@ -12,9 +12,10 @@ import { useAppRoutes } from '@ui/_shared/hooks/useAppRoutes';
 import { useIsMobileViewport } from '@ui/_shared/hooks/useIsMobileViewport';
 import { useTheme } from '@bootstrap/ThemeContext';
 import { ProjectsListPage } from '@ui/pages/editor/features/projects/components/ProjectsListPage';
+import { BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
 
 /**
- * Renders the projects list backed by IndexedDB. Offers import /
+ * Renders account projects, or IndexedDB when cloud storage is unconfigured. Offers import /
  * export of `.tscaps` files so projects can move between devices.
  */
 export function ProjectsHost() {
@@ -27,6 +28,10 @@ export function ProjectsHost() {
   const [mine, setMine] = useState<ProjectMetadata[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
   const isMobile = useIsMobileViewport();
+  const [migrating, setMigrating] = useState(false);
+  const [migrationNotice, setMigrationNotice] = useState('');
+  const [trash, setTrash] = useState<{ id: string; name: string }[] | null>(null);
+  const [trashPending, setTrashPending] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -37,11 +42,53 @@ export function ProjectsHost() {
     }
   }, [projects]);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+    let active = true;
+    void projects.actions.list.execute().then(all => {
+      if (active) setMine(all);
+    }).catch(cause => {
+      if (active) setError(new ProjectListLoadFailedError({ cause }));
+    });
+    return () => { active = false; };
+  }, [projects]);
+
+  async function openTrash() {
+    if (!projects.cloudRepository) return;
+    if (trash !== null) { setTrash(null); return; }
+    setTrashPending(true); setError(null);
+    try { setTrash(await projects.cloudRepository.listDeleted()); }
+    catch (cause) { setError(new ProjectListLoadFailedError({ cause })); }
+    finally { setTrashPending(false); }
+  }
+  async function restore(id: string) {
+    if (!projects.cloudRepository) return;
+    setTrashPending(true); setError(null);
+    try {
+      await projects.cloudRepository.restore(id);
+      setTrash(await projects.cloudRepository.listDeleted());
+      await refresh();
+    } catch (cause) { setError(new ProjectListLoadFailedError({ cause })); }
+    finally { setTrashPending(false); }
+  }
+
+  async function importLocalProjects() {
+    setMigrating(true); setMigrationNotice(''); setError(null);
+    try {
+      const local = await projects.localRepository.list();
+      let imported = 0;
+      for (const entry of local) {
+        if (await projects.repository.has(entry.id)) continue;
+        const project = await projects.localRepository.load(entry.id);
+        if (!project) continue;
+        const video = await projects.localRepository.loadVideoBlob(entry.id);
+        if (video.outcome === 'found') await projects.repository.cacheVideoBlob(entry.id, video.blob);
+        await projects.repository.save(project); imported++;
+      }
+      setMigrationNotice(imported ? `${imported} projects imported into your account. Originals remain in this browser.` : 'No new browser projects to import.');
+      await refresh();
+    } catch (cause) { setError(new ProjectListLoadFailedError({ cause })); }
+    finally { setMigrating(false); }
+  }
 
   const handleNewProject = useCallback((file: File) => {
     videos.actions.load.execute(file);
@@ -90,10 +137,20 @@ export function ProjectsHost() {
       error={error}
       isMobileDevice={isMobile}
       homeHref={homeHref}
-      title="Local projects"
-      subtitle={(n) => n === 1 ? '1 project · stored in this browser' : `${n} projects · stored in this browser`}
+      title={projects.cloudEnabled ? 'Your projects' : 'Local projects'}
+      subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · ${projects.cloudEnabled ? 'saved to your account' : 'stored in this browser'}`}
       emptyTitle="Make your first project."
-      emptyBody="Drop a video anywhere on this page. Everything stays in this browser — export a .tscaps file to back up or move between devices."
+      emptyBody={projects.cloudEnabled ? 'Drop a video to start. Your source video, captions and saved edits stay in your private account.' : 'Drop a video anywhere on this page. Everything stays in this browser — export a .tscaps file to back up or move between devices.'}
+      headerNote={projects.cloudEnabled ? <div className="flex flex-col gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button className={BTN_SECONDARY_SM} disabled={migrating} onClick={() => void importLocalProjects()}>{migrating ? 'Importing browser projects…' : 'Import projects from this browser'}</button>
+          <button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void openTrash()}>{trash === null ? 'Recently deleted' : 'Close recently deleted'}</button>
+        </div>
+        {trash !== null && <div className="rounded-md border border-edge-subtle p-3 text-sm flex flex-col gap-2">
+          {trash.length === 0 ? <span>No deleted projects.</span> : trash.map(entry => <div key={entry.id} className="flex items-center gap-3"><span className="truncate flex-1">{entry.name}</span><button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void restore(entry.id)}>Restore</button></div>)}
+        </div>}
+        {migrationNotice && <p className="text-xs text-fg-muted m-0" role="status">{migrationNotice}</p>}
+      </div> : null}
       onNewProject={handleNewProject}
       onOpenProject={handleOpenProject}
       onDeleteProject={handleDeleteProject}

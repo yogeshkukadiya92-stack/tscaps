@@ -323,7 +323,7 @@ async function bootAndBuildEditorTree(
     fonts,
     runStore: exportRunStore,
     videos,
-    videoIsUploaded: false,
+    videoIsUploaded: projects.cloudEnabled,
     saveProject: projects.actions.save,
     saveFailureReporter: projects.saveFailureReporter,
     errorTelemetryDescriber: errors.errorTelemetryDescriber,

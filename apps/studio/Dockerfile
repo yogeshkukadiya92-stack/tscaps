@@ -29,6 +29,8 @@ FROM nginx:1.27-alpine AS runtime
 
 COPY --from=build /workspace/apps/studio/dist /usr/share/nginx/html
 COPY apps/studio/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/studio/docker/40-reelstudio-config.sh /docker-entrypoint.d/40-reelstudio-config.sh
+RUN chmod +x /docker-entrypoint.d/40-reelstudio-config.sh
 
 EXPOSE 80
 

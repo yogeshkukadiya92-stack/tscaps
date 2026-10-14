@@ -2,9 +2,26 @@
 
 ReelStudio is a browser-based Reels editing studio, built on the open-source Tscaps editor.
 
-**Add animated captions to any video, in your browser. Free, open source, no account, no upload.**
+**Edit reels and animated captions in your browser, with optional private Supabase accounts and cloud projects.**
 
-Tscaps is a client-side subtitle editor for short-form video (TikTok, Reels, Shorts). Drop a video, transcribe it with in-browser Whisper, pick a template, tune the controls, and export the result with captions burned into the pixels. The video never leaves the browser.
+ReelStudio is a subtitle editor for short-form video (TikTok, Reels, Shorts). Drop a video, transcribe it with in-browser Whisper, pick a template, tune the controls, and export the result with captions burned into the pixels. Transcription and rendering run on your device. When Supabase is configured, source videos and project edits upload to your private account; without cloud configuration, projects stay in this browser.
+
+## Supabase accounts and Coolify deployment
+
+Provision a dedicated Supabase service and apply `supabase/migrations/20261014_reelstudio_projects.sql` to its Postgres database. It creates owner-protected project records and a private `reelstudio-videos` bucket. Videos up to 512 MB are supported. Database row-level security and storage policies restrict each account to its own data.
+
+Set these **runtime** environment variables on the ReelStudio application in Coolify:
+
+- `SUPABASE_URL`: the HTTPS Kong API origin.
+- `SUPABASE_ANON_KEY`: the public anon key (never the service-role key, JWT secret, or database password).
+
+The repository Dockerfile includes an nginx startup script that writes public settings to `config.js`. For an existing inline Coolify Dockerfile, also copy `/workspace/apps/studio/docker/40-reelstudio-config.sh` from the build stage into `/docker-entrypoint.d/40-reelstudio-config.sh` and make it executable. Pin the source archive to the updated commit. `config.js` is served with `no-store`.
+
+For local development, use `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in an ignored `.env.local` file. With no configuration, the existing local editor remains available.
+
+Configure Supabase Auth's site URL and redirect allow list for your ReelStudio domain. Keep email confirmation enabled and configure working SMTP for signup confirmation and password recovery. Sign up, sign in, restored sessions, sign out, and password recovery use Supabase Auth. Import existing projects with **Import projects from this browser**; originals are retained locally. Missing local videos still need relinking. Deleted cloud projects can be recovered using **Recently deleted → Restore**.
+
+Back up both Postgres and the storage volume: database backups alone do not contain video objects. Editing the same project on multiple devices concurrently uses the last completed save.
 
 Every caption template is CSS. You can pick one from the gallery and tune it with the editor controls (font, size, colour, timing, animation). Or open the CSS tab and write whatever you want. The controls are the surface; CSS is the escape hatch that keeps the door open.
 

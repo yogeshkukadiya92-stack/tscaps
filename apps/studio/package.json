@@ -77,6 +77,7 @@
     "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.0",
+    "@supabase/supabase-js": "^2.117.3",
     "@tanstack/react-virtual": "^3.10.0",
     "@tscaps/engine": "workspace:*",
     "@uiw/react-codemirror": "^4.23.0",

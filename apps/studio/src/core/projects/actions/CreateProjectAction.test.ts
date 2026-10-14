@@ -58,4 +58,15 @@ describe('CreateProjectAction', () => {
 
     expect(outcome.videoStoreFailure).toBeNull();
   });
+
+  it('does not resurrect an old project after signing out during its upload', async () => {
+    let finish!: () => void;
+    const upload = new Promise<void>(resolve => { finish = resolve; });
+    const { action, store } = buildAction(substitute<ProjectRepository>({ cacheVideoBlob: () => upload }));
+    const creating = action.execute();
+    store.reset();
+    finish();
+    await creating;
+    expect(store.snapshot().projectId).toBeNull();
+  });
 });

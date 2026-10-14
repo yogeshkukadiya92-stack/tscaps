@@ -23,6 +23,7 @@ import { DefaultPreviewProxyOutputStrategyFactory } from '@core/preview/infrastr
 import { IndexedDbPreviewProxyRepository } from '@core/preview/infrastructure/repositories/IndexedDbPreviewProxyRepository';
 import { MAX_CACHED_PROJECT_VIDEOS } from '@bootstrap/wiring/videos';
 import type { PreviewProxyRepository } from '@core/preview/domain/PreviewProxyRepository';
+import { scopeProjectCache } from '@core/auth/infrastructure/AccountScopedProjectCache';
 import { PreviewProxyResolver } from '@core/preview/services/PreviewProxyResolver';
 import { PreviewProxyDownloadStore } from '@core/preview/store/PreviewProxyDownloadStore';
 import { PreviewProxyGenerationStore } from '@core/preview/store/PreviewProxyGenerationStore';
@@ -88,7 +89,7 @@ export interface PreviewModule {
  */
 export function bootPreview(deps: PreviewDependencies): PreviewModule {
   const localProxyRepository = new IndexedDbPreviewProxyRepository(deps.indexedDb, deps.blobReadabilityProbe, MAX_CACHED_PROJECT_VIDEOS);
-  const proxyRepository: PreviewProxyRepository = localProxyRepository;
+  const proxyRepository: PreviewProxyRepository = scopeProjectCache(localProxyRepository);
 
   const proxyGenerator = new MediaBunnyPreviewProxyGenerator(
     new DefaultPreviewProxyOutputStrategyFactory(deps.workerErrorMonitor),

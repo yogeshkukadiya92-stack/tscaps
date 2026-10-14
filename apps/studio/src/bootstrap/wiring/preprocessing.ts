@@ -113,7 +113,7 @@ export function bootPreprocessing(deps: PreprocessingDependencies) {
   const surfaceLabel = 'web';
   const transcribesOnDevice = true;
   const proxyTiming: ProxyTiming = 'sequential-after-transcribe';
-  const videoIsUploaded = false;
+  const videoIsUploaded = deps.projects.cloudEnabled;
   const exportSupport: VideoExportSupport = new MediaBunnyVideoExportSupport();
 
   const previewProxyStage = new PreviewProxyStage(

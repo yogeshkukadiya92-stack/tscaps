@@ -45,6 +45,8 @@ export class CreateProjectAction {
     const thumbnail = await this.generateThumbnailBestEffort(file);
     const id = crypto.randomUUID();
     const videoStoreFailure = await this.cacheVideoBlobBestEffort(id, file);
+    // Loading another video or signing out while an upload runs cancels this creation.
+    if (this.store.snapshot().video.file !== file) return { videoStoreFailure };
     this.store.patch({
       projectId: id,
       projectName: this.deriveProjectName(file.name),
