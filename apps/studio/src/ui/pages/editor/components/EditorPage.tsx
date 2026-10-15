@@ -1,3 +1,5 @@
+import { useActiveEditorMode } from '@ui/pages/editor/hooks/useActiveEditorMode';
+import { useEditorWorkspaceStore } from '@ui/pages/editor/contexts/EditorWorkspaceContext';
 import { useCallback, useMemo, useState, type ReactNode, type Ref } from 'react';
 import { AudioWaveform, Captions, Check, Clapperboard } from 'lucide-react';
 import { CreativeStudio } from '@ui/pages/editor/features/creative/CreativeStudio';
@@ -86,6 +88,8 @@ export function EditorPage({
   videoOverlay,
   banner,
 }: EditorPageProps) {
+  const activeMode = useActiveEditorMode();
+  const workspace = useEditorWorkspaceStore();
   const editor = useEditor();
   const videos = useVideos();
   const cuts = useCuts();
@@ -230,7 +234,7 @@ export function EditorPage({
 
   const workspaceModes: readonly EditorModeDescriptor[] = [
     { id: 'captions', label: 'Captions', role: 'content', icon: <Captions size={MODE_ICON_SIZE} />, panel: captionsPanel },
-    { id: 'creative', label: 'Creative', role: 'content', icon: <Clapperboard size={MODE_ICON_SIZE} />, panel: <CreativeStudio state={state} /> },
+    { id: 'creative', label: 'Creative', role: 'content', icon: <Clapperboard size={MODE_ICON_SIZE} />, panel: null },
     { id: 'timeline', label: 'Timeline', role: 'tool', icon: <AudioWaveform size={MODE_ICON_SIZE} />, panel: (
       <TimelineHost
         document={state.document}
@@ -256,6 +260,7 @@ export function EditorPage({
   const sidebar = (
     <EditorWorkspacePane
       modes={workspaceModes}
+      hideModeTabs
       selectionBar={<ElementSelectionBar document={visibleDocument} selectionController={selectionController} />}
       inspector={<ElementInspector document={visibleDocument} selectionController={selectionController} />}
     />
@@ -283,6 +288,11 @@ export function EditorPage({
           canSave={canSave}
           onSave={onSave}
         />
+        <nav role="tablist" aria-label="Editor workspace" className="flex gap-2 w-full shrink-0 pb-3">
+          {workspaceModes.map(mode => <button key={mode.id} role="tab" aria-selected={activeMode === mode.id} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium ${activeMode === mode.id ? 'bg-accent text-white' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}{mode.label}</button>)}
+        </nav>
+        {activeMode === 'creative' && <CreativeStudio state={state} />}
+        <div className={activeMode === 'creative' ? 'hidden' : 'flex flex-col w-full flex-1 min-h-0'}>
         {isMobile ? (
           <MobileEditorLayout
             videoBox={videoBox}
@@ -297,6 +307,7 @@ export function EditorPage({
             sidebar={sidebar}
           />
         )}
+        </div>
         </div>
       )}
       {postExportPrompt && toastOpen ? postExportPrompt : (

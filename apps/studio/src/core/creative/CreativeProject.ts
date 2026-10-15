@@ -1,3 +1,4 @@
+import { isReelPresetId, type ReelPresetId } from '@core/creative/ReelPresets';
 import { readMotionEffects, type MotionEffect } from '@core/creative/MotionEffects';
 import { buildCuts, DEFAULT_SETTINGS, type CreativeSettings, type EditRange } from '@core/creative/creativeModel';
 
@@ -31,6 +32,8 @@ export interface BRoll {
 }
 export interface CreativeProject {
   version: 1;
+  /** Present after one Auto Edit pass; all resulting edits remain ordinary editable values. */
+  autoEdit?: { style: 'clean' | 'energetic' | 'professional'; preset?: ReelPresetId };
   effects?: MotionEffect[];
   settings: CreativeSettings;
   clips: CreativeClip[];
@@ -113,6 +116,8 @@ export function readCreativeProject(value: unknown): CreativeProject | null {
       || !finite(overlay.width, 0.01, 1) || !finite(overlay.height, 0.01, 1)) throw new Error('Invalid B-roll overlay.');
   }
   for (const range of project.silences) if (!range || !finite(range.start, 0) || !finite(range.end, range.start)) throw new Error('Invalid silence range.');
+  if (project.autoEdit !== undefined && (!project.autoEdit || !['clean', 'energetic', 'professional'].includes(project.autoEdit.style))) throw new Error('Invalid auto edit style.');
+  if (project.autoEdit?.preset !== undefined && !isReelPresetId(project.autoEdit.preset)) throw new Error('Invalid reel template.');
   const effects = readMotionEffects(project.effects);
   return { ...project, settings, ...(effects ? { effects } : {}) };
 }

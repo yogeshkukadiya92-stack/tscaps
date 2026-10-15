@@ -25,6 +25,7 @@ export interface EditorModeDescriptor {
 
 interface EditorWorkspacePaneProps {
   modes: readonly EditorModeDescriptor[];
+  hideModeTabs?: boolean;
   /** Offers the way into the element inspector while something is picked. */
   selectionBar: ReactNode;
   /** Stands in front of the modes while it is open, and renders nothing otherwise. */
@@ -68,6 +69,7 @@ const MODE_TAB_CONTENT_CLASS = 'flex-1 min-h-0 outline-none data-[state=inactive
  */
 export const EditorWorkspacePane = memo(function EditorWorkspacePane({
   modes,
+  hideModeTabs = false,
   selectionBar,
   inspector,
 }: EditorWorkspacePaneProps) {
@@ -84,7 +86,7 @@ export const EditorWorkspacePane = memo(function EditorWorkspacePane({
       data-tscaps-sidebar
     >
       <div className={isInspectorOpen ? 'hidden' : 'contents'}>
-        <Tabs.List className={MODE_TABS_LIST_CLASS} aria-label="Editor mode">
+        {!hideModeTabs && <Tabs.List className={MODE_TABS_LIST_CLASS} aria-label="Editor mode">
           {contentModes.map((m) => (
             <Tabs.Trigger key={m.id} value={m.id} className={CONTENT_TAB_CLASS}>
               {m.icon}
@@ -103,7 +105,7 @@ export const EditorWorkspacePane = memo(function EditorWorkspacePane({
               <span>{m.label}</span>
             </Tabs.Trigger>
           ))}
-        </Tabs.List>
+        </Tabs.List>}
         {selectionBar}
         {modes.map((m) => (
           <Tabs.Content key={m.id} value={m.id} forceMount className={MODE_TAB_CONTENT_CLASS}>
