@@ -8,7 +8,7 @@ export class ServerTranscriber implements ConfigurableTranscriber {
   readonly initialPhase = 'audio-extract' as const;
   constructor(private readonly endpoint: string, private readonly decoder: AudioDecoder,
     private readonly progress: PreprocessingProgressStore, private readonly token: () => Promise<string>,
-    private readonly request: typeof fetch = fetch) {}
+    private readonly request: typeof fetch = (...args) => globalThis.fetch(...args)) {}
   setConfig(): void { /* The server owns its warm model and compute settings. */ }
   async transcribe(source: Blob, options?: TranscriberOptions): Promise<Document> {
     try {

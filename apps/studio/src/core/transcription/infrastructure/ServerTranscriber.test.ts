@@ -1,9 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ServerTranscriber } from '@core/transcription/infrastructure/ServerTranscriber';
 import { encodeTranscriptionAudio } from '@core/transcription/infrastructure/PcmWaveEncoder';
 import { PreprocessingProgressStore } from '@core/preprocessing/store/PreprocessingProgressStore';
 
 describe('audio-only server transcription', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('invokes native fetch with the global receiver rather than the transcriber instance', async () => {
+    vi.stubGlobal('fetch', function (this: unknown) {
+      expect(this).toBe(globalThis);
+      return Promise.resolve(new Response(JSON.stringify({ words: [{ text: 'ગુજરાતી', start: 0, end: 0.5 }] })));
+    });
+    const transcriber = new ServerTranscriber('https://processing.test',
+      { decode: async () => new Float32Array(16000) }, new PreprocessingProgressStore(), async () => 'token');
+    expect((await transcriber.transcribe(new Blob(), { language: 'gu' })).getWords()[0]?.text).toBe('ગુજરાતી');
+  });
   it('encodes mono PCM16 with bounded samples and a WAV header', async () => {
     const view = new DataView(await encodeTranscriptionAudio(new Float32Array([-2, 0, 2, NaN])).arrayBuffer());
     expect(view.byteLength).toBe(52);
