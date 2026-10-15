@@ -11,6 +11,7 @@ const MODEL_LABELS: Record<TranscribeModel, string> = {
   base: 'Base',
   small: 'Small',
   medium: 'Medium',
+  'large-v3-turbo': 'Large v3 Turbo',
 };
 
 const BODY = 'text-sm text-fg-secondary leading-normal m-0';
@@ -84,8 +85,9 @@ function PendingNoticeDialog({ notice, onClose }: { notice: UntranscribedRegions
       </div>
 
       <p className={BODY}>
-        Next time, try a larger model in <span className={EMPHASIS}>Advanced settings</span>. Bigger
-        models are more accurate, but they run much slower and need a more powerful device.
+        {notice.model === 'large-v3-turbo'
+          ? 'Check the selected speech language and try cleaner audio with less background music. Unclear speech can still be missed by this model.'
+          : <>Try <span className={EMPHASIS}>ગુજરાતી · High accuracy</span> for Gujarati, or choose Large v3 Turbo in <span className={EMPHASIS}>Advanced settings</span>. Larger models need more memory and processing time.</>}
       </p>
 
 

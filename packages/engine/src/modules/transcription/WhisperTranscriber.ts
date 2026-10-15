@@ -33,6 +33,7 @@ export type WhisperModel =
   | 'base'
   | 'small'
   | 'medium'
+  | 'large-v3-turbo'
   | 'distil-small.en'
   | 'distil-medium.en';
 
@@ -48,6 +49,7 @@ const MODEL_IDS: Record<WhisperModel, string> = {
   'base':             'onnx-community/whisper-base_timestamped',
   'small':            'onnx-community/whisper-small_timestamped',
   'medium':           'onnx-community/whisper-medium_timestamped',
+  'large-v3-turbo':   'onnx-community/whisper-large-v3-turbo_timestamped',
   'distil-small.en':  'distil-whisper/distil-small.en',
   'distil-medium.en': 'distil-whisper/distil-medium.en',
 };
@@ -57,6 +59,7 @@ const CHUNK_CONFIG: Record<WhisperModel, { chunk_length_s: number; stride_length
   'base':             { chunk_length_s: 30, stride_length_s: 5 },
   'small':            { chunk_length_s: 30, stride_length_s: 5 },
   'medium':           { chunk_length_s: 30, stride_length_s: 5 },
+  'large-v3-turbo':   { chunk_length_s: 30, stride_length_s: 5 },
   'distil-small.en':  { chunk_length_s: 20, stride_length_s: 3 },
   'distil-medium.en': { chunk_length_s: 20, stride_length_s: 3 },
 };
@@ -105,6 +108,7 @@ const DTYPE_BY_DEVICE: Record<WhisperModel, { wasm: DType; webgpu: DType | null 
   'base':             { wasm: 'q8', webgpu: { encoder_model: 'fp32', decoder_model_merged: 'q4' } },
   'small':            { wasm: 'q8', webgpu: { encoder_model: 'fp32', decoder_model_merged: 'q4' } },
   'medium':           { wasm: 'q8', webgpu: { encoder_model: 'fp32', decoder_model_merged: 'q4' } },
+  'large-v3-turbo':   { wasm: 'q8', webgpu: { encoder_model: 'fp32', decoder_model_merged: 'q4' } },
   'distil-small.en':  { wasm: 'q8', webgpu: null },
   'distil-medium.en': { wasm: 'q8', webgpu: null },
 };

@@ -199,6 +199,14 @@ export function StartDialog({
         <SubtitleFileField file={subtitleFile} onChange={pickSubtitleFile} />
       ) : (
         <>
+          {inBrowserTranscription && <div className="flex flex-col gap-2">
+            <button type="button" className={BTN_SECONDARY_SM} onClick={() => {
+              updatePreference.execute({ ...preference, model: 'large-v3-turbo', captionStyle: 'original' });
+              handleLanguageChange('gu');
+              setAdvancedOpen(true);
+            }}>ગુજરાતી · High accuracy</button>
+            <p className="text-xs text-fg-muted m-0">Gujarati speech → ગુજરાતી captions with Whisper Large v3 Turbo. Large download; needs more memory and time. Review names and unclear speech.</p>
+          </div>}
           {inBrowserTranscription && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary">
             Caption language & script
             <select aria-label="Caption language & script" className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"

@@ -26,6 +26,7 @@ const MODELS: readonly ModelOption[] = [
   { value: 'base',   label: 'Base — ~75 MB' },
   { value: 'small',  label: 'Small — ~250 MB' },
   { value: 'medium', label: 'Medium — ~940 MB' },
+  { value: 'large-v3-turbo', label: 'Large v3 Turbo — multilingual accuracy' },
 ];
 
 const TOGGLE_CLS =
@@ -69,7 +70,9 @@ export function AdvancedSection({ open, onToggle, preference, onPreferenceChange
             value={preference.model}
             options={MODELS}
             onChange={(value) => onPreferenceChange({ ...preference, model: value as Model })}
-            hint="Larger models give better accuracy but take longer to download and run."
+            hint={preference.model === 'large-v3-turbo'
+              ? 'Large multilingual model. Downloads about 0.9 GB on CPU; GPU needs several GB of memory and a larger download. First run can take several minutes. Review captions for errors.'
+              : 'Larger models can improve accuracy but take longer to download and run.'}
           />
         </div>
       )}

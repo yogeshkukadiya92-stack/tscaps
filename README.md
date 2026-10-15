@@ -47,6 +47,10 @@ In an existing project, open **Captions → Transcript → Change language / Ret
 
 Existing captions remain intact if transcription fails. A successful replacement keeps the caption templates, video cuts and project identity, replaces caption edits and individual styling, and can be restored with **Undo**. Click **Save** to persist the replacement. Language selection controls speech recognition; it does not translate speech into another language.
 
+### Gujarati transcription
+
+Choose **ગુજરાતી · High accuracy** in the transcription or retranscription dialog to select Gujarati (`gu`), original script and **Whisper Large v3 Turbo** with word timestamps. The same model is available under **Advanced → Model** for other languages. It runs on-device without an API key. CPU downloads roughly 0.9 GB; GPU uses a larger full-precision encoder download and needs several GB of memory. Downloads are cached when browser storage permits. Accuracy depends on recording quality, dialect and background music; review the result, especially names and unclear speech. Existing projects can use **Change language / Retranscribe** and Undo a caption replacement.
+
 ### Audio to subtitles
 
 Choose **New project** and upload MP3, WAV, M4A, AAC, OGG or FLAC audio. The browser prepares a neutral vertical caption canvas with your audio. Transcribe it, correct the words and choose a caption template as usual. Under **Export → Subtitles**, download SRT for text/timing or ASS for base font, size, colours, position and karaoke timing. ASS playback requires the chosen fonts installed; full CSS animation, layered artwork and depth are preserved through video export.
