@@ -1,3 +1,4 @@
+import type { CreativeProject } from '@core/creative/CreativeProject';
 import type { Document } from '@tscaps/engine';
 import type { EditorState } from '@core/editor/domain/EditorState';
 import type { VideoLayout, VideoLoadError, VideoState } from '@core/editor/domain/VideoState';
@@ -12,6 +13,7 @@ import { UndoRedoStack } from '@core/editor/store/UndoRedoStack';
 import { CaptionTrack, ORIGINAL_CAPTION_TRACK_ID } from '@core/translations/domain/CaptionTrack';
 
 interface UndoableSnapshot {
+  readonly creative: CreativeProject | null;
   readonly document: Document | null;
   readonly sheets: Sheet[];
   readonly activeSheetId: string | null;
@@ -54,6 +56,7 @@ export class EditorStore extends EventTarget {
         playbackRate: 1,
         isPlaying: false,
       },
+      creative: null,
       document: null,
       captionTracks: [],
       activeCaptionTrackId: null,
@@ -164,6 +167,7 @@ export class EditorStore extends EventTarget {
       ...this._state,
       // Cast keeps `Partial<VideoState>` from widening each field to `| undefined`.
       video: extraVideo ? { ...baseVideo, ...extraVideo } as VideoState : baseVideo,
+      creative: null,
       document: null,
       captionTracks: [],
       activeCaptionTrackId: null,
@@ -365,6 +369,7 @@ export class EditorStore extends EventTarget {
   private _captureUndoable(): UndoableSnapshot {
     const s = this._state;
     return {
+      creative: s.creative ?? null,
       document: s.document,
       sheets: s.sheets,
       activeSheetId: s.activeSheetId,

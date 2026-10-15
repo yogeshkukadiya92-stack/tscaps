@@ -114,7 +114,7 @@ export function bootEngine(deps: EngineDependencies) {
       deps.errors.errorTelemetryDescriber,
     ),
   );
-  const captionsOverlayPainterFactory = new CaptionsOverlayFramePainterFactory(
+  const createCaptionPainterFactory = () => new CaptionsOverlayFramePainterFactory(
     new ComposedSubtitleLayerSource(
       new BatchedSubtitleLayerSource(
         BrowserSubtitleFrameRenderer.create(cssResourceEmbedder, wordSplitter, { sizeProbe }),
@@ -129,10 +129,11 @@ export function bootEngine(deps: EngineDependencies) {
   const renderer = new MediaBunnyVideoRenderer({
     coordinator: transcodeCoordinator,
     codecPolicy: new DefaultCodecPolicy(),
-    painterFactory: captionsOverlayPainterFactory,
+    painterFactory: createCaptionPainterFactory(),
   });
   return {
     renderer,
+    createCaptionPainterFactory,
     transcodeCoordinator,
     structureTagger,
     pauseTagger,

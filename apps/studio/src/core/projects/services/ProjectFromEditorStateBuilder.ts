@@ -41,6 +41,7 @@ export class ProjectFromEditorStateBuilder {
       state.projectThumbnail,
       state.captionTracks,
       state.activeCaptionTrackId,
+      state.creative ?? null,
     );
   }
 

@@ -1,3 +1,4 @@
+import type { CreativeProject } from '@core/creative/CreativeProject';
 import type { Document } from '@tscaps/engine';
 import type { Sheet } from '@core/sheets/domain/Sheet';
 import type { VideoLayout } from '@core/editor/domain/VideoState';
@@ -40,6 +41,7 @@ export class Project {
     readonly thumbnail: Blob | null,
     readonly captionTracks: ReadonlyArray<CaptionTrack> = [],
     readonly activeCaptionTrackId: string | null = null,
+    readonly creative: CreativeProject | null = null,
   ) {}
 
   /**
@@ -67,6 +69,7 @@ export class Project {
         track.id === this.activeCaptionTrackId ? track.with({ sheets }) : track,
       ),
       this.activeCaptionTrackId,
+      this.creative,
     );
   }
 
@@ -91,6 +94,7 @@ export class Project {
       this.thumbnail,
       captionTracks,
       this.activeCaptionTrackId,
+      this.creative,
     );
   }
 

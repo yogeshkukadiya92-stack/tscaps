@@ -1,3 +1,6 @@
+import { Document } from '@tscaps/engine';
+import type { CreativeRenderer, CreativeRenderRequest } from '@core/creative/CreativeRenderer';
+import { CutRegistry } from '@core/cuts/domain/CutRegistry';
 import type { VideoRenderer, OutputFormat, RenderQuality, AudioDiscardReason, VideoFrameDecoderSelection } from '@tscaps/engine';
 import type { EditorStore } from '@core/editor/store/EditorStore';
 import type { FileDownloader } from '@core/_shared/domain/FileDownloader';
@@ -63,9 +66,11 @@ export class ExportVideoAction {
     private readonly visibilityTracker: VisibilityTracker,
     private readonly accessPolicy: ExportAccessPolicy,
     private readonly videoIsUploaded: boolean,
+    private readonly creativeRenderer?: CreativeRenderer,
   ) {}
 
   async execute(options: ExportVideoOptions): Promise<void> {
+    if (this.exportStore.run) return;
     const state = this.editorStore.snapshot();
     if (!this.accessPolicy.access(state).available) return;
     const {
@@ -78,14 +83,14 @@ export class ExportVideoAction {
       elementStyles,
       decorationOverrides,
     } = state;
-    if (!document || sheets.length === 0 || video.fileName === null) return;
+    if (video.fileName === null || ((!document || sheets.length === 0) && !state.creative)) return;
 
     const plan = await this.planner.plan({
-      document,
+      document: document ?? new Document({ sections: [] }),
       sheets,
       elementStyles,
       decorationOverrides,
-      cuts,
+      cuts: state.creative ? CutRegistry.empty() : cuts,
       behindActorOverrides,
       projectId,
       videoLayout: video.layout,
@@ -107,7 +112,7 @@ export class ExportVideoAction {
 
     void this.persistAlongsideRender();
 
-    await this.runRender(plan, options, writer, sheets, fileInEditor);
+    await this.runRender(plan, options, writer, sheets, fileInEditor, state.creative ? { project: state.creative, cuts: cuts.list().map(r => ({ start: r.startSec, end: r.endSec })), plan } : undefined);
   }
 
   private async runRender(
@@ -116,6 +121,7 @@ export class ExportVideoAction {
     writer: ExportWriter,
     sheets: readonly Sheet[],
     fileInEditor: File | null,
+    creative?: Omit<CreativeRenderRequest, 'original'>,
   ): Promise<void> {
     let audioDiscardedReason: AudioDiscardReason | null = null;
     let decoderSelection: VideoFrameDecoderSelection | null = null;
@@ -128,7 +134,15 @@ export class ExportVideoAction {
       const resolved = await this.resolveOriginalVideo(fileInEditor);
       videoSource = resolved.source;
       const videoFile = resolved.file;
-      await this.renderer.render(
+      if (creative) {
+        if (!this.creativeRenderer) throw new Error('Creative export is unavailable in this host.');
+        await this.creativeRenderer.render({ ...creative, original: videoFile }, {
+          format: options.format,
+          shortSide: options.resolution === 'original' ? 1080 : Math.min(options.resolution.width, options.resolution.height),
+          bitrate: { low: 2_000_000, medium: 4_000_000, high: 8_000_000, 'very-high': 12_000_000 }[options.quality],
+          outputStream: writer.stream(), onProgress: percent => this.updateProgress(percent),
+        });
+      } else await this.renderer.render(
         {
           video: videoFile,
           document: plan.document,

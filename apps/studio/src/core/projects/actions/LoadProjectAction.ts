@@ -315,6 +315,7 @@ export class LoadProjectAction {
         isProbing: false,
         currentTime: 0,
       },
+      creative: project.creative,
       document: project.document,
       captionTracks: project.captionTracks,
       activeCaptionTrackId: project.activeCaptionTrackId,

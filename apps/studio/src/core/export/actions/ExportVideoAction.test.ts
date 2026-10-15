@@ -1,3 +1,5 @@
+import { newCreativeProject } from '@core/creative/CreativeProject';
+import type { CreativeRenderer } from '@core/creative/CreativeRenderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   Document,
@@ -222,6 +224,7 @@ interface Harness {
 function buildHarness(
   contributors: ReadonlyArray<ExportRenderContributor> = [],
   accessPolicy: ExportAccessPolicy = new UnrestrictedExportAccessPolicy(),
+  creativeRenderer?: CreativeRenderer,
 ): Harness {
   const store = new EditorStore();
   const exportStore = new ExportStore();
@@ -279,6 +282,7 @@ function buildHarness(
     { begin: () => ({ wasHidden: false, currentState: 'visible', end: () => undefined }) } as unknown as VisibilityTracker,
     accessPolicy,
     false,
+    creativeRenderer,
   );
 
   return { action, store, renderer, writer, telemetry, exportStore, downloaded, originalVideoResolver };
@@ -305,6 +309,30 @@ describe('ExportVideoAction', () => {
   });
 
   describe('what reaches the renderer', () => {
+    it('exports creative projects even without a caption document', async () => {
+      const render = vi.fn().mockResolvedValue(null);
+      const creative = newCreativeProject(2);
+      harness = buildHarness([], undefined, { render } as unknown as CreativeRenderer);
+      harness.store.patch({ creative, video: { file: new File(['bytes'], 'clip.mp4'), fileName: 'clip.mp4' } });
+      await harness.action.execute(DEFAULT_OPTIONS);
+      expect(render).toHaveBeenCalledOnce();
+      expect(render.mock.calls[0]![0].project).toBe(creative);
+      expect(render.mock.calls[0]![0].plan.document.getWords()).toHaveLength(0);
+      expect(harness.renderer.lastJob).toBeNull();
+    });
+
+    it('passes source-aligned captions and cuts separately to the creative composer', async () => {
+      const render = vi.fn().mockResolvedValue(null);
+      harness = buildHarness([], undefined, { render } as unknown as CreativeRenderer);
+      loadProject(harness.store, [buildSheet('main')], buildDocument('main', [{ id: 'word', text: 'hello', start: 0, end: 1 }]));
+      harness.store.patch({ creative: newCreativeProject(2), cuts: CutRegistry.fromSnapshot([{ startSec: 0, endSec: 1 }]) });
+      await harness.action.execute(DEFAULT_OPTIONS);
+      const request = render.mock.calls[0]![0];
+      expect(request.plan.document.getWords()).toHaveLength(1);
+      expect(request.plan.skipRanges).toEqual([]);
+      expect(request.cuts).toEqual([{ start: 0, end: 1 }]);
+    });
+
 
     it('hands over the loaded video and one style per sheet, keyed by sheet id', async () => {
       const sheets = [buildSheet('main'), buildSheet('hook')];

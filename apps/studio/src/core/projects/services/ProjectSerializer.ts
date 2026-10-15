@@ -1,3 +1,4 @@
+import { readCreativeProject, type CreativeProject } from '@core/creative/CreativeProject';
 import { Document, NarrationPace, Section, Segment, Line, Word, Tag, TimeFragment, Decoration, type AlignmentConfig, type TextDirection, type TextDirectionDetector } from '@tscaps/engine';
 import type { TemplateReferenceResolver } from '@core/templates/domain/TemplateReferenceResolver';
 import type { ControlValue } from '@core/templates/domain/definition/ControlField';
@@ -35,6 +36,7 @@ import { CaptionTrack } from '@core/translations/domain/CaptionTrack';
 export const PROJECT_SCHEMA_VERSION = 19;
 
 export interface SerializedProject {
+  readonly creative?: CreativeProject | null;
   readonly version: number;
   readonly id: string;
   readonly name: string;
@@ -167,6 +169,7 @@ export class ProjectSerializer {
     const cuts = project.cuts.toSnapshot();
     return {
       version: PROJECT_SCHEMA_VERSION,
+      ...(project.creative ? { creative: project.creative } : {}),
       id: project.id,
       name: project.name,
       createdAt: project.createdAt.toISOString(),
@@ -246,6 +249,7 @@ export class ProjectSerializer {
       thumbnail,
       captionTracks,
       migrated.activeCaptionTrackId ?? null,
+      readCreativeProject(migrated.creative),
     );
   }
 

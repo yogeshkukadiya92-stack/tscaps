@@ -1,7 +1,7 @@
 import type { Output } from 'mediabunny';
 
 /** Callback the encoder runs against its own 2D context on every frame. */
-export type PaintFrame = (target: OffscreenCanvasRenderingContext2D) => void;
+export type PaintFrame = (target: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D) => void;
 
 /**
  * Encodes successive frames into a mediabunny {@link Output}. The

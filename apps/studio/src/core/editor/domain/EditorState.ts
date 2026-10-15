@@ -1,3 +1,4 @@
+import type { CreativeProject } from '@core/creative/CreativeProject';
 import type { Document } from '@tscaps/engine';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { Template } from '@core/templates/domain/Template';
@@ -30,6 +31,7 @@ export type EditorStatus = 'idle' | 'preprocessing' | 'ready' | 'loading-project
  * `projectId !== null`.
  */
 export interface EditorState {
+  readonly creative?: CreativeProject | null;
   readonly video: VideoState;
   readonly document: Document | null;
   readonly captionTracks: ReadonlyArray<CaptionTrack>;

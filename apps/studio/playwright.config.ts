@@ -9,13 +9,14 @@ export default defineConfig({
   // Specs suffixed `.close` are excluded from the public build; the
   // default match pattern would skip those files here too.
   testMatch: /.*\.spec(\.close)?\.ts$/,
-  outputDir: './.playwright-out',
+  outputDir: process.env['E2E_OUTPUT_DIR'] ?? './.playwright-out',
   fullyParallel: false,
   workers: 1,
   timeout: 120_000,
   expect: { timeout: 15_000 },
   use: {
     baseURL: 'http://localhost:4173',
+    ...(process.env['E2E_BROWSER_CHANNEL'] ? { channel: process.env['E2E_BROWSER_CHANNEL'] } : {}),
     trace: 'on-first-retry',
   },
   projects: [

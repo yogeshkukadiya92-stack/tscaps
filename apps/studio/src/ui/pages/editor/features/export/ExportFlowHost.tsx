@@ -1,3 +1,4 @@
+import { creativeResolution } from '@core/creative/CreativeProject';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ExportStore } from '@core/export/store/ExportStore';
 import type { ExportRun } from '@core/export/domain/ExportRun';
@@ -76,6 +77,7 @@ export function ExportFlowHost({
     <>
       {replacedVideoDiffers && <ReplacedVideoNotice onSelect={handleSelectOriginalVideo} />}
       {watermarkNotice}
+      {state.creative && <p className="text-xs text-fg-secondary">Includes Creative Studio clips, B-roll, music, effects and captions. Subtitle files use the original caption timeline.</p>}
     </>
   );
   const environment = useMemo(() => userAgentInspector.detect(), [userAgentInspector]);
@@ -95,7 +97,9 @@ export function ExportFlowHost({
     };
   }, [pause, fallbackDecoderAdvisor, environment]);
 
-  const videoLayout = state.video.layout;
+  const videoLayout = useMemo(() => state.video.layout && state.creative
+    ? creativeResolution(state.video.layout.width, state.video.layout.height, state.creative.settings.portrait)
+    : state.video.layout, [state.video.layout, state.creative]);
   const resolutionView = useMemo<ResolutionView | null>(() => {
     if (!videoLayout) return null;
     return {
@@ -129,7 +133,7 @@ export function ExportFlowHost({
       exportRun={run}
       exportError={state.error}
       exportNotice={notice}
-      videoLayout={state.video.layout}
+      videoLayout={videoLayout}
       extraNotice={extraNotice}
       fallbackWarning={fallbackWarning}
       resolutionView={resolutionView}

@@ -1,3 +1,4 @@
+import { CreativeRenderer } from '@core/creative/CreativeRenderer';
 import type { EditorStore } from '@core/editor/store/EditorStore';
 import type { ExportStore } from '@core/export/store/ExportStore';
 import { ExportProgressStore } from '@core/export/store/ExportProgressStore';
@@ -91,6 +92,7 @@ export function bootExport(deps: ExportDependencies) {
     new SheetCustomizationDiff(),
     deps.errorTelemetryDescriber,
   );
+  const creativeRenderer = new CreativeRenderer(deps.engine.createCaptionPainterFactory);
   const run = new ExportVideoAction(
     deps.store,
     deps.runStore,
@@ -107,6 +109,7 @@ export function bootExport(deps: ExportDependencies) {
     new DocumentVisibilityTracker(),
     accessPolicy,
     deps.videoIsUploaded,
+    creativeRenderer,
   );
   const runSubtitles = new ExportSubtitlesAction(
     deps.store,
@@ -117,6 +120,8 @@ export function bootExport(deps: ExportDependencies) {
     accessPolicy,
   );
   return {
+    creativeRenderer,
+    planner,
     runStore: deps.runStore,
     progressStore,
     accessPolicy,

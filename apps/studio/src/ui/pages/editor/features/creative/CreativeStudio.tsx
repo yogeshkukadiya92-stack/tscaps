@@ -1,47 +1,30 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Clapperboard, Download, Play, Square, Sparkles, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ALL_FORMATS, BlobSource, Input } from 'mediabunny';
+import { Clapperboard, Sparkles } from 'lucide-react';
+import { CutRegistry } from '@core/cuts/domain/CutRegistry';
 import type { EditorState } from '@core/editor/domain/EditorState';
+import { CreativeAssetRepository } from '@core/creative/CreativeAssetRepository';
+import { compositionSpans, newCreativeProject, type BRoll, type CreativeClip, type CreativeProject } from '@core/creative/CreativeProject';
+import type { CreativeSession } from '@core/creative/CreativeRenderer';
+import { toAudioBuffer } from '@core/creative/CreativeAudio';
+import { findSilences, LOOKS, type CreativeSettings, type Motion } from '@core/creative/creativeModel';
 import { useVideos } from '@ui/_shared/contexts/modules/VideosContext';
+import { useEditor } from '@ui/_shared/contexts/modules/EditorContext';
+import { useProjects } from '@ui/_shared/contexts/modules/ProjectsContext';
+import { useExport } from '@ui/_shared/contexts/modules/ExportContext';
 import { usePlayback } from '@ui/pages/editor/contexts/PlaybackContext';
 import { AppDialog } from '@ui/_shared/components/Dialog/AppDialog';
 import { Slider } from '@ui/_shared/components/controls/fields/Slider';
-import { BTN_PRIMARY, BTN_SECONDARY, BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
-import { buildCuts, DEFAULT_SETTINGS, editedDuration, findSilences, LOOKS, paintFrame, type CreativeSettings, type EditRange, type Motion } from '@ui/pages/editor/features/creative/creativeModel';
+import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 
-const INPUT = 'w-full bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary';
-const MOTIONS: { id: Motion; name: string }[] = [
-  { id: 'none', name: 'None' }, { id: 'push', name: 'Slow zoom' },
-  { id: 'pulse', name: 'Beat zoom' }, { id: 'shake', name: 'Shake' }, { id: 'flash', name: 'Beat flash' },
-];
+const INPUT = 'w-full min-w-0 bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary';
+const pendingLaunch = new WeakSet<object>();
+const errorText = (error: unknown) => error instanceof Error ? error.message : 'The edit could not be completed.';
 
-function waitForMedia(media: HTMLMediaElement, event: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => finish(new Error('The media took too long to load. Try another file.')), 15000);
-    const finish = (error?: Error) => {
-      clearTimeout(timeout); media.removeEventListener(event, done); media.removeEventListener('error', failed);
-      if (error) reject(error); else resolve();
-    };
-    const done = () => finish();
-    const failed = () => finish(new Error('Your browser could not decode this media file.'));
-    media.addEventListener(event, done, { once: true });
-    media.addEventListener('error', failed, { once: true });
-  });
-}
-
-function outputTime(time: number, settings: CreativeSettings, cuts: readonly EditRange[]): number {
-  const removed = cuts.reduce((sum, r) => sum + Math.max(0, Math.min(time, r.end) - r.start), 0);
-  return Math.max(0, time - settings.start - removed) / settings.speed;
-}
-
-/** A pre-caption editing pass: the rendered result can become a fresh caption project. */
 export function CreativeStudio({ state }: { state: EditorState }) {
-  const videos = useVideos();
-  const playback = usePlayback();
-  const [open, setOpen] = useState(false);
+  const videos = useVideos(), playback = usePlayback(), editor = useEditor(), projects = useProjects();
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
+  const [loading, setLoading] = useState(false), [error, setError] = useState('');
   async function launch() {
     setLoading(true); setError(''); playback.pause();
     try {
@@ -51,310 +34,308 @@ export function CreativeStudio({ state }: { state: EditorState }) {
         if (stored.outcome === 'found') source = stored.file;
       }
       if (!source) throw new Error('Choose the original video again to open Creative Studio.');
-      setFile(source); setOpen(true);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not open the video.'); }
+      if (!editor.store.snapshot().projectId) {
+        pendingLaunch.add(editor.store);
+        await projects.actions.create.execute();
+        return; // The project route remounts this surface and continues the launch.
+      }
+      if (!editor.store.snapshot().creative) {
+        const input = new Input({ source: new BlobSource(source), formats: ALL_FORMATS });
+        let duration: number;
+        try { duration = await input.computeDuration(); } finally { input.dispose(); }
+        editor.store.commit(); editor.store.patch({ creative: newCreativeProject(duration) });
+      }
+      setFile(source);
+    } catch (cause) { pendingLaunch.delete(editor.store); setError(errorText(cause)); }
     finally { setLoading(false); }
   }
-
+  useEffect(() => {
+    if (state.projectId && pendingLaunch.has(editor.store)) {
+      const timer = window.setTimeout(() => { pendingLaunch.delete(editor.store); void launch(); }, 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+    // Resume a launch across the new-project route replacement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return <div className="h-full overflow-y-auto bg-surface-1 border border-edge-medium rounded-lg p-4 flex flex-col gap-4">
     <Clapperboard size={28} className="text-accent" />
-    <h2 className="text-lg font-semibold text-fg-primary m-0">Creative Studio</h2>
-    <p className="text-sm text-fg-secondary m-0 leading-relaxed">Give your reel a signature look. Mix music, add a title, cut pauses, and sync motion to your beat.</p>
-    <div className="text-xs text-fg-muted leading-relaxed">6 looks · 5 motion styles · smart silence cuts · beat jump cuts · trim · speed · music · text</div>
+    <h2 className="text-lg font-semibold m-0">Creative Studio</h2>
+    <p className="text-sm text-fg-secondary m-0">Arrange clips, add B-roll, clean your voice and mix music. Preview and export everything together with your styled captions.</p>
     <button className={BTN_PRIMARY} disabled={loading} onClick={() => void launch()}><Sparkles size={16} />{loading ? 'Opening…' : 'Open Creative Studio'}</button>
-    <p className="text-xs text-fg-muted m-0">Use this before adding captions. You can also choose a previously exported captioned video inside the studio to add effects to it.</p>
+    <p className="text-xs text-fg-muted m-0">Creative edits are included in project Save and the main video Export. The caption workspace shows the original source; the full reel preview is here.</p>
     {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-    {open && file && <StudioSession file={file} existingCuts={state.cuts.list().map(r => ({ start: r.startSec, end: r.endSec }))}
-      onClose={() => setOpen(false)} onCaption={result => { setOpen(false); videos.actions.load.execute(result); }} />}
+    {file && state.creative && <StudioSession key={state.projectId} file={file} state={state} project={state.creative} onClose={() => setFile(null)} />}
   </div>;
 }
 
-function StudioSession({ file: initialFile, existingCuts, onClose, onCaption }: {
-  file: File; existingCuts: readonly EditRange[]; onClose: () => void; onCaption: (file: File) => void;
+function NumberField({ label, value, min = 0, max, step = 0.1, change }: {
+  label: string; value: number; min?: number; max?: number; step?: number; change: (value: number) => void;
 }) {
-  const [source, setSource] = useState(initialFile);
-  const sourceUrl = useMemo(() => URL.createObjectURL(source), [source]);
-  const [settings, setSettings] = useState<CreativeSettings>({ ...DEFAULT_SETTINGS });
-  const [silences, setSilences] = useState<EditRange[]>([]);
-  const [useTimelineCuts, setUseTimelineCuts] = useState(true);
-  const [music, setMusic] = useState<File | null>(null);
-  const musicUrl = useMemo(() => music ? URL.createObjectURL(music) : '', [music]);
-  const [ready, setReady] = useState(false);
-  const [sourceDuration, setSourceDuration] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState<File | null>(null);
-  const [notice, setNotice] = useState('');
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const musicRef = useRef<HTMLAudioElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const cancelRef = useRef(false);
-  const audioRef = useRef<{ context: AudioContext; destination: MediaStreamAudioDestinationNode; sourceGain: GainNode; musicGain: GainNode; monitor: GainNode } | null>(null);
-  const cuts = useMemo(() => buildCuts(settings, silences, useTimelineCuts ? existingCuts : []), [settings, silences, existingCuts, useTimelineCuts]);
-  const duration = editedDuration(settings, cuts);
-  const live = useRef({ settings, cuts, busy });
-  useLayoutEffect(() => { live.current = { settings, cuts, busy }; }, [settings, cuts, busy]);
+  return <label className="text-xs text-fg-secondary flex flex-col gap-1 min-w-0">{label}<input className={INPUT} aria-label={label}
+    type="number" value={Number(value.toFixed(3))} min={min} max={max} step={step}
+    onChange={event => { if (event.target.value !== '' && Number.isFinite(event.target.valueAsNumber)) change(Math.max(min, Math.min(max ?? Infinity, event.target.valueAsNumber))); }} /></label>;
+}
 
-  const patch = (values: Partial<CreativeSettings>) => { setResult(null); setSettings(s => ({ ...s, ...values })); };
-  useEffect(() => () => URL.revokeObjectURL(sourceUrl), [sourceUrl]);
-  useEffect(() => () => { if (musicUrl) URL.revokeObjectURL(musicUrl); }, [musicUrl]);
-  useEffect(() => () => {
-    cancelRef.current = true;
-    if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop();
-    void audioRef.current?.context.close();
-  }, []);
+function StudioSession({ file, state, project, onClose }: { file: File; state: EditorState; project: CreativeProject; onClose: () => void }) {
+  const editor = useEditor(), projects = useProjects(), exporter = useExport();
+  const [error, setError] = useState(''), [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false), [saving, setSaving] = useState(false);
+  const [ready, setReady] = useState(false), [playing, setPlaying] = useState(false), [progress, setProgress] = useState(0);
+  const [time, setTime] = useState(0), [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
+  const [result, setResult] = useState<Blob | null>(null);
+  const previewHost = useRef<HTMLDivElement>(null), session = useRef<CreativeSession | null>(null);
+  const playingRef = useRef(false), audioContext = useRef<AudioContext | null>(null), audioNode = useRef<AudioBufferSourceNode | null>(null);
+  const exportAbort = useRef<AbortController | null>(null), generation = useRef(0);
+  const saveChain = useRef(Promise.resolve());
+  const projectId = state.projectId!;
+  const settings = project.settings;
+  const cuts = useMemo(() => state.cuts.list().map(r => ({ start: r.startSec, end: r.endSec })), [state.cuts]);
+  const spans = useMemo(() => compositionSpans(project, cuts), [project, cuts]);
+  const duration = spans.at(-1)?.outputEnd ?? 0;
+  const [previewRevision, setPreviewRevision] = useState(0);
 
-  // Preview and recording share the exact same canvas renderer and time mapping.
+  function stop() {
+    playingRef.current = false; setPlaying(false);
+    try { audioNode.current?.stop(); } catch { /* already stopped */ }
+    audioNode.current = null;
+  }
+  function change(next: CreativeProject, key?: string) {
+    stop(); setReady(false); setResult(null); setNotice(''); setError('');
+    editor.store.commit(key); editor.store.patch({ creative: next });
+  }
+  function patch(values: Partial<CreativeSettings>) { change({ ...project, settings: { ...settings, ...values } }, `creative:${Object.keys(values).join(',')}`); }
+  async function save() {
+    setSaving(true); setError('');
+    const operation = saveChain.current.catch(() => {}).then(async () => {
+      if (editor.store.snapshot().projectId !== projectId) throw new Error('The active project changed.');
+      await projects.actions.save.execute();
+    });
+    saveChain.current = operation;
+    try { await operation; setNotice('Creative edits and media saved with this project.'); }
+    catch (cause) { setError(errorText(cause)); }
+    finally { setSaving(false); }
+  }
+  async function plan() {
+    const current = editor.store.snapshot();
+    if (!current.document || !current.sheets.length) return null;
+    return exporter.planner.plan({ document: current.document, sheets: current.sheets, elementStyles: current.elementStyles,
+      decorationOverrides: current.decorationOverrides, cuts: CutRegistry.empty(), behindActorOverrides: current.behindActorOverrides,
+      projectId: current.projectId, videoLayout: current.video.layout });
+  }
   useEffect(() => {
-    let frame = 0;
-    const tick = () => {
-      const video = videoRef.current, canvas = canvasRef.current, soundtrack = musicRef.current;
-      const current = live.current;
-      if (video && canvas && video.readyState >= 2) {
-        const s = current.settings;
-        if (!video.paused && !video.seeking) {
-          const cut = current.cuts.find(r => video.currentTime >= r.start && video.currentTime < r.end);
-          if (cut) video.currentTime = Math.min(cut.end, s.end);
-          if (video.currentTime >= s.end - 0.015) {
-            video.pause(); soundtrack?.pause(); setPlaying(false);
-            if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop();
-          }
-        }
-        const time = outputTime(video.currentTime, s, current.cuts);
-        if (soundtrack && !video.paused && Number.isFinite(soundtrack.duration) && soundtrack.duration > 0) {
-          const target = time % soundtrack.duration;
-          if (Math.abs(soundtrack.currentTime - target) > 0.18) soundtrack.currentTime = target;
-        }
-        // Do not record a stale pre-seek frame during a jump cut.
-        if (!video.seeking) paintFrame(canvas, video, s, time);
-        if (current.busy) setProgress(Math.min(99, time / Math.max(0.1, editedDuration(s, current.cuts)) * 100));
-      }
-      frame = requestAnimationFrame(tick);
+    if (busy) return;
+    const token = ++generation.current;
+    const abort = new AbortController();
+    let prepared: CreativeSession | null = null;
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setReady(false);
+      void (async () => {
+        prepared = exporter.creativeRenderer.session({ original: file, project, cuts, plan: await plan() });
+        await prepared.open(360, abort.signal);
+        await prepared.paint(0);
+        if (!active || token !== generation.current) return;
+        session.current = prepared;
+        prepared.canvas.className = 'block w-full max-h-[52vh] object-contain rounded-lg bg-black';
+        prepared.canvas.setAttribute('aria-label', 'Full reel preview');
+        previewHost.current?.replaceChildren(prepared.canvas);
+        setTime(0); setReady(true);
+      })().catch(cause => { if (active && !abort.signal.aborted) setError(errorText(cause)); })
+        .finally(() => { if (!active) prepared?.close(); });
+    }, 250);
+    return () => {
+      active = false; abort.abort(); window.clearTimeout(timer); playingRef.current = false;
+      try { audioNode.current?.stop(); } catch { /* already stopped */ }
+      audioNode.current = null;
+      // Let a pending paint settle before releasing its decoding resources.
+      if (session.current === prepared) { session.current = null; prepared?.close(); }
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, []);
+    // The project object includes every visual/audio edit; caption state is refreshed when this dialog opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, cuts, file, busy, previewRevision]);
+  useEffect(() => () => { exportAbort.current?.abort(); void audioContext.current?.close(); }, []);
 
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.playbackRate = settings.speed;
-    if (audioRef.current) {
-      audioRef.current.sourceGain.gain.value = settings.sourceVolume;
-      audioRef.current.musicGain.gain.value = settings.musicVolume;
-    }
-  }, [settings.speed, settings.sourceVolume, settings.musicVolume]);
-
-  async function prepareAudio() {
-    const video = videoRef.current!, soundtrack = musicRef.current!;
-    if (!audioRef.current) {
-      const context = new AudioContext();
-      const destination = context.createMediaStreamDestination();
-      const sourceGain = context.createGain(), musicGain = context.createGain(), monitor = context.createGain();
-      const mix = context.createDynamicsCompressor();
-      context.createMediaElementSource(video).connect(sourceGain).connect(mix);
-      context.createMediaElementSource(soundtrack).connect(musicGain).connect(mix);
-      mix.connect(destination); mix.connect(monitor).connect(context.destination);
-      audioRef.current = { context, destination, sourceGain, musicGain, monitor };
-    }
-    const audio = audioRef.current;
-    audio.sourceGain.gain.value = settings.sourceVolume;
-    audio.musicGain.gain.value = settings.musicVolume;
-    audio.monitor.gain.value = 1;
-    await audio.context.resume();
-    return audio;
+  async function preview() {
+    const current = session.current;
+    if (!current) return;
+    stop(); setError('');
+    try {
+      const context = audioContext.current ??= new AudioContext();
+      await context.resume();
+      const pcm = await current.prepareAudio();
+      if (session.current !== current) return;
+      const node = context.createBufferSource(); node.buffer = toAudioBuffer(pcm); node.connect(context.destination);
+      const start = time >= duration - 0.04 ? 0 : time;
+      const origin = context.currentTime - start;
+      audioNode.current = node; node.start(0, start); playingRef.current = true; setPlaying(true);
+      const tick = async () => {
+        if (!playingRef.current || session.current !== current) return;
+        const position = Math.min(duration - 0.00001, context.currentTime - origin);
+        try { await current.paint(position); }
+        catch (cause) { if (session.current === current && playingRef.current) setError(errorText(cause)); stop(); return; }
+        setTime(position);
+        if (position >= duration - 0.04) { stop(); return; }
+        requestAnimationFrame(() => void tick());
+      };
+      await tick();
+    } catch (cause) { if (session.current === current) setError(errorText(cause)); stop(); }
   }
-
-  async function play(fromStart = false) {
-    const video = videoRef.current!, soundtrack = musicRef.current!;
-    await prepareAudio();
-    if (fromStart || video.currentTime >= settings.end || video.currentTime < settings.start) {
-      if (Math.abs(video.currentTime - settings.start) > 0.001) {
-        const seek = waitForMedia(video, 'seeked'); video.currentTime = settings.start; await seek;
+  async function seek(value: number) {
+    stop(); setTime(value);
+    try { await session.current?.paint(value); } catch (cause) { setError(errorText(cause)); }
+  }
+  async function upload(files: FileList | null, kind: 'clip' | 'overlay' | 'music', replaceId?: string) {
+    if (!files?.length) return;
+    stop(); setUploading(true); setError('');
+    try {
+      let next = project;
+      for (const selected of Array.from(files)) {
+        const input = new Input({ source: new BlobSource(selected), formats: ALL_FORMATS });
+        let assetDuration: number;
+        try {
+          const track = kind === 'music' ? await input.getPrimaryAudioTrack() : await input.getPrimaryVideoTrack();
+          if (!track || !await track.canDecode()) throw new Error(`Cannot decode ${selected.name}. Choose a supported ${kind === 'music' ? 'audio' : 'video'} file.`);
+          assetDuration = await input.computeDuration();
+          if (!Number.isFinite(assetDuration) || assetDuration <= 0 || assetDuration > 1800) throw new Error('Choose media between 0 and 30 minutes long.');
+        } finally { input.dispose(); }
+        const asset = await new CreativeAssetRepository().put(selected, assetDuration, projectId);
+        if (editor.store.snapshot().projectId !== projectId) throw new Error('The active project changed.');
+        if (kind === 'music') next = { ...next, music: asset, musicOffset: 0 };
+        else if (kind === 'clip') next = { ...next, clips: replaceId ? next.clips.map(c => c.id === replaceId ? { ...c, asset, start: 0, end: assetDuration } : c)
+          : [...next.clips, { id: crypto.randomUUID(), asset, start: 0, end: assetDuration, volume: 1 }] };
+        else next = { ...next, overlays: replaceId ? next.overlays.map(o => o.id === replaceId ? { ...o, asset, sourceStart: 0, end: Math.min(o.end, o.start + assetDuration) } : o)
+          : [...next.overlays, { id: crypto.randomUUID(), asset, start: Math.min(time, Math.max(0, duration - 0.1)), end: Math.min(duration, time + assetDuration), sourceStart: 0, x: 0, y: 0, width: 1, height: 1 }] };
       }
-    }
-    video.playbackRate = settings.speed;
-    if (music) {
-      if (soundtrack.readyState < 2) await waitForMedia(soundtrack, 'canplay');
-      soundtrack.currentTime = outputTime(video.currentTime, settings, cuts) % soundtrack.duration;
-      await soundtrack.play();
-    }
-    await video.play(); setPlaying(true);
+      change(next); await save();
+    } catch (cause) { setError(errorText(cause)); }
+    finally { setUploading(false); }
   }
-
-  const stop = useCallback(() => { videoRef.current?.pause(); musicRef.current?.pause(); setPlaying(false); }, []);
-
+  function clipChange(id: string, values: Partial<CreativeClip>) { change({ ...project, clips: project.clips.map(c => c.id === id ? { ...c, ...values } : c) }); }
+  function overlayChange(id: string, values: Partial<BRoll>) { change({ ...project, overlays: project.overlays.map(o => o.id === id ? { ...o, ...values } : o) }); }
+  function move(index: number, offset: number) {
+    const clips = [...project.clips];
+    [clips[index], clips[index + offset]] = [clips[index + offset]!, clips[index]!];
+    change({ ...project, clips });
+  }
+  function split(clip: CreativeClip) {
+    const span = spans.find(s => s.clip.id === clip.id && time > s.outputStart && time < s.outputEnd);
+    const at = span ? span.sourceStart + (time - span.outputStart) * settings.speed : (clip.start + clip.end) / 2;
+    if (at - clip.start < 0.05 || clip.end - at < 0.05) return;
+    change({ ...project, clips: project.clips.flatMap(c => c.id === clip.id ? [{ ...c, end: at }, { ...c, id: crypto.randomUUID(), start: at }] : [c]) });
+  }
   async function analyze() {
-    setAnalyzing(true); setError(''); stop();
+    setUploading(true); setError(''); stop();
     const context = new AudioContext();
     try {
-      const buffer = await context.decodeAudioData(await source.arrayBuffer());
-      const found = findSilences(buffer); setSilences(found); setResult(null);
-      setNotice(found.length ? `${found.length} quiet gaps removed. Preview to check the cuts.` : 'No quiet gaps longer than half a second were found.');
-    } catch { setError('This browser could not analyze the audio. Use the existing Timeline silence tool, or try an MP4 with AAC audio.'); }
-    finally { await context.close(); setAnalyzing(false); }
+      const buffer = await context.decodeAudioData(await file.arrayBuffer());
+      const silences = findSilences(buffer); change({ ...project, silences }); setNotice(`${silences.length} quiet gaps found. Preview before saving.`);
+    } catch { setError('Could not analyze this audio. Use Timeline silence removal or choose an MP4 with AAC audio.'); }
+    finally { await context.close(); setUploading(false); }
   }
-
   async function render() {
-    setError(''); setResult(null); setBusy(true); setProgress(0); cancelRef.current = false; stop();
-    let stream: MediaStream | null = null;
+    stop(); setBusy(true); setResult(null); setProgress(0); setError('');
+    const abort = new AbortController(); exportAbort.current = abort;
     try {
-      if (typeof MediaRecorder === 'undefined' || !canvasRef.current?.captureStream) throw new Error('Creative export requires a browser with canvas recording support, such as Chrome.');
-      if (duration < 0.1) throw new Error('Keep at least 0.1 seconds of video.');
-      const mime = ['video/mp4;codecs=avc1.42001E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus'].find(t => MediaRecorder.isTypeSupported(t));
-      if (!mime) throw new Error('Your browser does not support a compatible video encoder.');
-      const video = videoRef.current!, canvas = canvasRef.current!;
-      const audio = await prepareAudio();
-      if (cancelRef.current) return;
-      if (Math.abs(video.currentTime - settings.start) > 0.001) {
-        const seek = waitForMedia(video, 'seeked'); video.currentTime = settings.start; await seek;
-      }
-      if (cancelRef.current) return;
-      paintFrame(canvas, video, settings, 0);
-      stream = canvas.captureStream(30);
-      for (const track of audio.destination.stream.getAudioTracks()) stream.addTrack(track.clone());
-      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
-      recorderRef.current = recorder;
-      const chunks: Blob[] = [];
-      recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-      const finished = new Promise<void>((resolve, reject) => {
-        recorder.onstop = () => resolve();
-        recorder.onerror = () => reject(new Error('Video recording failed. Try a shorter reel.'));
-      });
-      recorder.start(500);
-      await play(true);
-      if (cancelRef.current) { stop(); if (recorder.state !== 'inactive') recorder.stop(); }
-      await finished;
-      if (!cancelRef.current) {
-        const extension = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-        const output = new File(chunks, `${source.name.replace(/\.[^.]+$/, '')}-reelstudio.${extension}`, { type: mime.split(';')[0]! });
-        if (!output.size) throw new Error('The encoder returned an empty file.');
-        setResult(output); setProgress(100);
-      }
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not render the reel.'); }
-    finally {
-      stop();
-      if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop();
-      recorderRef.current = null; stream?.getTracks().forEach(t => t.stop()); setBusy(false);
-    }
+      await saveChain.current.catch(() => {});
+      await projects.actions.save.execute();
+      const blob = await exporter.creativeRenderer.render({ original: file, project, cuts, plan: await plan() },
+        { format, signal: abort.signal, onProgress: setProgress });
+      if (!abort.signal.aborted) setResult(blob);
+    } catch (cause) { if (!abort.signal.aborted) setError(errorText(cause)); }
+    finally { setBusy(false); exportAbort.current = null; }
   }
-
-  const cancel = useCallback(() => {
-    cancelRef.current = true; stop();
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop();
-  }, [stop]);
-
-  // A background tab throttles canvas painting; stop instead of handing out a damaged reel.
-  useEffect(() => {
-    const hidden = () => { if (document.hidden && live.current.busy) { cancel(); setError('Export stopped because the tab was hidden. Keep this tab visible during export.'); } };
-    document.addEventListener('visibilitychange', hidden);
-    return () => document.removeEventListener('visibilitychange', hidden);
-  }, [cancel]);
-
   function download() {
     if (!result) return;
-    const url = URL.createObjectURL(result);
-    const a = document.createElement('a'); a.href = url; a.download = result.name; a.click();
+    const url = URL.createObjectURL(result), anchor = document.createElement('a');
+    anchor.href = url; anchor.download = `${file.name.replace(/\.[^.]+$/, '')}-reelstudio.${format}`; anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
-
-  return <AppDialog open onClose={onClose} locked={busy || analyzing} size="xl" title="Creative Studio" showCloseButton
-    description="Style your reel, then render it or continue with captions in a new project.">
+  async function close() { stop(); await save(); if (!editor.store.snapshot().dirty) onClose(); }
+  const locked = busy || uploading || saving;
+  return <AppDialog open onClose={() => { void close(); }} locked={locked} size="xl" title="Creative Studio" showCloseButton
+    description="One editable project. Clips, B-roll, music, effects and captions export together.">
     <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-5">
-      <div className="flex flex-col gap-3 md:sticky md:top-0 self-start">
-        <video ref={videoRef} src={sourceUrl} playsInline preload="auto" className="hidden"
-          onSeeking={() => {
-            if (recorderRef.current?.state === 'recording') recorderRef.current.pause();
-            musicRef.current?.pause();
-          }}
-          onSeeked={() => {
-            const video = videoRef.current!;
-            if (video.paused || cancelRef.current) return;
-            if (recorderRef.current?.state === 'paused') recorderRef.current.resume();
-            if (music) void musicRef.current?.play().catch(() => { cancel(); setError('Music playback failed. Choose another audio file.'); });
-          }}
-          onError={() => { setReady(false); setError('This video cannot be decoded. Choose another video.'); cancel(); }}
-          onLoadedMetadata={() => {
-            const video = videoRef.current!, canvas = canvasRef.current!;
-            const scale = Math.min(1, 1080 / Math.max(video.videoWidth, video.videoHeight));
-            canvas.width = Math.max(2, Math.round(video.videoWidth * scale / 2) * 2);
-            canvas.height = Math.max(2, Math.round(video.videoHeight * scale / 2) * 2);
-            setSourceDuration(video.duration);
-            patch({ start: 0, end: video.duration });
-          }} onLoadedData={() => setReady(true)} onEnded={() => { stop(); if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop(); }} />
-        <audio ref={musicRef} src={musicUrl || undefined} loop preload="auto" onError={() => setError('This music file cannot be decoded. Choose another audio file.')} />
-        <canvas ref={canvasRef} className="w-full max-h-[42vh] object-contain rounded-lg bg-black" aria-label="Creative reel preview" />
-        <div className="flex items-center justify-between gap-2">
-          <button className={BTN_SECONDARY_SM} disabled={!ready || busy || analyzing} onClick={() => {
-            if (playing) stop(); else void play().catch(cause => { stop(); setError(String(cause)); });
-          }}>{playing ? <Square size={14} /> : <Play size={14} />}{playing ? 'Pause' : 'Preview'}</button>
-          <span className="text-xs text-fg-muted">{duration.toFixed(1)}s · up to 1080p · 30 fps</span>
+      <div className="flex flex-col gap-3 self-start min-w-0">
+        <div ref={previewHost} className="bg-black rounded-lg min-h-40" />
+        {!ready && !busy && <p className="text-xs text-fg-muted">Preparing full reel preview…</p>}
+        <input aria-label="Reel playhead" type="range" min="0" max={Math.max(0, duration - 0.001)} step="0.033333" value={time}
+          disabled={!ready || locked} onChange={event => void seek(Number(event.target.value))} />
+        <p className="text-xs text-fg-muted m-0">{time.toFixed(1)} / {duration.toFixed(1)}s · 30 fps · {settings.portrait ? '1080 × 1920' : 'Original ratio, up to 1080 on the short side'}</p>
+        <div className="flex gap-2 flex-wrap">
+          <button className={BTN_SECONDARY} disabled={!ready || locked} onClick={() => playing ? stop() : void preview()}>{playing ? 'Stop preview' : 'Preview'}</button>
+          <button className={BTN_SECONDARY} disabled={locked} onClick={() => { stop(); editor.store.undo(); setPreviewRevision(v => v + 1); }}>Undo</button>
+          <button className={BTN_SECONDARY} disabled={locked} onClick={() => { stop(); editor.store.redo(); setPreviewRevision(v => v + 1); }}>Redo</button>
+          <button className={BTN_SECONDARY} disabled={locked} onClick={() => void save()}>Save creative changes</button>
         </div>
-        <p className="text-xs text-fg-muted m-0">The preview includes these creative edits. Existing caption styles are added afterward. To keep captions already rendered, choose that exported video below.</p>
-        <label className="text-xs text-fg-secondary">Choose another video
-          <input type="file" accept="video/*" className="block mt-1 w-full text-xs" disabled={busy || analyzing} onChange={e => {
-            const next = e.target.files?.[0]; if (!next) return;
-            stop(); setReady(false); setSource(next); setSilences([]); setUseTimelineCuts(false); setResult(null); setError(''); setNotice('');
-          }} />
-        </label>
-        {error && <p className="text-sm text-danger m-0" role="alert">{error}</p>}
-        {notice && <p className="text-xs text-fg-secondary m-0" role="status">{notice}</p>}
-        {busy ? <div className="flex flex-col gap-2">
-          <progress max={100} value={progress} className="w-full accent-accent" aria-label="Creative export progress" />
-          <span className="text-xs text-fg-muted">Rendering {Math.round(progress)}% — keep this tab visible. Export runs at playback speed.</span>
-          <button className={BTN_SECONDARY} onClick={cancel}><X size={16} />Cancel export</button>
-        </div> : <button className={BTN_PRIMARY} disabled={!ready || analyzing || duration < 0.1} onClick={() => void render()}><Sparkles size={16} />Render edited reel</button>}
-        {result && <div className="flex flex-col gap-2" role="status">
-          <span className="text-xs text-fg-secondary">Ready · {result.type === 'video/mp4' ? 'MP4' : 'WebM'} · {(result.size / 1024 / 1024).toFixed(1)} MB</span>
-          <button className={BTN_PRIMARY} onClick={download}><Download size={16} />Download reel</button>
-          <button className={BTN_SECONDARY} onClick={() => onCaption(result)}>Add captions in a new project</button>
-        </div>}
+        <p className="text-xs text-fg-muted m-0">Captions stay linked to the original clips through cuts, speed and reordering. Added clips keep their own audio; B-roll is muted.</p>
+        {settings.speed !== 1 && <p className="text-xs text-fg-muted m-0">Speed changes also change voice pitch in the mixed reel.</p>}
+        {error && <p role="alert" className="text-sm text-danger break-words">{error}</p>}
+        {notice && <p role="status" className="text-xs text-fg-secondary">{notice}</p>}
+        {uploading && <p role="status" className="text-xs">Preparing and saving media…</p>}
+        <label className="text-xs">Export format<select aria-label="Export format" className={INPUT} value={format} disabled={locked} onChange={event => { setFormat(event.target.value as 'mp4' | 'webm'); setResult(null); }}><option value="mp4">MP4 · H.264 / AAC</option><option value="webm">WebM · VP9 / Opus</option></select></label>
+        {busy ? <><p role="status">Rendering {progress.toFixed(0)}%</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}>Cancel export</button></>
+          : <button className={BTN_PRIMARY} disabled={uploading || saving || duration < 0.1} onClick={() => void render()}>Render edited reel</button>}
+        {result && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
       </div>
-      <fieldset disabled={busy || analyzing} className="min-w-0 border-0 p-0 m-0 flex flex-col gap-5">
-        <section className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-fg-primary m-0">Signature looks</h3>
-          <div className="grid grid-cols-3 gap-2">{LOOKS.map(look => <button key={look.id} type="button" aria-pressed={settings.look === look.id}
-            className={`rounded-sm p-2 text-xs border ${settings.look === look.id ? 'border-accent text-accent bg-accent/10' : 'border-edge-medium text-fg-secondary bg-surface-1'}`} onClick={() => patch({ look: look.id })}>
-            <span className="block h-5 rounded-sm mb-1" style={{ background: look.color }} />{look.name}</button>)}</div>
-          <Slider label="Brightness" value={settings.brightness} min={0.5} max={1.5} step={0.05} onChange={v => patch({ brightness: v })} />
-          <Slider label="Contrast" value={settings.contrast} min={0.5} max={1.8} step={0.05} onChange={v => patch({ contrast: v })} />
-          <Slider label="Saturation" value={settings.saturation} min={0} max={2} step={0.05} onChange={v => patch({ saturation: v })} />
+      <fieldset disabled={locked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
+        <section className="flex flex-col gap-3"><h3 className="font-semibold m-0">Clips</h3>
+          <label className="text-xs">Add clips<input aria-label="Add clips" type="file" accept="video/*" multiple className="block w-full mt-1 text-xs" onChange={event => { void upload(event.target.files, 'clip'); event.target.value = ''; }} /></label>
+          {project.clips.map((clip, index) => <div key={clip.id} className="rounded border border-edge-medium p-3 flex flex-col gap-2" data-testid="creative-clip">
+            <span className="text-sm break-words">{index + 1}. {clip.asset?.name ?? 'Original video · captions'}</span>
+            <div className="grid grid-cols-2 gap-2"><NumberField label={`Clip ${index + 1} start`} value={clip.start} max={clip.end - 0.05} change={start => clipChange(clip.id, { start })} />
+              <NumberField label={`Clip ${index + 1} end`} value={clip.end} min={clip.start + 0.05} max={clip.asset?.duration ?? state.video.duration} change={end => clipChange(clip.id, { end })} /></div>
+            <NumberField label={`Clip ${index + 1} volume`} value={clip.volume} max={1} change={volume => clipChange(clip.id, { volume })} />
+            <div className="flex flex-wrap gap-2"><button className={BTN_SECONDARY} disabled={index === 0} onClick={() => move(index, -1)}>Move up</button><button className={BTN_SECONDARY} disabled={index === project.clips.length - 1} onClick={() => move(index, 1)}>Move down</button><button className={BTN_SECONDARY} onClick={() => split(clip)}>Split</button><button className={BTN_SECONDARY} onClick={() => change({ ...project, clips: project.clips.filter(c => c.id !== clip.id) })}>Remove clip</button></div>
+            {clip.asset && <label className="text-xs">Replace clip<input aria-label={`Replace clip ${index + 1}`} type="file" accept="video/*" onChange={event => void upload(event.target.files, 'clip', clip.id)} /></label>}
+          </div>)}
+          <button className={BTN_SECONDARY} onClick={() => change({ ...project, clips: [...project.clips, { id: crypto.randomUUID(), asset: null, start: settings.start, end: settings.end, volume: 1 }] })}>Add original clip</button>
         </section>
-        <section className="flex flex-col gap-3 border-t border-edge-subtle pt-4">
-          <h3 className="text-sm font-semibold text-fg-primary m-0">Motion & rhythm</h3>
-          <label className="text-xs text-fg-secondary">Motion<select aria-label="Motion" className={INPUT} value={settings.motion} onChange={e => patch({ motion: e.target.value as Motion })}>{MOTIONS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
-          <Slider label="Intensity" value={settings.intensity} min={0} max={1} step={0.05} onChange={v => patch({ intensity: v })} />
-          <Slider label="Beat BPM" value={settings.bpm} min={60} max={200} step={1} onChange={v => patch({ bpm: v })} />
-          <label className="flex gap-2 text-xs text-fg-secondary"><input type="checkbox" checked={settings.beatCuts} onChange={e => patch({ beatCuts: e.target.checked })} />Beat jump cuts</label>
-          <p className="text-xs text-fg-muted m-0">Set your music's BPM. Beat cuts remove small slices on that grid; preview speech before exporting.</p>
+        <section className="flex flex-col gap-3"><h3 className="font-semibold m-0">B-roll / picture-in-picture</h3>
+          <label className="text-xs">Add B-roll<input aria-label="Add B-roll" type="file" accept="video/*" multiple className="block w-full text-xs" disabled={duration < 0.1} onChange={event => { void upload(event.target.files, 'overlay'); event.target.value = ''; }} /></label>
+          {project.overlays.map((overlay, index) => <div key={overlay.id} className="rounded border border-edge-medium p-3 flex flex-col gap-2" data-testid="creative-overlay">
+            <span className="text-sm break-words">{overlay.asset.name}</span>
+            <div className="grid grid-cols-2 gap-2"><NumberField label={`B-roll ${index + 1} start`} value={overlay.start} max={overlay.end - 0.05} change={start => overlayChange(overlay.id, { start })} /><NumberField label={`B-roll ${index + 1} end`} value={overlay.end} min={overlay.start + 0.05} max={Math.min(duration, overlay.start + overlay.asset.duration - overlay.sourceStart)} change={end => overlayChange(overlay.id, { end })} />
+              <NumberField label={`B-roll ${index + 1} source offset`} value={overlay.sourceStart} max={Math.max(0, overlay.asset.duration - (overlay.end - overlay.start))} change={sourceStart => overlayChange(overlay.id, { sourceStart })} />
+              <NumberField label={`B-roll ${index + 1} size %`} value={overlay.width * 100} min={10} max={100} step={1} change={size => overlayChange(overlay.id, { width: size / 100, height: size / 100, x: Math.min(overlay.x, 1 - size / 100), y: Math.min(overlay.y, 1 - size / 100) })} />
+              <NumberField label={`B-roll ${index + 1} X %`} value={overlay.x * 100} max={(1 - overlay.width) * 100} step={1} change={x => overlayChange(overlay.id, { x: x / 100 })} /><NumberField label={`B-roll ${index + 1} Y %`} value={overlay.y * 100} max={(1 - overlay.height) * 100} step={1} change={y => overlayChange(overlay.id, { y: y / 100 })} /></div>
+            <div className="flex flex-wrap gap-2"><button className={BTN_SECONDARY} onClick={() => overlayChange(overlay.id, { width: 0.35, height: 0.35, x: 0.6, y: 0.05 })}>Picture-in-picture</button><button className={BTN_SECONDARY} onClick={() => overlayChange(overlay.id, { width: 1, height: 1, x: 0, y: 0 })}>Full frame</button><button className={BTN_SECONDARY} onClick={() => change({ ...project, overlays: project.overlays.filter(o => o.id !== overlay.id) })}>Remove B-roll</button></div>
+            <label className="text-xs">Replace B-roll<input aria-label={`Replace B-roll ${index + 1}`} type="file" accept="video/*" onChange={event => void upload(event.target.files, 'overlay', overlay.id)} /></label>
+          </div>)}
         </section>
-        <section className="flex flex-col gap-3 border-t border-edge-subtle pt-4">
-          <h3 className="text-sm font-semibold text-fg-primary m-0">Trim & smart cuts</h3>
-          <Slider label="Start" value={settings.start} min={0} max={Math.max(0, settings.end - 0.1)} step={0.1} unit="s" onChange={v => { stop(); patch({ start: v }); if (videoRef.current) videoRef.current.currentTime = v; }} />
-          <Slider label="End" value={settings.end} min={settings.start + 0.1} max={sourceDuration} step={0.1} unit="s" onChange={v => patch({ end: v })} />
-          <Slider label="Speed" value={settings.speed} min={0.5} max={2} step={0.1} unit="×" onChange={v => patch({ speed: v })} />
-          {existingCuts.length > 0 && source === initialFile && <label className="flex gap-2 text-xs text-fg-secondary"><input type="checkbox" checked={useTimelineCuts} onChange={e => { setUseTimelineCuts(e.target.checked); setResult(null); }} />Include {existingCuts.length} Timeline cuts</label>}
-          <button className={BTN_SECONDARY_SM} disabled={!ready} onClick={() => void analyze()}>{analyzing ? 'Analyzing…' : 'Detect & remove silences'}</button>
-          {silences.length > 0 && <button className={BTN_SECONDARY_SM} onClick={() => { setSilences([]); setResult(null); setNotice('Silence cuts restored.'); }}>Restore {silences.length} silence cuts</button>}
+        <section className="flex flex-col gap-3"><h3 className="font-semibold m-0">Voice & music</h3>
+          <label className="text-xs">Upload music<input aria-label="Upload music" type="file" accept="audio/*" className="block w-full text-xs" onChange={event => { void upload(event.target.files, 'music'); event.target.value = ''; }} /></label>
+          {project.music && <><span className="text-xs break-words">{project.music.name}</span><button className={BTN_SECONDARY} onClick={() => change({ ...project, music: null })}>Remove music</button><NumberField label="Music start offset" value={project.musicOffset} max={project.music.duration} change={musicOffset => change({ ...project, musicOffset })} /></>}
+          <Slider label="Original audio" value={settings.sourceVolume} min={0} max={1} step={0.05} onChange={sourceVolume => patch({ sourceVolume })} />
+          <Slider label="Music volume" value={settings.musicVolume} min={0} max={1} step={0.05} onChange={musicVolume => patch({ musicVolume })} />
+          <label className="text-sm"><input type="checkbox" checked={settings.ducking} onChange={event => patch({ ducking: event.target.checked })} /> Lower music during speech</label>
+          <label className="text-sm"><input type="checkbox" checked={settings.cleanup} onChange={event => patch({ cleanup: event.target.checked })} /> Voice cleanup · rumble filter & noise gate</label>
+          <label className="text-sm"><input type="checkbox" checked={settings.normalize} onChange={event => patch({ normalize: event.target.checked })} /> Normalize voice level</label>
         </section>
-        <section className="flex flex-col gap-3 border-t border-edge-subtle pt-4">
-          <h3 className="text-sm font-semibold text-fg-primary m-0">Music mix</h3>
-          <label className="text-xs text-fg-secondary">Upload music<input type="file" accept="audio/*" className="block w-full mt-1 text-xs" onChange={e => { stop(); setMusic(e.target.files?.[0] ?? null); setResult(null); }} /></label>
-          {music && <div className="flex items-center justify-between gap-2 text-xs text-fg-muted"><span className="truncate">{music.name}</span><button aria-label="Remove music" onClick={() => { stop(); setMusic(null); setResult(null); }}><X size={14} /></button></div>}
-          <Slider label="Original audio" value={settings.sourceVolume} min={0} max={1} step={0.05} onChange={v => patch({ sourceVolume: v })} />
-          <Slider label="Music volume" value={settings.musicVolume} min={0} max={1} step={0.05} onChange={v => patch({ musicVolume: v })} />
-          <p className="text-xs text-fg-muted m-0">Music loops to fit your reel and plays at its original speed.</p>
+        <section className="flex flex-col gap-3"><h3 className="font-semibold m-0">Look & motion</h3>
+          <label className="text-sm"><input type="checkbox" checked={settings.portrait} onChange={event => patch({ portrait: event.target.checked })} /> Portrait canvas · 1080 × 1920</label>
+          <div className="flex flex-wrap gap-2">{LOOKS.map(look => <button key={look.id} aria-pressed={settings.look === look.id} className={settings.look === look.id ? BTN_PRIMARY : BTN_SECONDARY} onClick={() => patch({ look: look.id })}>{look.name}</button>)}</div>
+          <Slider label="Brightness" value={settings.brightness} min={0.5} max={1.5} step={0.05} onChange={brightness => patch({ brightness })} />
+          <Slider label="Contrast" value={settings.contrast} min={0.5} max={1.5} step={0.05} onChange={contrast => patch({ contrast })} />
+          <Slider label="Saturation" value={settings.saturation} min={0} max={2} step={0.05} onChange={saturation => patch({ saturation })} />
+          <label className="text-xs">Motion<select aria-label="Motion" className={INPUT} value={settings.motion} onChange={event => patch({ motion: event.target.value as Motion })}><option value="none">None</option><option value="push">Slow zoom</option><option value="pulse">Beat zoom</option><option value="shake">Shake</option><option value="flash">Beat flash</option></select></label>
+          <Slider label="Intensity" value={settings.intensity} min={0} max={1} step={0.05} onChange={intensity => patch({ intensity })} />
+          <Slider label="BPM" value={settings.bpm} min={40} max={240} step={1} onChange={bpm => patch({ bpm })} />
+          <label className="text-xs">Text<textarea aria-label="Text" className={INPUT} value={settings.text} maxLength={300} onChange={event => patch({ text: event.target.value })} /></label>
+          <label className="text-xs">Text colour<input type="color" aria-label="Text colour" value={settings.textColor} onChange={event => patch({ textColor: event.target.value })} /></label>
+          <Slider label="Text size" value={settings.textSize} min={2} max={15} step={0.5} onChange={textSize => patch({ textSize })} />
+          <Slider label="Text position" value={settings.textY} min={10} max={90} step={1} onChange={textY => patch({ textY })} />
         </section>
-        <section className="flex flex-col gap-3 border-t border-edge-subtle pt-4">
-          <h3 className="text-sm font-semibold text-fg-primary m-0">Title overlay</h3>
-          <label className="text-xs text-fg-secondary">Text<textarea className={INPUT} rows={2} maxLength={300} placeholder="Your reel's hook…" value={settings.text} onChange={e => patch({ text: e.target.value })} /></label>
-          <label className="flex items-center gap-2 text-xs text-fg-secondary">Text color<input type="color" value={settings.textColor} onChange={e => patch({ textColor: e.target.value })} /></label>
-          <Slider label="Text size" value={settings.textSize} min={3} max={12} step={0.5} unit="%" onChange={v => patch({ textSize: v })} />
-          <Slider label="Position" value={settings.textY} min={10} max={90} step={1} unit="%" onChange={v => patch({ textY: v })} />
+        <section className="flex flex-col gap-3"><h3 className="font-semibold m-0">Timing</h3>
+          <Slider label="Start" value={settings.start} min={0} max={Math.max(0, settings.end - 0.1)} step={0.1} onChange={start => patch({ start })} />
+          <Slider label="End" value={settings.end} min={settings.start + 0.1} max={Math.max(settings.end, state.video.duration)} step={0.1} onChange={end => patch({ end })} />
+          <Slider label="Speed" value={settings.speed} min={0.5} max={2} step={0.1} onChange={speed => patch({ speed })} />
+          <label className="text-sm"><input type="checkbox" checked={project.useTimelineCuts} onChange={event => change({ ...project, useTimelineCuts: event.target.checked })} /> Include Timeline cuts</label>
+          <label className="text-sm"><input type="checkbox" checked={settings.beatCuts} onChange={event => patch({ beatCuts: event.target.checked })} /> Beat jump cuts</label>
+          <p className="text-xs text-fg-muted m-0">Beat cuts use the BPM grid and may cut speech. Preview before exporting.</p>
+          <button className={BTN_SECONDARY} onClick={() => void analyze()}>Detect & remove silences</button>
+          {!!project.silences.length && <button className={BTN_SECONDARY} onClick={() => change({ ...project, silences: [] })}>Restore detected silences</button>}
         </section>
-        <button className={BTN_SECONDARY_SM} onClick={() => { stop(); setSettings({ ...DEFAULT_SETTINGS, end: videoRef.current?.duration ?? 0 }); setSilences([]); setUseTimelineCuts(source === initialFile); setResult(null); setNotice('Creative settings reset.'); }}>Reset creative edits</button>
       </fieldset>
     </div>
   </AppDialog>;
