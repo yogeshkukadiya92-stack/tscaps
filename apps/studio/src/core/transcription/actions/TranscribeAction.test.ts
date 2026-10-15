@@ -17,7 +17,7 @@ describe('Hinglish transcription configuration', () => {
   }
   it('selects the upgraded multilingual model, requests Hindi transcription, then romanizes without changing timing', async () => {
     const { action, transcriber, words } = setup();
-    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'en' }, 'en');
+    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'hi' }, 'hi');
     expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'small', device: 'auto' });
     expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'hi' });
     expect(document.getWords().map(w => w.text)).toEqual(['aaj', 'video']);
@@ -30,6 +30,13 @@ describe('Hinglish transcription configuration', () => {
     expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'medium', device: 'wasm' });
     expect(document.getWords()[0]?.text).toBe('आज');
     expect(document.language).toBe('hi');
+  });
+  it.each(['gu', 'en', 'mr'])('preserves explicit %s speech even with a saved Hinglish preference', async (language) => {
+    const { action, transcriber, words } = setup();
+    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language }, language);
+    expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language });
+    expect(document.getWords()[0]?.text).toBe(words[0]?.text);
+    expect(document.language).toBe(language);
   });
   it('rejects a placeholder-only result instead of replacing the existing transcript', async () => {
     const { action, transcriber } = setup();

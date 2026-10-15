@@ -58,7 +58,10 @@ export class TranscribeAction {
     this.progress.start(this.transcriber.initialPhase);
 
     try {
-      const hinglish = preference.captionStyle === 'roman-hinglish';
+      // A saved caption style must never override an explicit speech language.
+      const selectedLanguage = options?.language ?? languageCode;
+      const hinglish = preference.captionStyle === 'roman-hinglish'
+        && (!selectedLanguage || selectedLanguage === 'hi');
       const transcribed = await this.transcriber.transcribe(videoFile, hinglish ? { ...options, language: 'hi' } : options);
       if (transcribed.getWords().length === 0 && regions.length > 0) {
         throw new LocalTranscriptionFailedError({ cause: new Error('Whisper recovered no words. Select the spoken language and retry with a larger multilingual model.') });

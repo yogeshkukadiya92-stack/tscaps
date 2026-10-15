@@ -131,7 +131,8 @@ export function StartDialog({
   const [subtitleFileError, setSubtitleFileError] = useState<string | null>(null);
   const subtitleInputRef = useRef<HTMLInputElement>(null);
   const fromSubtitleFile = inBrowserTranscription && subtitleFile !== null;
-  const romanHinglish = inBrowserTranscription && preference.captionStyle === 'roman-hinglish';
+  const romanHinglish = inBrowserTranscription && preference.captionStyle === 'roman-hinglish'
+    && (!language || language === AUTO_DETECT_LANGUAGE_VALUE || language === 'hi');
 
   const pickSubtitleFile = () => subtitleInputRef.current?.click();
 
@@ -225,8 +226,9 @@ export function StartDialog({
           {inBrowserTranscription && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary">
             Caption language & script
             <select aria-label="Caption language & script" className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"
-              value={preference.captionStyle ?? 'original'} onChange={event => {
+              value={romanHinglish ? 'roman-hinglish' : 'original'} onChange={event => {
                 updatePreference.execute({ ...preference, captionStyle: event.target.value as 'roman-hinglish' | 'original' });
+                if (event.target.value === 'roman-hinglish') handleLanguageChange('hi');
                 setLanguageError(null);
               }}>
               <option value="roman-hinglish">Roman Hinglish — Hindi + English</option>
