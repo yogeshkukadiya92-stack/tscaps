@@ -79,15 +79,18 @@ def transcribe_groq(pcm, language, transport=None):
                 detected_language = result.get('language', detected_language)
                 if not isinstance(result.get('words'), list):
                     raise ValueError('Missing word timestamps')
-                for item in result['words']:
+                for index, item in enumerate(result['words']):
                     absolute_start, absolute_end = float(item['start']) + start, float(item['end']) + start
                     text = item['word'].strip()
                     if not text or not math.isfinite(absolute_start) or not math.isfinite(absolute_end) or absolute_end < absolute_start:
                         raise ValueError('Invalid word')
                     if core_start <= absolute_start < core_end:
-                        # Whisper can round the final word past the clip boundary.
-                        # Accept at most one second of endpoint drift and clamp it.
-                        if absolute_end > duration + 1:
+                        # Whisper may stretch its final word into the padded final
+                        # 30-second window. Clip only that final endpoint;
+                        # reject large drift on interior words or beyond padding.
+                        final_word = core_end == duration and index == len(result['words']) - 1
+                        tolerance = 30 if final_word else 1
+                        if absolute_end > duration + tolerance:
                             raise ValueError('Out-of-range word')
                         words.append({'text': text, 'start': absolute_start, 'end': min(duration, absolute_end)})
             except (ValueError, KeyError, TypeError, AttributeError) as error:

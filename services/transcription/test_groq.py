@@ -60,6 +60,20 @@ def test_final_word_endpoint_drift_is_clamped():
 
 def test_large_out_of_range_endpoint_still_fails():
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
-        'words': [{'word': 'bad', 'start': 0.7, 'end': 20}]}))
+        'words': [{'word': 'bad', 'start': 0.7, 'end': 40}]}))
+    with pytest.raises(HTTPException):
+        transcribe_groq(np.zeros(16000), 'gu', transport)
+
+
+def test_whisper_final_word_padded_tail_is_clipped():
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
+        'words': [{'word': 'છે', 'start': 113.08, 'end': 137.02}]}))
+    result = transcribe_groq(np.zeros(115 * 16000), 'gu', transport)
+    assert result['words'] == [{'text': 'છે', 'start': 113.08, 'end': 115.0}]
+
+
+def test_interior_word_cannot_use_final_padding_tolerance():
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
+        'words': [{'word': 'bad', 'start': 0, 'end': 20}, {'word': 'last', 'start': 0.8, 'end': 1}]}))
     with pytest.raises(HTTPException):
         transcribe_groq(np.zeros(16000), 'gu', transport)
