@@ -17,6 +17,7 @@ import type { PreprocessingProgressStore } from '@core/preprocessing/store/Prepr
 import type { UntranscribedRegionsStore } from '@core/transcription/store/UntranscribedRegionsStore';
 import type { WordOverlapClamper } from '@core/transcription/services/WordOverlapClamper';
 import type { Telemetry } from '@core/telemetry/domain/Telemetry';
+import { LocalTranscriptionFailedError } from '@core/transcription/domain/errors/LocalTranscriptionFailedError';
 import { HinglishRomanizer } from '@core/transcription/services/HinglishRomanizer';
 
 /**
@@ -59,6 +60,9 @@ export class TranscribeAction {
     try {
       const hinglish = preference.captionStyle === 'roman-hinglish';
       const transcribed = await this.transcriber.transcribe(videoFile, hinglish ? { ...options, language: 'hi' } : options);
+      if (transcribed.getWords().length === 0 && regions.length > 0) {
+        throw new LocalTranscriptionFailedError({ cause: new Error('Whisper recovered no words. Select the spoken language and retry with a larger multilingual model.') });
+      }
       const words = hinglish ? new HinglishRomanizer().words(transcribed.getWords()) : transcribed.getWords();
       const document = this.assemble(words, regions, hinglish ? 'hi-Latn' : languageCode ?? null);
       if (regions.length > 0) {

@@ -344,10 +344,16 @@ The caption workspace continues to show the original source; Creative Studio is 
 
 ## Roman Hinglish captions
 
-New transcription defaults to **Roman Hinglish — Hindi + English**, using multilingual Whisper **Small** instead of Base. The Start dialog offers **Balanced · Small** and **Accuracy · Medium**, and remembers the selection. Medium needs a larger model download, more memory, and more processing time. Existing legacy Base preferences migrate to Small; explicit model choices made with the new caption-style setting are preserved.
+New transcription defaults to **Roman Hinglish — Hindi + English**, using multilingual Whisper **Large v3 Turbo** on CPU. The Start dialog offers **Best accuracy · Large v3 Turbo**, **Balanced · Small** and **Accuracy · Medium**, and remembers the selection. Medium needs a larger model download, more memory, and more processing time. Existing legacy Base preferences migrate to Large v3 Turbo; explicit model choices made with the new caption-style setting are preserved.
 
 Hinglish mode requests Hindi transcription with Whisper's existing `transcribe` task, then romanizes Hindi-script words into readable Latin captions. English text, word IDs, timestamps, and speaker information are preserved. Common caption spellings and English loanwords are normalized; other Hindi words use Sanscript with conservative Hindi schwa handling. This is a model configuration and spelling-conversion upgrade, not a fine-tuned Hinglish model or a guarantee of speech accuracy. Review names and uncommon words in the Transcript editor.
 
 Choose **Original script / other languages** to use the normal language picker. Imported subtitle files retain their original text. Existing Hindi captions can be converted with **Transcript → Convert Hindi to Roman Hinglish**; Undo restores the original script. Roman captions are stored in the project and included in video and subtitle exports.
 
 For deployments without SMTP, the owner can explicitly enable Supabase email autoconfirm for immediate password signup. This does **not** verify email ownership. Keep runtime `AUTH_EMAIL_ENABLED=false` so the app hides email password recovery. After SMTP is configured, turn verification back on and set `AUTH_EMAIL_ENABLED=true`.
+
+### Accuracy-first transcription
+
+New transcription defaults to multilingual Whisper Large v3 Turbo on CPU, with Roman Hinglish output. Existing explicit preferences are preserved. In new-project and retranscription dialogs, **Best accuracy · Large v3 Turbo** applies the model and CPU backend while retaining the selected language and script. Select the actual spoken language for original-script captions; Roman Hinglish requests Hindi. The first CPU download is about 0.9 GB and processing requires more memory/time than Small. Accuracy still depends on audio quality.
+
+When a long window degenerates, recovery tries each affected region once in slices of at most 10 seconds, retaining the language choice. Repeated failures remain flagged as untranscribed. A result containing no words and only failed regions is rejected so it cannot replace an existing transcript. Existing saved captions require retranscription to benefit from these changes.

@@ -163,8 +163,8 @@ const AGGREGATE_LOAD_STATUS = 'progress_total';
  * audio before the next window's start gets one re-decode over real
  * audio from that point. A window cut from outside — the repetition-
  * loop guard or the token ceiling — is degenerate: its unclosed tail
- * is dropped and its region is deliberately left untranscribed, never
- * retried. A re-decode that degenerates too is discarded the same way.
+ * is dropped and recovered once using shorter real-audio slices. A
+ * re-decode that degenerates too is discarded the same way.
  * The final window is reported the same way when cut or stopped
  * mid-segment; a clean close there is trusted as the end of speech.
  */
@@ -453,8 +453,8 @@ export class WhisperTranscriber implements Transcriber {
    * no word of a closed segment lands past that segment's end.
    *
    * A rescuable gap gets one extra pass over real audio. A
-   * non-rescuable gap does not — its region is reported and left
-   * untranscribed rather than retried.
+   * degenerate gap gets one pass per short real-audio slice instead.
+   * Recovery failures are reported and left untranscribed.
    */
   private async redecodeGaps(
     transcriber: Awaited<ReturnType<typeof pipeline>>,
@@ -467,11 +467,15 @@ export class WhisperTranscriber implements Transcriber {
     const rescued: WhisperChunk[] = [];
     for (const gap of gaps) {
       if (!gap.rescuable) {
-        console.warn(
-          `[whisper] window ended without trustworthy coverage; leaving ` +
-          `[${gap.startSeconds.toFixed(2)}s, ${gap.endSeconds.toFixed(2)}s] untranscribed.`,
-        );
-        this.reportUntranscribed(gap);
+        // Change the input window instead of repeating the failed 30-second
+        // decode. Bound recovery to one pass per short slice; never recurse.
+        for (let start = gap.startSeconds; start < gap.endSeconds; start += 10) {
+          const shortGap = { startSeconds: start, endSeconds: Math.min(start + 10, gap.endSeconds), rescuable: false };
+          const slice = pcm.subarray(Math.floor(start * WHISPER_SAMPLE_RATE), Math.floor(shortGap.endSeconds * WHISPER_SAMPLE_RATE));
+          const hasAudio = slice.some((sample) => Math.abs(sample) > 0.001);
+          if (!hasAudio) continue;
+          rescued.push(...await this.rescueGap(transcriber, pcm, shortGap, options, true));
+        }
         continue;
       }
       rescued.push(...await this.rescueGap(transcriber, pcm, gap, options));
@@ -500,13 +504,14 @@ export class WhisperTranscriber implements Transcriber {
     pcm: Float32Array,
     gap: CoverageGap,
     options?: TranscriberOptions,
+    shortWindow = false,
   ): Promise<WhisperChunk[]> {
     const { chunk_length_s } = CHUNK_CONFIG[this.model];
     const label = `[${gap.startSeconds.toFixed(2)}s, ${gap.endSeconds.toFixed(2)}s]`;
     console.warn(`[whisper] window closed early; re-decoding ${label} from real audio.`);
     try {
       const startSample = Math.floor(gap.startSeconds * WHISPER_SAMPLE_RATE);
-      const endSample = Math.min(pcm.length, startSample + chunk_length_s * WHISPER_SAMPLE_RATE);
+      const endSample = Math.min(pcm.length, shortWindow ? Math.floor(gap.endSeconds * WHISPER_SAMPLE_RATE) : startSample + chunk_length_s * WHISPER_SAMPLE_RATE);
       const slice = pcm.subarray(startSample, endSample);
       const rescueGuard = this.buildLoopGuard(transcriber);
       const result = (await (transcriber as CallableFunction)(
@@ -519,6 +524,7 @@ export class WhisperTranscriber implements Transcriber {
         return [];
       }
       const recovered = this.chunksWithinGap(result.chunks ?? [], gap);
+      if (recovered.length === 0) this.reportUntranscribed(gap);
       console.log(`[whisper] rescue recovered ${recovered.length} words for ${label}.`);
       return recovered;
     } catch (cause) {

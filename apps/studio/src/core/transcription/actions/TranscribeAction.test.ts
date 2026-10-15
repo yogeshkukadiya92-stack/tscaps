@@ -18,7 +18,7 @@ describe('Hinglish transcription configuration', () => {
   it('selects the upgraded multilingual model, requests Hindi transcription, then romanizes without changing timing', async () => {
     const { action, transcriber, words } = setup();
     const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'en' }, 'en');
-    expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'small', device: 'wasm' });
+    expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'large-v3-turbo', device: 'wasm' });
     expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'hi' });
     expect(document.getWords().map(w => w.text)).toEqual(['aaj', 'video']);
     expect(document.getWords()[0]?.time).toEqual(words[0]?.time);
@@ -31,4 +31,13 @@ describe('Hinglish transcription configuration', () => {
     expect(document.getWords()[0]?.text).toBe('आज');
     expect(document.language).toBe('hi');
   });
+  it('rejects a placeholder-only result instead of replacing the existing transcript', async () => {
+    const { action, transcriber } = setup();
+    transcriber.transcribe.mockImplementation(async () => {
+      (transcriber as unknown as { onUntranscribedRegion: (region: { startSeconds: number; endSeconds: number }) => void }).onUntranscribedRegion({ startSeconds: 0, endSeconds: 30 });
+      return new Document({ sections: [] });
+    });
+    await expect(action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE)).rejects.toMatchObject({ name: 'LocalTranscriptionFailedError' });
+  });
+
 });

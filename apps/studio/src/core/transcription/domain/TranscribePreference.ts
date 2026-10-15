@@ -18,6 +18,6 @@ export interface TranscribePreference {
 
 export const DEFAULT_TRANSCRIBE_PREFERENCE: TranscribePreference = {
   backend: 'wasm',
-  model: 'small',
+  model: 'large-v3-turbo',
   captionStyle: 'roman-hinglish',
 };

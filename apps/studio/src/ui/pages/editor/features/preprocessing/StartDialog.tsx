@@ -200,6 +200,12 @@ export function StartDialog({
       ) : (
         <>
           {inBrowserTranscription && <div className="flex flex-col gap-2">
+            <button type="button" className={preference.model === 'large-v3-turbo' && preference.backend === 'wasm' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
+              aria-pressed={preference.model === 'large-v3-turbo' && preference.backend === 'wasm'}
+              onClick={() => updatePreference.execute({ ...preference, model: 'large-v3-turbo', backend: 'wasm' })}>
+              Best accuracy · Large v3 Turbo
+            </button>
+            <p className="text-xs text-fg-muted m-0">Uses the large multilingual model on CPU. Keeps your selected speech language and script. About 0.9 GB first download; needs more memory and time. Select the language actually spoken for reliable results.</p>
             <button type="button" className={BTN_SECONDARY_SM} onClick={() => {
               updatePreference.execute({ ...preference, model: 'large-v3-turbo', captionStyle: 'original' });
               handleLanguageChange('gu');
@@ -221,13 +227,13 @@ export function StartDialog({
           {romanHinglish ? <div className="flex flex-col gap-2">
             <p className="text-xs text-fg-secondary m-0">Hindi + English speech → Roman captions. Example: “aaj hum video edit karenge”. English words stay in English.</p>
             <p className="text-xs text-fg-muted m-0">Hindi words are romanized after transcription. Review names and spellings in the Transcript editor.</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button type="button" className={preference.model === 'small' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'small'}
                 onClick={() => updatePreference.execute({ ...preference, model: 'small' })}>Balanced · Small</button>
               <button type="button" className={preference.model === 'medium' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'medium'}
                 onClick={() => updatePreference.execute({ ...preference, model: 'medium' })}>Accuracy · Medium</button>
             </div>
-            <p className="text-2xs text-fg-muted m-0">{preference.model === 'medium' ? 'Medium has a larger first download and needs more memory and processing time.' : 'Small is the default balance of model size and transcription quality.'}</p>
+            <p className="text-2xs text-fg-muted m-0">{preference.model === 'medium' ? 'Medium has a larger first download and needs more memory and processing time.' : preference.model === 'large-v3-turbo' ? 'Large v3 Turbo is selected for accuracy. Failed regions get one recovery pass using shorter audio slices.' : 'Small uses less memory and runs faster; select Best accuracy above for the large multilingual model.'}</p>
           </div> : <LanguagePicker
             id="td-language"
             label="Language"
