@@ -132,6 +132,8 @@ export function planAutoEdit(project: CreativeProject, sheets: readonly Sheet[],
   project = prepared.project; sheets = prepared.sheets;
   if (recipe && !REEL_PRESETS.some(p => p.id === recipe.id && p.templateId === recipe.template.metadata.id)) throw new Error('The reel template does not match its caption look.');
   const style = AUTO_EDIT_STYLES.find(s => s.id === styleId)!;
+  const selectedRecipe = recipe ? REEL_PRESETS.find(p => p.id === recipe.id) : undefined;
+  const cadence = selectedRecipe && 'cadence' in selectedRecipe ? selectedRecipe.cadence : 1;
   const notes: string[] = [];
   const before = compositionSpans(originalProject, timelineCuts);
   if (originalProject.autoEdit && !originalProject.autoEdit.generation) notes.push('This older edit has no generation history. Its existing cuts and effects are kept.');
@@ -175,7 +177,7 @@ export function planAutoEdit(project: CreativeProject, sheets: readonly Sheet[],
   const oldCount = effects.length;
   if (options.zooms) {
     const duration = after.at(-1)?.outputEnd ?? 0;
-    for (let start = Math.min(1, duration / 4); start + 0.5 < duration && effects.length < 40; start += style.interval) {
+    for (let start = Math.min(1, duration / 4); start + 0.5 < duration && effects.length < 40; start += style.interval * cadence) {
       const end = Math.min(duration, start + style.zoomLength);
       if ([...effects, ...prepared.protectedEffects].some(e => e.start < end + 0.5 && e.end > start - 0.5)) continue;
       effects.push({ ...newMotionEffect('digital-zoom', start, end), intensity: style.zoom });

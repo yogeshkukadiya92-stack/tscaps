@@ -31,7 +31,7 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
     const current = editor.store.snapshot();
     return sameAutoEditInputs(base, current);
   };
-  async function analyze() {
+  async function analyze(applyImmediately = false) {
     const base = editor.store.snapshot();
     if (!base.creative) return;
     onPreview(null); onStart(); setWorking(true); onBusy(true); setError(''); setDraft(null); setProgress(0);
@@ -45,7 +45,8 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
       const template = recipe ? base.availableTemplates.find(t => t.metadata.id === recipe.templateId) : undefined;
       if (recipe && !template) throw new Error('This caption template is no longer available. Choose another template.');
       const edit = planAutoEdit(base.creative, base.sheets, base.document, windows, base.cuts.list().map(c => ({ start: c.startSec, end: c.endSec })), style, options, recipe && template ? { id: recipe.id, template } : undefined, base.availableTemplates);
-      setDraft({ edit, base });
+      if (applyImmediately) { onApply(edit); setDraft(null); }
+      else setDraft({ edit, base });
     } catch (cause) {
       if (!abort.signal.aborted) setError(cause instanceof Error ? cause.message : 'Auto Edit could not analyze this video. Your edits are unchanged.');
     } finally {
@@ -63,7 +64,7 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
       <p className="text-xs text-fg-muted m-0">Try another style below. Unchanged auto edits are replaced; manual changes are preserved. Undo restores the previous version after applying.</p>
     </> : null}
     <>
-      <p className="text-xs text-fg-muted m-0">Choose a style. Analyze pauses and prepare editable captions, zooms and voice settings using your current transcript.</p>
+      <p className="text-xs text-fg-muted m-0">Pick a template, then Auto edit reel. Captions, quiet-pause cuts, zooms and voice settings stay editable. You can also review a draft before applying.</p>
       <fieldset disabled={locked || working} className="border-0 p-0 m-0 flex flex-col gap-3">
         <legend className="sr-only">Auto Edit style and options</legend>
         <ReelPresetGallery templates={state.availableTemplates} selected={preset} onSelect={id => { setPreset(id); setDraft(null); onPreview(null); const recipe = REEL_PRESETS.find(p => p.id === id); if (recipe) setStyle(recipe.style); }} />
@@ -75,7 +76,8 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
           {([['pauses', 'Trim quiet pauses'], ['zooms', 'Add zoom effects'], ['polish', 'Balance voice and colour'], ['captions', 'Style existing captions']] as const).map(([key, label]) => <label key={key} className="flex items-center gap-2"><input type="checkbox" checked={options[key]} onChange={e => { setOptions({ ...options, [key]: e.target.checked }); setDraft(null); onPreview(null); }} />{label}</label>)}
         </div>
         <p className="text-xs text-fg-muted m-0">Existing clips, music, words and custom formatting are kept. Reel templates change default caption looks only. No stock music or B-roll is added.</p>
-        <button className={BTN_PRIMARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze()}><Sparkles size={16} />Analyze auto edit</button>
+        <button className={BTN_PRIMARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze(true)}><Sparkles size={16} />Auto edit reel</button>
+        <button className={BTN_SECONDARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze()}><Sparkles size={16} />Analyze auto edit</button>
       </fieldset>
       {working && <div><p role="status" className="text-xs">Analyzing audio… {progress.toFixed(0)}%</p><button className={BTN_SECONDARY} onClick={() => { abortRef.current?.abort(); setWorking(false); onBusy(false); }}>Cancel analysis</button></div>}
       {draft && !currentDraft && <p role="status" className="text-xs text-fg-muted">Your project changed. Analyze again to refresh the preview.</p>}

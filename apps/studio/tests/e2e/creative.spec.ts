@@ -482,3 +482,36 @@ test('a different reel template can be previewed and applied after saving and re
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   expect((await storedProject(page)).payload.sheets[0]!.templateId).toBe('scene-karaoke');
 });
+
+
+for (const mobile of [false, true]) {
+  test(`modern template search and one-step auto edit ${mobile ? 'mobile' : 'desktop'}`, async ({ page }) => {
+    if (mobile) await page.setViewportSize({ width: 390, height: 844 });
+    const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+    const { dialog } = await openStudio(page);
+    const panel = dialog.getByRole('region', { name: 'Auto Edit', exact: true });
+    const gallery = panel.getByRole('region', { name: 'Reel templates', exact: true });
+    await expect(gallery.getByRole('button', { name: /^Use .* template$/ })).toHaveCount(6);
+    await gallery.getByRole('button', { name: /Show more templates/ }).click();
+    await expect(gallery.getByRole('button', { name: /^Use .* template$/ })).toHaveCount(12);
+    await gallery.getByRole('group', { name: 'Template categories' }).getByRole('button', { name: 'Business', exact: true }).click();
+    await gallery.getByRole('searchbox', { name: 'Search reel templates' }).fill('neon');
+    await expect(gallery.getByText('No templates match.', { exact: false })).toBeVisible();
+    await gallery.getByRole('group', { name: 'Template categories' }).getByRole('button', { name: 'All', exact: true }).click();
+    await gallery.getByRole('searchbox').fill('arcade');
+    await gallery.getByRole('button', { name: 'Use Arcade Pop template', exact: true }).click();
+    await panel.getByRole('button', { name: 'Auto edit reel', exact: true }).click();
+    await expect(panel.getByRole('status')).toContainText('Template: Arcade Pop');
+    await expect(panel.getByLabel('Auto Edit plan')).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+    await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
+    const saved = await storedProject(page);
+    expect(saved.payload.sheets[0]!.templateId).toBe('scene-arcade');
+    expect(saved.payload.creative.autoEdit?.preset).toBe('arcade');
+    await page.goto(`/project/${saved.id}?e2e=1`);
+    await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await expect(panel.getByRole('status')).toContainText('Template: Arcade Pop');
+    expect(errors).toEqual([]);
+  });
+}

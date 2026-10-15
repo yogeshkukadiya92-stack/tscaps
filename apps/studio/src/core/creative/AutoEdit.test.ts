@@ -3,7 +3,7 @@ import { Document, Line, Section, Segment, TimeFragment, Word } from '@tscaps/en
 import { autoPauseCuts, planAutoEdit, sameAutoEditInputs, DEFAULT_AUTO_EDIT_OPTIONS, type QuietWindow, type AutoEditStyle } from '@core/creative/AutoEdit';
 import { compositionSpans, newCreativeProject, readCreativeProject } from '@core/creative/CreativeProject';
 import { newMotionEffect } from '@core/creative/MotionEffects';
-import { REEL_PRESETS } from '@core/creative/ReelPresets';
+import { REEL_PRESETS, filterReelPresets } from '@core/creative/ReelPresets';
 import { EditorStore } from '@core/editor/store/EditorStore';
 import { Sheet } from '@core/sheets/domain/Sheet';
 import { TYPOGRAPHY_DEFAULTS } from '@core/sheets/domain/TypographyConfig';
@@ -199,4 +199,27 @@ it('preserves manual settings and caption sizes even when changed back to origin
   expect(third.project.settings.normalize).toBe(false);
   expect(third.project.settings.contrast).toBe(1);
   expect(third.sheets[0]!.typographyConfig.fontSize).toBe(originalSheet.typographyConfig.fontSize);
+});
+
+
+describe('Expanded reel catalog', () => {
+  it('keeps distinct identities and finds multilingual creator topics within categories', () => {
+    expect(REEL_PRESETS).toHaveLength(25);
+    expect(new Set(REEL_PRESETS.map(p => p.id)).size).toBe(25);
+    expect(new Set(REEL_PRESETS.map(p => p.templateId)).size).toBe(25);
+    expect(filterReelPresets('  GUJARATI  ', 'Creator').map(p => p.id)).toEqual(['desi-creator']);
+    expect(filterReelPresets('neon', 'Business')).toEqual([]);
+    expect(filterReelPresets('neon energetic', 'All').length).toBeGreaterThan(0);
+  });
+  it('uses recipe cadence while keeping the selected intensity and safe source timing', () => {
+    const make = (id: 'glass-creator' | 'linen-life') => {
+      const preset = REEL_PRESETS.find(p => p.id === id)!;
+      return planAutoEdit(newCreativeProject(60), [], null, [], [], 'clean', DEFAULT_AUTO_EDIT_OPTIONS,
+        { id, template: { metadata: { id: preset.templateId } } as Template });
+    };
+    const brisk = make('glass-creator'), calm = make('linen-life');
+    expect(brisk.zoomsAdded).toBeGreaterThan(calm.zoomsAdded);
+    expect(brisk.project.effects![0]!.intensity).toBe(calm.project.effects![0]!.intensity);
+    expect(brisk.project.settings.speed).toBe(1);
+  });
 });
