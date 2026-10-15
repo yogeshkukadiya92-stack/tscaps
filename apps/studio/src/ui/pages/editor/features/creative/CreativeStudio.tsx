@@ -79,6 +79,8 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
   const [ready, setReady] = useState(false), [playing, setPlaying] = useState(false), [progress, setProgress] = useState(0);
   const [time, setTime] = useState(() => { const saved = previewPositions.get(editor.store); return saved?.projectId === state.projectId ? saved.time : 0; }), [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
   const [result, setResult] = useState<Blob | null>(null);
+  const previewSource = state.video.preview?.kind === 'proxy' ? state.video.preview.file : undefined;
+  const [serverRendering, setServerRendering] = useState(false);
   const timeRef = useRef(time);
   const comparisonHost = useRef<HTMLDivElement>(null);
   const [comparison, setComparison] = useState<{ draft: AutoEditDraft; base: EditorState } | null>(null);
@@ -140,7 +142,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
     const timer = window.setTimeout(() => {
       setReady(false);
       void (async () => {
-        prepared = exporter.creativeRenderer.session({ original: file, project: viewProject, cuts, plan: await plan(viewSheets) });
+        prepared = exporter.creativeRenderer.session({ original: file, previewOriginal: previewSource, project: viewProject, cuts, plan: await plan(viewSheets) });
         await prepared.open(360, abort.signal);
         const position = Math.max(0, Math.min(timeRef.current, prepared.duration - 0.001));
         await prepared.paint(position);
@@ -162,7 +164,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
     };
     // The project object includes every visual/audio edit; caption state is refreshed when this workspace opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewProject, viewSheets, cuts, file, busy, previewRevision]);
+  }, [viewProject, viewSheets, cuts, file, busy, previewRevision, previewSource]);
   useEffect(() => () => { exportAbort.current?.abort(); void audioContext.current?.close(); }, []);
 
   async function preview() {
@@ -242,17 +244,23 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
     } catch { setError('Could not analyze this audio. Use Timeline silence removal or choose an MP4 with AAC audio.'); }
     finally { await context.close(); setUploading(false); }
   }
-  async function render() {
-    stop(); setBusy(true); setResult(null); setProgress(0); setError('');
+  async function render(onServer = false) {
+    stop(); setBusy(true); setServerRendering(onServer); setResult(null); setProgress(0); setError('');
     const abort = new AbortController(); exportAbort.current = abort;
     try {
       await saveChain.current.catch(() => {});
       await projects.actions.save.execute();
-      const blob = await exporter.creativeRenderer.render({ original: file, project, cuts, plan: await plan() },
-        { format, signal: abort.signal, onProgress: setProgress });
+      let blob: Blob | null;
+      if (onServer) {
+        if (!projects.cloudEnabled) throw new Error('Save this project to your account before server export.');
+        blob = await exporter.serverReelExporter.render(projectId, format, abort.signal);
+      } else {
+        blob = await exporter.creativeRenderer.render({ original: file, project, cuts, plan: await plan() },
+          { format, signal: abort.signal, onProgress: setProgress });
+      }
       if (!abort.signal.aborted) setResult(blob);
     } catch (cause) { if (!abort.signal.aborted) setError(errorText(cause)); }
-    finally { setBusy(false); exportAbort.current = null; }
+    finally { setBusy(false); setServerRendering(false); exportAbort.current = null; }
   }
   function download() {
     if (!result) return;
@@ -306,8 +314,9 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
         {notice && <p role="status" className="text-xs text-fg-secondary">{notice}</p>}
         {uploading && <p role="status" className="text-xs">Preparing and saving media…</p>}
         <label className="text-xs">Export format<select aria-label="Export format" className={INPUT} value={format} disabled={locked} onChange={event => { setFormat(event.target.value as 'mp4' | 'webm'); setResult(null); }}><option value="mp4">MP4 · H.264 / AAC</option><option value="webm">WebM · VP9 / Opus</option></select></label>
-        {busy ? <><p role="status">Rendering {progress.toFixed(0)}%</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}>Cancel export</button></>
-          : <button className={BTN_PRIMARY} disabled={editingLocked || duration < 0.1} onClick={() => void render()}>Render edited reel</button>}
+        {busy ? <><p role="status">{serverRendering ? 'Rendering on server…' : `Rendering ${progress.toFixed(0)}%`}</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}>Cancel export</button></>
+          : <><button className={BTN_PRIMARY} disabled={editingLocked || duration < 0.1} onClick={() => void render()}>Render edited reel</button>
+            {projects.cloudEnabled && exporter.serverReelExporter.enabled && !new URLSearchParams(window.location.search).has('serverRender') && <button className={BTN_SECONDARY} disabled={editingLocked || duration < 0.1} onClick={() => void render(true)}>Render on server</button>}</>}
         {result && !validComparison && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
       </div>
       <div className="flex flex-col min-h-0 min-w-0 gap-3">

@@ -1,3 +1,4 @@
+import { getTranscriptionServerUrl } from '@core/transcription/infrastructure/ServerTranscriptionConfig';
 import { BidiJsCharacterClassifier, StrongCharacterMajorityTextDirectionDetector } from '@tscaps/engine';
 import type { EditorStore } from '@core/editor/store/EditorStore';
 import type { RefreshDocumentAction } from '@core/editor/actions/RefreshDocumentAction';
@@ -111,8 +112,8 @@ export function bootPreprocessing(deps: PreprocessingDependencies) {
 
   const canPersist = () => deps.projectPersistenceEnabled;
   const surfaceLabel = 'web';
-  const transcribesOnDevice = true;
-  const proxyTiming: ProxyTiming = 'sequential-after-transcribe';
+  const transcribesOnDevice = !getTranscriptionServerUrl();
+  const proxyTiming: ProxyTiming = transcribesOnDevice ? 'sequential-after-transcribe' : 'parallel-with-transcribe';
   const videoIsUploaded = deps.projects.cloudEnabled;
   const exportSupport: VideoExportSupport = new MediaBunnyVideoExportSupport();
 

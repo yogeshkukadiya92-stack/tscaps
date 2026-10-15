@@ -14,6 +14,7 @@ export type AppErrorName =
   | 'ExportFailedError'
   | 'VideoExportUnsupportedError'
   | 'LocalTranscriptionFailedError'
+  | 'ServerTranscriptionFailedError'
   | 'TranscriptionModelCacheFailedError'
   | 'SubtitleFileReadFailedError'
   | 'ProjectDeleteFailedError'

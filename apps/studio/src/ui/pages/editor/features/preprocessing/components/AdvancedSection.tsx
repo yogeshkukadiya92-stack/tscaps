@@ -13,7 +13,8 @@ interface BackendOption extends SelectFieldOption {
 }
 
 const BACKENDS: readonly BackendOption[] = [
-  { value: 'wasm',   label: 'CPU', hint: 'Default — works on every device.' },
+  { value: 'auto', label: 'Auto · GPU with CPU fallback', hint: 'Uses GPU when available; falls back to CPU if GPU setup fails.' },
+  { value: 'wasm',   label: 'CPU', hint: 'Works without GPU acceleration.' },
   { value: 'webgpu', label: 'GPU', hint: 'Faster on modern GPUs. May not work on older hardware.' },
 ];
 

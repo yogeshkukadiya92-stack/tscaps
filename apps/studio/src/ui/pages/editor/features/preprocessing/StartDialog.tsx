@@ -31,6 +31,7 @@ const SOURCE_TOGGLE_CLS =
   'hover:text-fg-secondary focus-visible:outline-none focus-visible:text-fg-secondary';
 
 interface StartDialogProps {
+  readonly serverProcessing?: boolean;
   readonly open: boolean;
   readonly title?: string;
   readonly initialLanguage?: string;
@@ -106,6 +107,7 @@ export function StartDialog({
   isMobileDevice,
   error,
   preprocessVideo,
+  serverProcessing = false,
   updatePreference,
   onCancel,
   startDisabled = false,
@@ -199,7 +201,14 @@ export function StartDialog({
         <SubtitleFileField file={subtitleFile} onChange={pickSubtitleFile} />
       ) : (
         <>
+          {inBrowserTranscription && serverProcessing && <p className="text-xs text-fg-secondary m-0">Server transcription · only the audio is sent to your configured server. The server keeps its multilingual model loaded. Video upload and preview preparation can run alongside transcription. Local model controls below apply when server processing is disabled.</p>}
           {inBrowserTranscription && <div className="flex flex-col gap-2">
+            <button type="button" className={preference.model === 'small' && preference.backend === 'auto' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
+              aria-pressed={preference.model === 'small' && preference.backend === 'auto'}
+              onClick={() => updatePreference.execute({ ...preference, model: 'small', backend: 'auto' })}>
+              Fast · Small
+            </button>
+            <p className="text-xs text-fg-muted m-0">Smaller model with automatic GPU acceleration and CPU fallback. Keeps your language and script. Faster processing can trade off caption accuracy; review the result.</p>
             <button type="button" className={preference.model === 'large-v3-turbo' && preference.backend === 'wasm' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
               aria-pressed={preference.model === 'large-v3-turbo' && preference.backend === 'wasm'}
               onClick={() => updatePreference.execute({ ...preference, model: 'large-v3-turbo', backend: 'wasm' })}>

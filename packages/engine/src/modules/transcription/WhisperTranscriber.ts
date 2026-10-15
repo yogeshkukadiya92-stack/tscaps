@@ -327,16 +327,23 @@ export class WhisperTranscriber implements Transcriber {
         const { pipeline } = await this.transformers.load();
         const device = await this.resolveDevice();
         console.log(`Using device "${device}" for Whisper model "${this.model}".`);
-        const dtype = DTYPE_BY_DEVICE[this.model][device]!;
-        const asr = await pipeline(
+        const createPipeline = (backend: ResolvedDevice) => pipeline(
           'automatic-speech-recognition',
           MODEL_IDS[this.model],
           {
-            device,
-            dtype: dtype as never,
+            device: backend,
+            dtype: DTYPE_BY_DEVICE[this.model][backend]! as never,
             progress_callback: (data: LoadProgressEvent) => this.handleLoadProgress(data),
           },
         );
+        let asr;
+        try {
+          asr = await createPipeline(device);
+        } catch (cause) {
+          if (this.device !== 'auto' || device !== 'webgpu') throw cause;
+          console.warn('[whisper] GPU setup failed; retrying on CPU.', cause);
+          asr = await createPipeline('wasm');
+        }
         this.tokenTimestampAligner.install((asr as unknown as { model: TokenTimestampExtractingModel }).model);
         this.windowOverlapMerger.install((asr as unknown as { tokenizer: OverlapMergingTokenizer }).tokenizer);
         return asr;

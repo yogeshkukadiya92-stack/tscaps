@@ -1,3 +1,6 @@
+import { getSupabaseClient } from '@core/auth/infrastructure/SupabaseClient';
+import { getTranscriptionServerUrl } from '@core/transcription/infrastructure/ServerTranscriptionConfig';
+import { ServerTranscriber } from '@core/transcription/infrastructure/ServerTranscriber';
 import type { EditorStore } from '@core/editor/store/EditorStore';
 import type { LocalStorageTranscribePreferenceRepository } from '@core/transcription/infrastructure/repositories/LocalStorageTranscribePreferenceRepository';
 import type { AudioDecoder } from '@tscaps/engine';
@@ -48,13 +51,21 @@ export type TranscriptionModule = ReturnType<typeof bootTranscription>;
  * preprocessing, so the broader-scoped store lives there.
  */
 export function bootTranscription(deps: TranscriptionDependencies) {
-  const transcriber = deps.transcriber ?? buildLocalTranscriber(deps);
+  const endpoint = getTranscriptionServerUrl();
+  const transcriber = deps.transcriber ?? (endpoint ? new ServerTranscriber(endpoint, deps.audioDecoder, deps.progressStore, async () => {
+    const client = getSupabaseClient();
+    if (!client) throw new Error('Sign in to use server transcription.');
+    const { data, error } = await client.auth.getSession();
+    if (error || !data.session) throw new Error('Sign in to use server transcription.');
+    return data.session.access_token;
+  }) : buildLocalTranscriber(deps));
 
   const untranscribedRegionsStore = new UntranscribedRegionsStore();
   const skippedCueBlocksStore = new SkippedCueBlocksStore();
   const hinglishRomanizer = new HinglishRomanizer();
 
   return {
+    serverProcessing: !!endpoint,
     untranscribedRegionsStore,
     skippedCueBlocksStore,
     actions: {

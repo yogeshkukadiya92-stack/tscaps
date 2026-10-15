@@ -1,0 +1,144 @@
+"""One warm model per worker. Audio is held in memory only for its request."""
+import asyncio
+import os
+import re
+import wave
+import tempfile
+from uuid import UUID
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
+from contextlib import asynccontextmanager
+
+import httpx
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.concurrency import run_in_threadpool
+
+from audio import MAX_BYTES, decode_wave
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.auth_url = os.environ['SUPABASE_URL'].rstrip('/') + '/auth/v1/user'
+    app.state.public_key = os.environ['SUPABASE_ANON_KEY']
+    if os.getenv('ENABLE_TRANSCRIPTION', 'true') == 'true':
+        from faster_whisper import WhisperModel, BatchedInferencePipeline
+        device = os.getenv('WHISPER_DEVICE', 'cpu')
+        model = await run_in_threadpool(lambda: WhisperModel(
+            os.getenv('WHISPER_MODEL', 'large-v3-turbo'), device=device,
+            compute_type=os.getenv('WHISPER_COMPUTE_TYPE', 'int8_float16' if device == 'cuda' else 'int8'),
+            download_root='/models', cpu_threads=int(os.getenv('WHISPER_CPU_THREADS', '4')),
+            num_workers=1,
+        ))
+        app.state.engine = BatchedInferencePipeline(model=model)
+    app.state.busy = False
+    app.state.render_busy = False
+    app.state.http = httpx.AsyncClient(timeout=15, follow_redirects=False)
+    yield
+    await app.state.http.aclose()
+
+
+app = FastAPI(lifespan=lifespan)
+origins = [value.strip() for value in os.getenv('ALLOWED_ORIGINS', '').split(',') if value.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST', 'GET'],
+                   allow_headers=['Authorization', 'Content-Type'])
+
+
+@app.get('/health')
+async def health():
+    return {'ready': True, 'transcription': hasattr(app.state, 'engine'), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
+
+
+async def authorize(request: Request):
+    bearer = request.headers.get('authorization', '')
+    if not bearer.startswith('Bearer ') or len(bearer) > 8192:
+        raise HTTPException(401, 'Sign in to transcribe')
+    try:
+        result = await app.state.http.get(app.state.auth_url,
+            headers={'Authorization': bearer, 'apikey': app.state.public_key})
+    except httpx.HTTPError:
+        raise HTTPException(503, 'Authentication temporarily unavailable')
+    if result.status_code != 200:
+        raise HTTPException(401, 'Session expired')
+    user = result.json()
+    allowed = {value.strip() for value in os.getenv('ALLOWED_USER_IDS', '').split(',') if value.strip()}
+    if not user.get('id') or (allowed and user['id'] not in allowed):
+        raise HTTPException(403, 'Account not enabled for processing')
+    return user
+
+
+def infer(body: bytes, language: str | None):
+    try:
+        pcm = decode_wave(body)
+    except (ValueError, EOFError, wave.Error) as error:
+        # Decode is isolated from model errors and never leaks request contents.
+        raise HTTPException(400, 'Expected a valid mono 16 kHz PCM16 WAV') from error
+    segments, info = app.state.engine.transcribe(pcm, language=language, task='transcribe',
+        beam_size=5, batch_size=int(os.getenv('WHISPER_BATCH_SIZE', '8')),
+        word_timestamps=True, vad_filter=True, condition_on_previous_text=False,
+        vad_parameters={'min_silence_duration_ms': 500})
+    words = []
+    for segment in segments:
+        for word in segment.words or []:
+            if word.word.strip():
+                words.append({'text': word.word.strip(), 'start': word.start, 'end': word.end})
+    return {'words': words, 'language': info.language}
+
+
+@app.post('/transcribe')
+async def transcribe(request: Request, language: str | None = None):
+    await authorize(request)
+    if not hasattr(app.state, 'engine'):
+        raise HTTPException(503, 'Transcription is not enabled')
+    if language is not None and not re.fullmatch(r'[a-z]{2,3}', language):
+        raise HTTPException(400, 'Invalid speech language')
+    if request.headers.get('content-type', '').split(';')[0] != 'audio/wav':
+        raise HTTPException(415, 'Send audio/wav')
+    # No wait between check and assignment: admission is atomic on this worker's event loop.
+    if app.state.busy:
+        raise HTTPException(429, 'Transcription server busy; retry shortly', headers={'Retry-After': '10'})
+    app.state.busy = True
+    try:
+        body = bytearray()
+        async with asyncio.timeout(120):
+            async for chunk in request.stream():
+                if len(body) + len(chunk) > MAX_BYTES:
+                    raise HTTPException(413, 'Audio exceeds 30 minutes')
+                body.extend(chunk)
+        return await run_in_threadpool(infer, bytes(body), language)
+    except TimeoutError:
+        raise HTTPException(408, 'Audio upload timed out')
+    finally:
+        app.state.busy = False
+
+
+@app.post('/render')
+async def render(request: Request, project_id: UUID, output_format: str = 'mp4'):
+    user = await authorize(request)
+    if os.getenv('ENABLE_SERVER_RENDER', 'false') != 'true':
+        raise HTTPException(503, 'Server export is not enabled')
+    if output_format not in ('mp4', 'webm'):
+        raise HTTPException(400, 'Invalid output format')
+    # Reject missing/foreign/deleted projects through the caller's RLS before launching a browser.
+    lookup = await app.state.http.get(os.environ['SUPABASE_URL'].rstrip('/') + '/rest/v1/reelstudio_projects',
+        params={'select': 'id', 'id': 'eq.' + str(project_id), 'user_id': 'eq.' + user['id'], 'deleted_at': 'is.null'},
+        headers={'Authorization': request.headers['authorization'], 'apikey': app.state.public_key})
+    if lookup.status_code != 200 or not lookup.json():
+        raise HTTPException(404, 'Cloud project not found')
+    if app.state.render_busy:
+        raise HTTPException(429, 'Export server busy; retry shortly', headers={'Retry-After': '10'})
+    app.state.render_busy = True
+    folder = tempfile.TemporaryDirectory(prefix='reelstudio-render-')
+    try:
+        from render import render_project
+        async with asyncio.timeout(30 * 60):
+            path = await render_project(str(project_id), request.headers['authorization'][7:], user, folder.name, output_format)
+        return FileResponse(path, media_type='video/mp4' if output_format == 'mp4' else 'video/webm',
+                            filename='reelstudio.' + output_format, background=BackgroundTask(folder.cleanup))
+    except BaseException as error:
+        folder.cleanup()
+        if not isinstance(error, Exception):
+            raise
+        raise HTTPException(503, 'Server export failed. Retry or use device export.') from error
+    finally:
+        app.state.render_busy = False

@@ -207,7 +207,10 @@ export class CloudVideoUploadManager {
       }
       return transfer();
     };
-    const running = (preparing ? preparing.then(protectedTransfer) : protectedTransfer()).then(() => {
+    // Start the network transfer while IndexedDB retains the source. Keep
+    // completion behind that initial write so cleanup cannot race recovery.
+    const running = protectedTransfer().then(async () => {
+      await preparing;
       controller.signal.throwIfAborted();
       this.publish(job, { phase: 'ready', sent: job.blob.size, speedBps: null, remainingSeconds: null });
       void this.persist(job);
@@ -238,7 +241,7 @@ export class CloudVideoUploadManager {
       speed: new UploadSpeedEstimator(),
       status: { key: `${owner}/${projectId}`, projectId,
         fileName: blob instanceof File ? blob.name : 'Source video', phase: 'uploading', sent: 0,
-        total: blob.size, error: null, ...(this.options.persistence ? { persisted: true } : {}) } };
+        total: blob.size, error: null } };
   }
 
   private persist(job: UploadJob, initial = false): Promise<void> {
@@ -247,7 +250,10 @@ export class CloudVideoUploadManager {
     const checkpoint = { key: job.status.key, owner: job.owner, resumeUrl: job.resumeUrl,
       createdAt: job.createdAt, autoResume: job.autoResume, status: job.status, draft: job.draft };
     job.writes = job.writes.then(async () => {
-      if (initial) await persistence.add({ ...checkpoint, blob: job.blob });
+      if (initial) {
+        await persistence.add({ ...checkpoint, blob: job.blob });
+        this.publish(job, { persisted: true });
+      }
       else if (job.status.persisted) await persistence.checkpoint(checkpoint);
     }).catch(() => this.publish(job, { persisted: false }));
     return job.writes;

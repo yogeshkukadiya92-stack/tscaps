@@ -18,7 +18,7 @@ describe('Hinglish transcription configuration', () => {
   it('selects the upgraded multilingual model, requests Hindi transcription, then romanizes without changing timing', async () => {
     const { action, transcriber, words } = setup();
     const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'en' }, 'en');
-    expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'large-v3-turbo', device: 'wasm' });
+    expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'small', device: 'auto' });
     expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'hi' });
     expect(document.getWords().map(w => w.text)).toEqual(['aaj', 'video']);
     expect(document.getWords()[0]?.time).toEqual(words[0]?.time);

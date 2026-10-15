@@ -39,6 +39,47 @@ describe('Persistent video uploads', () => {
       expect(manager.store.statuses[0]).toMatchObject({ phase: 'failed', error: expect.stringContaining('another tab') });
     } finally { vi.unstubAllGlobals(); }
   });
+  it('starts the upload before a slow recovery write finishes and retains its early URL', async () => {
+    const disk = persistence(); const { attempts, transport } = transfer();
+    let release!: () => void;
+    const add = vi.mocked(disk.add).getMockImplementation()!;
+    vi.mocked(disk.add).mockImplementationOnce(async record => {
+      await new Promise<void>(resolve => { release = resolve; });
+      await add(record);
+    });
+    const manager = new CloudVideoUploadManager(transport, new VideoUploadStore(), { persistence: disk });
+    const running = manager.upload('owner', 'project', new Blob(['video']));
+    expect(attempts).toHaveLength(1);
+    expect(manager.store.statuses[0]?.persisted).toBeUndefined();
+    attempts[0]!.onUrl('https://storage.test/resumable/early');
+    await vi.waitFor(() => expect(release).toBeTypeOf('function'));
+    release();
+    await manager.flush('owner', 'project');
+    expect(manager.store.statuses[0]?.persisted).toBe(true);
+    expect((await disk.list('owner'))[0]?.resumeUrl).toBe('https://storage.test/resumable/early');
+    manager.reset();
+    await expect(running).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('waits for initial recovery storage before completing a fast network upload', async () => {
+    const disk = persistence();
+    let release!: () => void;
+    const add = vi.mocked(disk.add).getMockImplementation()!;
+    vi.mocked(disk.add).mockImplementationOnce(async record => {
+      await new Promise<void>(resolve => { release = resolve; });
+      await add(record);
+    });
+    const manager = new CloudVideoUploadManager({ upload: vi.fn().mockResolvedValue(undefined) }, new VideoUploadStore(), { persistence: disk });
+    const running = manager.upload('owner', 'project', new Blob(['video']));
+    await vi.waitFor(() => expect(release).toBeTypeOf('function'));
+    expect(manager.store.statuses[0]?.phase).toBe('uploading');
+    release();
+    await running;
+    expect(manager.store.statuses[0]).toMatchObject({ phase: 'ready', persisted: true });
+    manager.complete('owner/project');
+    await vi.waitFor(async () => expect(await disk.list('owner')).toEqual([]));
+  });
+
   it('writes the source once, restores its server URL after refresh and retains Cancel', async () => {
     const disk = persistence(); const { attempts, transport } = transfer();
     const first = new CloudVideoUploadManager(transport, new VideoUploadStore(), { persistence: disk });
@@ -102,7 +143,7 @@ describe('Persistent video uploads', () => {
     const manager = new CloudVideoUploadManager(transport, new VideoUploadStore(), { persistence: disk });
     const running = manager.upload('owner', 'project', new Blob(['video']));
     await vi.waitFor(() => expect(attempts.length).toBe(1));
-    expect(manager.store.statuses[0]!.persisted).toBe(false);
+    await vi.waitFor(() => expect(manager.store.statuses[0]!.persisted).toBe(false));
     manager.reset();
     await expect(running).rejects.toMatchObject({ name: 'AbortError' });
   });

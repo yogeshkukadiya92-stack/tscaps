@@ -9,7 +9,7 @@ import type { TranscribePreferenceRepository } from '@core/transcription/domain/
 
 const KEY = 'transcribe-preference';
 
-const VALID_BACKENDS: ReadonlySet<TranscribeBackend> = new Set(['wasm', 'webgpu']);
+const VALID_BACKENDS: ReadonlySet<TranscribeBackend> = new Set(['auto', 'wasm', 'webgpu']);
 const VALID_MODELS: ReadonlySet<TranscribeModel> = new Set(['tiny', 'base', 'small', 'medium', 'large-v3-turbo']);
 
 /**

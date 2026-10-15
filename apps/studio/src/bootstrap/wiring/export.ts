@@ -1,3 +1,4 @@
+import { ServerReelExporter } from '@core/export/infrastructure/ServerReelExporter';
 import { CreativeRenderer } from '@core/creative/CreativeRenderer';
 import type { EditorStore } from '@core/editor/store/EditorStore';
 import type { ExportStore } from '@core/export/store/ExportStore';
@@ -120,6 +121,7 @@ export function bootExport(deps: ExportDependencies) {
     accessPolicy,
   );
   return {
+    serverReelExporter: new ServerReelExporter(),
     creativeRenderer,
     planner,
     runStore: deps.runStore,

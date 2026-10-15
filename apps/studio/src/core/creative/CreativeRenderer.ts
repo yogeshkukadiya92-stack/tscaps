@@ -12,6 +12,8 @@ type Painter = ReturnType<CaptionsOverlayFramePainterFactory['create']>;
 interface Media { input: Input; sink: CanvasSink | null; width: number; height: number; sequence?: ReturnType<CanvasSink['canvasesAtTimestamps']> }
 export interface CreativeRenderRequest {
   original: File;
+  /** Used only by interactive preview; export explicitly discards this field. */
+  previewOriginal?: Blob | undefined;
   project: CreativeProject;
   cuts: readonly EditRange[];
   plan: ExportRenderPlan | null;
@@ -54,7 +56,8 @@ export class CreativeSession {
     if (this.duration < 0.1) throw new Error('Keep at least 0.1 seconds of video.');
     if (this.duration > 600) throw new Error('Keep the edited reel under 10 minutes for browser audio mixing.');
     try {
-      await this.addMedia('original', this.request.original);
+      await this.addMedia('original', this.request.previewOriginal ?? this.request.original);
+      if (this.request.previewOriginal) await this.addMedia('original-audio', this.request.original);
       signal?.throwIfAborted();
       const original = this.media.get('original')!;
       if (!original.sink) throw new Error('The original file has no video track.');
@@ -102,7 +105,7 @@ export class CreativeSession {
     const sourceIds = new Set(this.spans.map(span => span.clip.asset?.id ?? 'original'));
     const sources = new Map<string, PCM | null>();
     for (const id of sourceIds) {
-      const pcm = await decodeCreativeAudio(this.media.get(id)!.input, signal);
+      const pcm = await decodeCreativeAudio(this.media.get(id === 'original' && this.request.previewOriginal ? 'original-audio' : id)!.input, signal);
       sources.set(id, pcm ? cleanVoice(pcm, this.request.project.settings.cleanup, this.request.project.settings.normalize) : null);
     }
     const musicId = this.request.project.music?.id;
@@ -190,7 +193,7 @@ export class CreativeRenderer {
     format?: 'mp4' | 'webm'; shortSide?: number; bitrate?: number; signal?: AbortSignal;
     outputStream?: WritableStream<RenderOutputChunk>; onProgress?: (percent: number) => void;
   } = {}): Promise<Blob | null> {
-    const session = this.session(request);
+    const session = this.session({ ...request, previewOriginal: undefined });
     let output: Output | null = null;
     try {
       await session.open(options.shortSide ?? 1080, options.signal);

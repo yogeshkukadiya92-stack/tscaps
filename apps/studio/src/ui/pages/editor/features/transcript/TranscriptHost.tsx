@@ -88,6 +88,7 @@ export function TranscriptHost(props: TranscriptHostProps) {
           isMobileDevice={userAgentInspector.isMobile()}
           error={state.error}
           preprocessVideo={preprocessing.actions.preprocessVideo}
+          serverProcessing={transcription.serverProcessing}
           updatePreference={transcription.actions.updatePreference}
           onCancel={() => setRetranscribeOpen(false)}
           onStart={async (options) => {

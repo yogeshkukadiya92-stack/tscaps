@@ -84,6 +84,7 @@ export function StartFlowHost({ onBack }: StartFlowHostProps) {
       isMobileDevice={userAgentInspector.isMobile()}
       error={state.error}
       preprocessVideo={preprocessing.actions.preprocessVideo}
+      serverProcessing={transcription.serverProcessing}
       updatePreference={transcription.actions.updatePreference}
       onCancel={handleCancel}
       startDisabled={startDisabled}

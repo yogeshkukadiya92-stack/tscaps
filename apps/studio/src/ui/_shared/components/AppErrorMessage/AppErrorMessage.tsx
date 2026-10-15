@@ -58,6 +58,7 @@ export function getAppErrorTitle(error: AppError): string {
     case 'ProjectImportFailedError':         return "Couldn't import this project";
     case 'AudioExtractionFailedError':       return "Couldn't read this video's audio";
     case 'BehindActorMeasurementFailedError': return "Couldn't measure where the person is";
+    case 'ServerTranscriptionFailedError':   return "Server transcription didn't finish";
     case 'LocalTranscriptionFailedError':    return "On-device transcription didn't finish";
     case 'TranscriptionModelCacheFailedError': return "Couldn't save the transcription model";
     case 'SubtitleFileReadFailedError':      return "Couldn't read your subtitle file";
@@ -118,6 +119,7 @@ export function useAppErrorShortDescription(error: AppError): string {
     case 'ProjectExportFailedError':         return "Something went wrong while packaging your project.";
     case 'ProjectImportFailedError':         return "The file couldn't be read as a tscaps export.";
     case 'AudioExtractionFailedError':       return describeAudioExtractionFailure(reason);
+    case 'ServerTranscriptionFailedError':   return 'Please retry. Check your connection and sign in again if your session expired. The server may be busy. Existing captions are preserved.';
     case 'LocalTranscriptionFailedError':    return describeLocalTranscriptionFailure(reason);
     case 'TranscriptionModelCacheFailedError': return describeModelCacheFailure(reason);
     case 'SubtitleFileReadFailedError':      return 'None of the captions in the file had a readable timecode.';
@@ -276,6 +278,7 @@ export function AppErrorMessage({ error, isMobile = false }: AppErrorMessageProp
     case 'ProjectExportFailedError':         return <ProjectExportFailedBody />;
     case 'ProjectImportFailedError':         return <ProjectImportFailedBody />;
     case 'AudioExtractionFailedError':       return <AudioExtractionFailedBody reason={reason} isMobile={isMobile} />;
+    case 'ServerTranscriptionFailedError':   return <p>Please retry. Check your connection and sign in again if your session expired. The server may be busy. Existing captions are preserved.</p>;
     case 'LocalTranscriptionFailedError':    return <LocalTranscriptionFailedBody reason={reason} isMobile={isMobile} />;
     case 'TranscriptionModelCacheFailedError': return <TranscriptionModelCacheFailedBody reason={reason} />;
     case 'SubtitleFileReadFailedError':      return <SubtitleFileReadFailedBody />;
