@@ -1,3 +1,4 @@
+import { readMotionEffects, type MotionEffect } from '@core/creative/MotionEffects';
 import { buildCuts, DEFAULT_SETTINGS, type CreativeSettings, type EditRange } from '@core/creative/creativeModel';
 
 export interface CreativeAsset {
@@ -30,6 +31,7 @@ export interface BRoll {
 }
 export interface CreativeProject {
   version: 1;
+  effects?: MotionEffect[];
   settings: CreativeSettings;
   clips: CreativeClip[];
   overlays: BRoll[];
@@ -111,5 +113,6 @@ export function readCreativeProject(value: unknown): CreativeProject | null {
       || !finite(overlay.width, 0.01, 1) || !finite(overlay.height, 0.01, 1)) throw new Error('Invalid B-roll overlay.');
   }
   for (const range of project.silences) if (!range || !finite(range.start, 0) || !finite(range.end, range.start)) throw new Error('Invalid silence range.');
-  return { ...project, settings };
+  const effects = readMotionEffects(project.effects);
+  return { ...project, settings, ...(effects ? { effects } : {}) };
 }

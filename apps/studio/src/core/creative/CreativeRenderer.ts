@@ -1,3 +1,4 @@
+import { paintMotionEffects } from '@core/creative/MotionEffects';
 import { ALL_FORMATS, AudioBufferSource, BlobSource, BufferTarget, CanvasSink, CanvasSource, Input, Mp4OutputFormat, Output, StreamTarget, WebMOutputFormat, getFirstEncodableAudioCodec, getFirstEncodableVideoCodec } from 'mediabunny';
 import type { CaptionsOverlayFramePainterFactory, RenderOutputChunk } from '@tscaps/engine';
 import type { ExportRenderPlan } from '@core/export/services/ExportRenderPlanner';
@@ -20,6 +21,7 @@ export class CreativeSession {
   readonly duration: number;
   readonly canvas = document.createElement('canvas');
   private readonly base = document.createElement('canvas');
+  private readonly effectScratch = document.createElement('canvas');
   private readonly media = new Map<string, Media>();
   private painter: Painter | null = null;
   private previousSourceTime = -1;
@@ -57,8 +59,8 @@ export class CreativeSession {
       const original = this.media.get('original')!;
       if (!original.sink) throw new Error('The original file has no video track.');
       const size = creativeResolution(original.width, original.height, this.request.project.settings.portrait, shortSide);
-      this.canvas.width = this.base.width = size.width;
-      this.canvas.height = this.base.height = size.height;
+      this.canvas.width = this.base.width = this.effectScratch.width = size.width;
+      this.canvas.height = this.base.height = this.effectScratch.height = size.height;
       const assets = new Map(this.request.project.clips.flatMap(clip => clip.asset ? [[clip.asset.id, clip.asset] as const] : []));
       this.request.project.overlays.forEach(overlay => assets.set(overlay.asset.id, overlay.asset));
       if (this.request.project.music) assets.set(this.request.project.music.id, this.request.project.music);
@@ -165,6 +167,7 @@ export class CreativeSession {
       base.clearRect(0, 0, this.base.width, this.base.height); base.drawImage(this.canvas, 0, 0);
       paintFrame(this.canvas, this.base, { ...this.request.project.settings, look: 'clean', brightness: 1, contrast: 1, saturation: 1, motion: 'none' }, time);
     }
+    paintMotionEffects(this.canvas, this.effectScratch, this.request.project.effects ?? [], time, this.spans.slice(1).map(s => s.outputStart));
   }
   close() {
     if (this.closed) return;

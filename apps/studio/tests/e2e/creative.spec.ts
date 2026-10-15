@@ -178,3 +178,61 @@ test('missing local music reports the file and replacement restores the saved pr
   await expect(dialog.getByRole('alert')).not.toBeVisible();
   expect((await storedProject(page)).payload.creative.music.key).not.toBe(saved.payload.creative.music.key);
 });
+
+for (const name of ['Digital Zoom', 'Checklist', 'Phone Mockup', 'Headline Wall', 'Chart Grow', 'Pull-back Reveal', 'Cover Story', 'Zoom-through Cut']) {
+  test(`motion ${name}: preview matches encoded export and survives save`, async ({ page }) => {
+    const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+    const { dialog } = await openStudio(page);
+    if (name === 'Phone Mockup') await dialog.getByLabel('Portrait canvas · 1080 × 1920').check();
+    if (name === 'Zoom-through Cut') await dialog.getByRole('button', { name: 'Split', exact: true }).click();
+    await dialog.getByRole('button', { name: `Add ${name}`, exact: true }).click();
+    await expect(dialog.getByTestId('motion-effect')).toHaveCount(1);
+    await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+    const sampleTime = name === 'Zoom-through Cut' ? 0.9 : 0.7;
+    const playhead = dialog.getByLabel('Reel playhead', { exact: true });
+    await playhead.press('Home');
+    for (let frame = 0; frame < Math.round(sampleTime * 30); frame++) await playhead.press('ArrowRight');
+    // Wait for asynchronous frame decoding and capture a full normalized pixel reference.
+    await page.waitForTimeout(400);
+    const previewPixels = await dialog.locator('canvas').evaluate((canvas: HTMLCanvasElement) => ({ width: canvas.width, height: canvas.height, pixels: Array.from(canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data) }));
+    await dialog.getByRole('button', { name: 'Render edited reel' }).click();
+    await expect(dialog.getByRole('button', { name: 'Download reel' })).toBeVisible({ timeout: 60000 });
+    const downloading = page.waitForEvent('download'); await dialog.getByRole('button', { name: 'Download reel' }).click();
+    const bytes = await readFile((await (await downloading).path())!);
+    const difference = await page.evaluate(async ({ data, expected, at }) => {
+      const url = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'video/mp4' }));
+      const video = document.createElement('video'); video.src = url;
+      await new Promise<void>((resolve, reject) => { video.onloadeddata = () => resolve(); video.onerror = () => reject(new Error('Decode failed')); });
+      await new Promise<void>(resolve => { video.onseeked = () => resolve(); video.currentTime = at + 0.001; });
+      const canvas = document.createElement('canvas'); canvas.width = expected.width; canvas.height = expected.height;
+      const ctx = canvas.getContext('2d')!; ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const actual = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      if (actual.length !== expected.pixels.length) throw new Error('Preview/export dimensions differ');
+      let sum = 0; for (let i = 0; i < actual.length; i++) if (i % 4 !== 3) sum += Math.abs(actual[i]! - expected.pixels[i]!);
+      URL.revokeObjectURL(url); return sum / (actual.length / 4 * 3);
+    }, { data: Array.from(bytes), expected: previewPixels, at: sampleTime });
+    expect(difference).toBeLessThan(12); // H.264 is lossy; compare whole-frame mean RGB error.
+    const saved = await storedProject(page);
+    await page.goto(`/project/${saved.id}?e2e=1`);
+    await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await page.getByRole('button', { name: 'Open Creative Studio' }).click();
+    await expect(dialog.getByTestId('motion-effect')).toHaveCount(1);
+    await expect(dialog.getByTestId('motion-effect')).toContainText(name);
+    await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+    if (name === 'Checklist') {
+      await dialog.getByRole('button', { name: 'Preview effect', exact: true }).click();
+      await page.waitForTimeout(300);
+      await dialog.getByRole('heading', { name: 'Motion Effects', exact: true }).scrollIntoViewIfNeeded();
+      await page.screenshot({ path: '/tmp/reelstudio-motion-effects-desktop.png', timeout: 10000 });
+      await page.setViewportSize({ width: 390, height: 844 });
+      // The editor remounts its panel when crossing the mobile breakpoint.
+      await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+      await page.getByRole('button', { name: 'Open Creative Studio' }).click();
+      await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+      expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      await dialog.getByRole('heading', { name: 'Motion Effects', exact: true }).scrollIntoViewIfNeeded();
+      await page.screenshot({ path: '/tmp/reelstudio-motion-effects-mobile.png', timeout: 10000 });
+    }
+    expect(errors).toEqual([]);
+  });
+}

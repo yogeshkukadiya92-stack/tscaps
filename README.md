@@ -47,6 +47,12 @@ In an existing project, open **Captions → Transcript → Change language / Ret
 
 Existing captions remain intact if transcription fails. A successful replacement keeps the caption templates, video cuts and project identity, replaces caption edits and individual styling, and can be restored with **Undo**. Click **Save** to persist the replacement. Language selection controls speech recognition; it does not translate speech into another language.
 
+### Motion Effects gallery
+
+Open **Creative → Open Creative Studio → Motion Effects** to add Digital Zoom, Checklist, Phone Mockup, Headline Wall, Chart Grow, Pull-back Reveal, Cover Story or Zoom-through Cut. Effects have editable start/end times on the final reel timeline, text, accent colour and relevant intensity/position controls. Chart rows use `Label | 50` (up to six non-negative values). Phone Mockup and Pull-back Reveal frame the current reel, including captions and B-roll. Add source videos using Clips/B-roll.
+
+Split or add a clip before adding Zoom-through Cut; it targets a real composition boundary. If later edits move the boundary outside the effect range, the gallery flags it and the transition stays inactive until its range is adjusted. Effects combine in displayed layer order, support Undo/Redo and persist through project Save/reload. Timing remains at the chosen output seconds after timeline edits. The Creative preview and both export paths share one deterministic canvas compositor; the regular caption workspace still shows the original source. Preview is lower resolution, and encoded exports may have normal compression differences.
+
 ### Gujarati transcription
 
 Choose **ગુજરાતી · High accuracy** in the transcription or retranscription dialog to select Gujarati (`gu`), original script and **Whisper Large v3 Turbo** with word timestamps. The same model is available under **Advanced → Model** for other languages. It runs on-device without an API key. CPU downloads roughly 0.9 GB; GPU uses a larger full-precision encoder download and needs several GB of memory. Downloads are cached when browser storage permits. Accuracy depends on recording quality, dialect and background music; review the result, especially names and unclear speech. Existing projects can use **Change language / Retranscribe** and Undo a caption replacement.

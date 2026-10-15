@@ -1,3 +1,4 @@
+import { MotionEffectsGallery } from '@ui/pages/editor/features/creative/MotionEffectsGallery';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ALL_FORMATS, BlobSource, Input } from 'mediabunny';
 import { Clapperboard, Sparkles } from 'lucide-react';
@@ -256,7 +257,7 @@ function StudioSession({ file, state, project, onClose }: { file: File; state: E
   return <AppDialog open onClose={() => { void close(); }} locked={locked} size="xl" title="Creative Studio" showCloseButton
     description="One editable project. Clips, B-roll, music, effects and captions export together.">
     <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-5">
-      <div className="flex flex-col gap-3 self-start min-w-0">
+      <div className="flex flex-col gap-3 self-start min-w-0 md:sticky md:top-0">
         <div ref={previewHost} className="bg-black rounded-lg min-h-40" />
         {!ready && !busy && <p className="text-xs text-fg-muted">Preparing full reel preview…</p>}
         <input aria-label="Reel playhead" type="range" min="0" max={Math.max(0, duration - 0.001)} step="0.033333" value={time}
@@ -279,6 +280,9 @@ function StudioSession({ file, state, project, onClose }: { file: File; state: E
         {result && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
       </div>
       <fieldset disabled={locked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
+        <MotionEffectsGallery effects={project.effects ?? []} duration={duration} time={time} boundaries={spans.slice(1).map(s => s.outputStart)} ready={ready}
+          onSeek={value => void seek(value)} onChange={effects => change({ ...project, effects })} />
+
         <section className="flex flex-col gap-3"><h3 className="font-semibold m-0">Clips</h3>
           <label className="text-xs">Add clips<input aria-label="Add clips" type="file" accept="video/*" multiple className="block w-full mt-1 text-xs" onChange={event => { void upload(event.target.files, 'clip'); event.target.value = ''; }} /></label>
           {project.clips.map((clip, index) => <div key={clip.id} className="rounded border border-edge-medium p-3 flex flex-col gap-2" data-testid="creative-clip">
