@@ -1,3 +1,9 @@
+## Configured managed application
+
+Coolify application **reelstudio-gpu-transcription**, ID `bhbdwvgx94qdljjkdsnwu9mo`, has been created in the existing ReelStudio production environment. Its repository is `main`, Dockerfile `/services/transcription/Dockerfile.api`, exposed port 8000 and network alias `reelstudio-gpu-transcription`. The persistent volume `bhbdwvgx94qdljjkdsnwu9mo-reelstudio-gpu-budget` is mounted at `/budget`. Public Supabase auth settings, Groq provider/model, $5 monthly application cap and budget ledger path have been saved; `GROQ_API_KEY` is an empty entry for the owner to fill in Normal View (runtime only, not buildtime). The HTTPS route `https://cap.yogeshaihub.in/processing` has been saved; Coolify also generated default sslip and www aliases. Set `API_ROOT_PATH=/processing` so either preserved or stripped proxy paths route correctly.
+
+Owner key entry: [Coolify environment variables](https://panel.thecompletehealth.in/project/u69gjas9f3gyxme0t1kz0uhs/environment/labhxzmduxros5elc6vmmibm/application/bhbdwvgx94qdljjkdsnwu9mo/environment-variables). No key was read or entered by the agent. Deployment, authenticated provider smoke test and frontend activation remain pending until the owner supplies the key. Keep `TRANSCRIPTION_URL` unset in the frontend until these checks pass. Do not claim live GPU transcription yet.
+
 # Budget GPU API on Coolify (recommended for ₹1,000/month budget)
 
 Create a **Public Repository** application in the existing ReelStudio environment, repository `https://github.com/yogeshkukadiya92-stack/tscaps`, branch `main`, Dockerfile build pack, root build context, Dockerfile path **`/services/transcription/Dockerfile.api`**, HTTP port **8000**. Name it **reelstudio-gpu-transcription**. No NVIDIA card is needed on the Coolify server: audio inference is performed by Groq.

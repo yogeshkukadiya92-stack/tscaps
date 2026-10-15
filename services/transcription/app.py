@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
     await app.state.http.aclose()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, root_path=os.getenv('API_ROOT_PATH', ''))
 origins = [value.strip() for value in os.getenv('ALLOWED_ORIGINS', '').split(',') if value.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST', 'GET'],
                    allow_headers=['Authorization', 'Content-Type'])

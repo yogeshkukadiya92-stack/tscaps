@@ -82,3 +82,9 @@ def test_export_requires_owned_cloud_project(client):
     response = client.post('/render?project_id=d6da6f51-39c5-4b68-9eba-d1bcca14c8c4', headers={'Authorization': 'Bearer valid'})
     assert response.status_code == 404
     assert app.state.render_busy is False
+
+
+def test_proxy_prefix_is_accepted_when_configured(client, monkeypatch):
+    monkeypatch.setattr(app, 'root_path', '/processing')
+    assert client.get('/processing/health').status_code == 200
+    assert client.get('/health').status_code == 200
