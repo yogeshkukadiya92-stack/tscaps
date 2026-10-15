@@ -201,7 +201,7 @@ export function StartDialog({
         <SubtitleFileField file={subtitleFile} onChange={pickSubtitleFile} />
       ) : (
         <>
-          {inBrowserTranscription && serverProcessing && <p className="text-xs text-fg-secondary m-0">Server transcription · only the audio is sent to your configured server. The server keeps its multilingual model loaded. Video upload and preview preparation can run alongside transcription. Local model controls below apply when server processing is disabled.</p>}
+          {inBrowserTranscription && serverProcessing && <p className="text-xs text-fg-secondary m-0">Server transcription · only the audio is sent to your configured server. Your server handles the multilingual speech model. Video upload and preview preparation can run alongside transcription. Local model controls below apply when server processing is disabled.</p>}
           {inBrowserTranscription && <div className="flex flex-col gap-2">
             <button type="button" className={preference.model === 'small' && preference.backend === 'auto' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
               aria-pressed={preference.model === 'small' && preference.backend === 'auto'}

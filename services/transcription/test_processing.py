@@ -33,6 +33,7 @@ def test_decode_audio():
 def client(monkeypatch):
     monkeypatch.setenv('SUPABASE_URL', 'https://auth.test')
     monkeypatch.setenv('ENABLE_SERVER_RENDER', 'true')
+    app.state.provider = 'local'
     app.state.auth_url = 'https://auth.test/auth/v1/user'
     app.state.public_key = 'public'
     app.state.busy = False

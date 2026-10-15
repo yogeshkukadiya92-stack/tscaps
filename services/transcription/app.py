@@ -21,7 +21,10 @@ from audio import MAX_BYTES, decode_wave
 async def lifespan(app: FastAPI):
     app.state.auth_url = os.environ['SUPABASE_URL'].rstrip('/') + '/auth/v1/user'
     app.state.public_key = os.environ['SUPABASE_ANON_KEY']
-    if os.getenv('ENABLE_TRANSCRIPTION', 'true') == 'true':
+    app.state.provider = os.getenv('TRANSCRIPTION_PROVIDER', 'local')
+    if app.state.provider not in ('local', 'groq'):
+        raise RuntimeError('Unsupported transcription provider')
+    if os.getenv('ENABLE_TRANSCRIPTION', 'true') == 'true' and app.state.provider == 'local':
         from faster_whisper import WhisperModel, BatchedInferencePipeline
         device = os.getenv('WHISPER_DEVICE', 'cpu')
         model = await run_in_threadpool(lambda: WhisperModel(
@@ -46,7 +49,7 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST',
 
 @app.get('/health')
 async def health():
-    return {'ready': True, 'transcription': hasattr(app.state, 'engine'), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
+    return {'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
 
 
 async def authorize(request: Request):
@@ -73,6 +76,9 @@ def infer(body: bytes, language: str | None):
     except (ValueError, EOFError, wave.Error) as error:
         # Decode is isolated from model errors and never leaks request contents.
         raise HTTPException(400, 'Expected a valid mono 16 kHz PCM16 WAV') from error
+    if app.state.provider == 'groq':
+        from groq_provider import transcribe_groq
+        return transcribe_groq(pcm, language)
     segments, info = app.state.engine.transcribe(pcm, language=language, task='transcribe',
         beam_size=5, batch_size=int(os.getenv('WHISPER_BATCH_SIZE', '8')),
         word_timestamps=True, vad_filter=True, condition_on_previous_text=False,
@@ -88,7 +94,7 @@ def infer(body: bytes, language: str | None):
 @app.post('/transcribe')
 async def transcribe(request: Request, language: str | None = None):
     await authorize(request)
-    if not hasattr(app.state, 'engine'):
+    if not hasattr(app.state, 'engine') and app.state.provider != 'groq':
         raise HTTPException(503, 'Transcription is not enabled')
     if language is not None and not re.fullmatch(r'[a-z]{2,3}', language):
         raise HTTPException(400, 'Invalid speech language')
