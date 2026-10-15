@@ -4,6 +4,6 @@ RUN pip install --no-cache-dir fastapi==0.115.12 uvicorn==0.34.2 httpx==0.28.1 n
 COPY services/transcription/*.py ./
 RUN useradd -m worker && mkdir /budget && chown worker /budget
 USER worker
-ENV TRANSCRIPTION_PROVIDER=groq GROQ_MODEL=whisper-large-v3 GROQ_MONTHLY_USD_LIMIT=5
+ENV TRANSCRIPTION_PROVIDER=groq GROQ_MODEL=whisper-large-v3 GROQ_MONTHLY_USD_LIMIT=5 API_ROOT_PATH=/processing
 EXPOSE 8000
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--limit-concurrency", "8", "--no-access-log"]
