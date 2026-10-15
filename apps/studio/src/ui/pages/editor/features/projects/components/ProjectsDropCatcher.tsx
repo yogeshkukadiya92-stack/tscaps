@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowUpFromLine } from 'lucide-react';
 import { Toast, TOAST_AUTO_DISMISS_MS } from '@ui/_shared/components/Toast/Toast';
 import {
-  ACCEPTED_VIDEO_LABEL,
-  isAcceptedMediaFile,
-  VIDEO_UNSUPPORTED_MESSAGE,
+  VIDEO_ONLY_LABEL,
+  isAcceptedVideoFile,
+  VIDEO_ONLY_UNSUPPORTED_MESSAGE,
 } from '@ui/_shared/video/videoAcceptance';
 
 const PROJECT_FILE_EXTENSION = '.tscaps';
@@ -57,8 +57,8 @@ export function ProjectsDropCatcher({ onVideo, onVideoIntent, onProjectFile }: P
       onProjectFile(file);
       return;
     }
-    if (!isAcceptedMediaFile(file)) {
-      setError(VIDEO_UNSUPPORTED_MESSAGE);
+    if (!isAcceptedVideoFile(file)) {
+      setError(VIDEO_ONLY_UNSUPPORTED_MESSAGE);
       return;
     }
     // The same gate the "New project" button runs. A drop that skipped
@@ -117,7 +117,7 @@ export function ProjectsDropCatcher({ onVideo, onVideoIntent, onProjectFile }: P
     };
   }, [accept]);
 
-  const formatHint = onProjectFile ? `${ACCEPTED_VIDEO_LABEL} · TSCAPS` : ACCEPTED_VIDEO_LABEL;
+  const formatHint = onProjectFile ? `${VIDEO_ONLY_LABEL} · TSCAPS` : VIDEO_ONLY_LABEL;
 
   return (
     <>

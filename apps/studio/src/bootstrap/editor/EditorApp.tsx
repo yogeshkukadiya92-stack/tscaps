@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeController } from '@presentation/theme/controllers/ThemeController';
 import { KeyboardShortcutsController } from '@presentation/editor/controllers/KeyboardShortcutsController';
@@ -19,6 +19,9 @@ import type { AppModules } from '@bootstrap/AppModules';
 import { CloudAuthGate } from '@bootstrap/CloudAuthContext';
 import { CloudAccountBar } from '@ui/pages/auth/CloudAccountBar';
 import { VideoUploadPanel } from '@ui/pages/editor/components/VideoUploadPanel';
+import { BillingGate } from '@ui/pages/billing/BillingGate';
+
+const AdminPanel = lazy(() => import('@ui/pages/admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
 interface EditorAppProps {
   modules: AppModules;
@@ -60,6 +63,7 @@ export function EditorApp({
   const projectRoute = <ProjectRoute />;
 
   return (
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
     <CloudAuthGate modules={modules}>
     <EditorAppProviders modules={modules}>
       <AppExitProvider value={exitHref}>
@@ -68,7 +72,7 @@ export function EditorApp({
       <ThemeProvider value={theme}>
       <EditorWorkspaceStoreProvider value={workspaceStore}>
       <CaptionsTabStoreProvider value={captionsTabStore}>
-            <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+
               {/* The shell is exactly one screen tall and the route pane
                   is the app's only scroll container, so a strip above it
                   takes real space instead of covering the page it warns
@@ -76,9 +80,11 @@ export function EditorApp({
                   never against the viewport. */}
               <div className="flex flex-col h-dvh">
                 <CloudAccountBar />
+                <BillingGate>
                 <VideoUploadPanel />
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   <Routes>
+                    <Route path={routes.admin()} element={<Suspense fallback={<p role="status">Loading administration…</p>}><AdminPanel /></Suspense>} />
                     {exitHref === null && <Route path={routes.projectsList()} element={projectsHost} />}
                     <Route path={routes.editor()} element={<NewProjectRoute />} />
                     <Route path={routes.toolPattern()} element={<NewProjectRoute />} />
@@ -91,8 +97,9 @@ export function EditorApp({
                     />
                   </Routes>
                 </div>
+                </BillingGate>
               </div>
-            </BrowserRouter>
+
       </CaptionsTabStoreProvider>
       </EditorWorkspaceStoreProvider>
       </ThemeProvider>
@@ -101,5 +108,6 @@ export function EditorApp({
       </AppExitProvider>
     </EditorAppProviders>
     </CloudAuthGate>
+    </BrowserRouter>
   );
 }

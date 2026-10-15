@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { isAudioFile, isAcceptedMediaFile, VIDEO_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
+import { isAcceptedVideoFile, VIDEO_ONLY_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
 import { useHref, useNavigate } from 'react-router-dom';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
@@ -34,7 +34,6 @@ export function ProjectsHost() {
   const [trash, setTrash] = useState<{ id: string; name: string }[] | null>(null);
   const [trashPending, setTrashPending] = useState(false);
   const preparingRef = useRef(false);
-  const [preparingAudio, setPreparingAudio] = useState(false);
   const [audioError, setAudioError] = useState('');
 
   const refresh = useCallback(async () => {
@@ -105,19 +104,13 @@ export function ProjectsHost() {
   const handleNewProject = useCallback(async (file: File) => {
     if (preparingRef.current) return;
     setAudioError('');
-    if (!isAcceptedMediaFile(file)) { setAudioError(VIDEO_UNSUPPORTED_MESSAGE); return; }
+    if (!isAcceptedVideoFile(file)) { setAudioError(VIDEO_ONLY_UNSUPPORTED_MESSAGE); return; }
     preparingRef.current = true;
     try {
-      let source = file;
-      if (isAudioFile(file)) {
-        setPreparingAudio(true);
-        const { buildAudioCaptionVideo } = await import('@core/audio/services/AudioCaptionVideoBuilder');
-        source = await buildAudioCaptionVideo(file);
-      }
-      videos.actions.load.execute(source);
+      videos.actions.load.execute(file);
       navigate(routes.editor());
-    } catch (cause) { setAudioError(cause instanceof Error ? cause.message : 'Could not open this audio file.'); }
-    finally { preparingRef.current = false; setPreparingAudio(false); }
+    } catch (cause) { setAudioError(cause instanceof Error ? cause.message : 'Could not open this video file.'); }
+    finally { preparingRef.current = false; }
   }, [videos, navigate, routes]);
 
   const handleOpenProject = useCallback((id: string) => {
@@ -163,10 +156,11 @@ export function ProjectsHost() {
       isMobileDevice={isMobile}
       homeHref={homeHref}
       title={projects.cloudEnabled ? 'Your projects' : 'Local projects'}
-      subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · Upload video or audio with New project`}
+      subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · Upload video with New project`}
       emptyTitle="Make your first project."
-      emptyBody="Upload video or audio, transcribe it, choose a caption design, then download SRT or styled ASS subtitles."
+      emptyBody="Upload video, transcribe it, choose a caption design, then download SRT or styled ASS subtitles."
       headerNote={projects.cloudEnabled ? <div className="flex flex-col gap-2">
+        <p className="text-xs text-fg-muted m-0">Cloud videos are automatically removed 48 hours after upload. Download your finished reel before then. Caption edits remain saved; keep your original video to relink later.</p>
         <div className="flex gap-2 flex-wrap">
           <button className={BTN_SECONDARY_SM} disabled={migrating} onClick={() => void importLocalProjects()}>{migrating ? 'Importing browser projects…' : 'Import projects from this browser'}</button>
           <button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void openTrash()}>{trash === null ? 'Recently deleted' : 'Close recently deleted'}</button>
@@ -184,7 +178,6 @@ export function ProjectsHost() {
       onImportProject={handleImportProject}
       theme={theme}
     />
-    {preparingAudio && <div className="fixed inset-0 z-[1000] bg-surface-0/90 grid place-items-center" role="status"><p>Preparing audio for captions…</p></div>}
     {audioError && <div className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-danger p-4" role="alert">{audioError}<button className={BTN_SECONDARY_SM} onClick={() => setAudioError('')}>Dismiss</button></div>}
     </>
   );

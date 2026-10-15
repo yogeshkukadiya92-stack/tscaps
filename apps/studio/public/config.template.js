@@ -1,1 +1,1 @@
-window.__REELSTUDIO_CONFIG__ = {supabaseUrl:"${SUPABASE_URL}",supabaseAnonKey:"${SUPABASE_ANON_KEY}",emailEnabled:"${AUTH_EMAIL_ENABLED}" === "true"};
+window.__REELSTUDIO_CONFIG__ = {supabaseUrl:"${SUPABASE_URL}",supabaseAnonKey:"${SUPABASE_ANON_KEY}",emailEnabled:"${AUTH_EMAIL_ENABLED}" === "true",billingEnabled:"${BILLING_ENABLED}" === "true"};

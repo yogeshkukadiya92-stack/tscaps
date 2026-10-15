@@ -8,6 +8,10 @@ ReelStudio is a subtitle editor for short-form video (TikTok, Reels, Shorts). Dr
 
 ## Supabase accounts and Coolify deployment
 
+### Five-day trial and monthly subscription
+
+The optional billing integration gives each account five free days, then offers **₹399/week or ₹799/month Razorpay subscriptions**. Trial users do not enter payment details. Server-side entitlement checks protect cloud writes; signed checkout verification and verified webhooks unlock paid access. Users can cancel renewal while keeping their already-paid period. Billing defaults off until the database migrations, Edge Functions, Razorpay plans and secrets are configured. Follow [the billing setup guide](supabase/BILLING_SETUP.md) before enabling `BILLING_ENABLED=true`.
+
 Provision a dedicated Supabase service and apply `supabase/migrations/20261014_reelstudio_projects.sql` to its Postgres database. It creates owner-protected project records and a private `reelstudio-videos` bucket. Videos up to 500 MB are supported. Database row-level security and storage policies restrict each account to its own data.
 
 Set these **runtime** environment variables on the ReelStudio application in Coolify:

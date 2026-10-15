@@ -1,5 +1,5 @@
-import { memo, useRef, type ReactNode } from 'react';
-import { Plus, Upload } from 'lucide-react';
+import { memo, useRef, useState, type ReactNode } from 'react';
+import { Plus, Upload, FolderOpen, Film, Search, LayoutGrid, List, ArrowUpRight, Captions, Scissors } from 'lucide-react';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ThemeController } from '@presentation/theme/controllers/ThemeController';
@@ -9,7 +9,8 @@ import { StatusPill } from '@ui/_shared/components/StatusPill/StatusPill';
 import { AppErrorMessage, getAppErrorTitle } from '@ui/_shared/components/AppErrorMessage/AppErrorMessage';
 import { ProjectCard } from '@ui/pages/editor/features/projects/components/ProjectCard';
 import { ProjectsDropCatcher } from '@ui/pages/editor/features/projects/components/ProjectsDropCatcher';
-import { MEDIA_FILE_ACCEPT } from '@ui/_shared/video/videoAcceptance';
+import '@ui/pages/editor/features/projects/components/ProjectsWorkspace.css';
+import { VIDEO_FILE_ACCEPT } from '@ui/_shared/video/videoAcceptance';
 
 interface ProjectsListPageProps {
   projects: ProjectMetadata[] | null;
@@ -136,16 +137,20 @@ export const ProjectsListPage = memo(function ProjectsListPage({
     e.target.value = '';
   };
 
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('recent');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
   const count = projects?.length ?? 0;
+  const visibleProjects = (projects ?? []).filter(project => project.name.toLowerCase().includes(query.toLowerCase())).sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : b.updatedAt.getTime() - a.updatedAt.getTime());
 
   return (
-    <div className="min-h-full flex flex-col bg-surface-0">
+    <div className="projects-workspace min-h-full flex flex-col bg-surface-0">
       <header className={CHROME}>
         <div className={CHROME_INNER}>
           {mobileSideNav}
           <Wordmark
             href={homeHref}
-            size="lg"
+            size="md"
             className={mobileSideNav ? 'absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0' : ''}
           />
           <div className={UTILITY_CLUSTER}>
@@ -156,10 +161,17 @@ export const ProjectsListPage = memo(function ProjectsListPage({
       </header>
 
       <div className={SHELL}>
-        {sideNav}
+        {sideNav ?? <aside className="workspace-sidebar" aria-label="Workspace">
+          <span className="workspace-eyebrow">Workspace</span>
+          <a className="workspace-nav-active" href={homeHref} aria-current="page"><FolderOpen size={17} /> All projects <span>{count}</span></a>
+          <button className="workspace-nav" onClick={handleNewClick}><Plus size={17} /> Create project</button>
+          {onImportProject && <button className="workspace-nav" onClick={handleImportClick}><Upload size={17} /> Import project</button>}
+          <div className="workspace-sidebar-note"><Film size={20} /><strong>Your next reel starts here.</strong><p>Bring your footage. Make the cut. Add your captions.</p></div>
+        </aside>}
         <main className={MAIN}>
           <div className={PAGE_HEADER}>
             <div className="min-w-0">
+              <span className="workspace-eyebrow">Your creative workspace</span>
               <h1 className={PAGE_TITLE}>{title}</h1>
               {count > 0 && <p className={PAGE_SUBTITLE}>{subtitle(count)}</p>}
             </div>
@@ -174,14 +186,24 @@ export const ProjectsListPage = memo(function ProjectsListPage({
                 <Plus size={14} />
                 <span>New project</span>
               </button>
-              <input ref={newInputRef} type="file" accept={MEDIA_FILE_ACCEPT} onChange={handleNewSelected} hidden />
+              <input ref={newInputRef} type="file" accept={VIDEO_FILE_ACCEPT} onChange={handleNewSelected} hidden />
               {onImportProject && (
                 <input ref={importInputRef} type="file" accept=".tscaps,application/json" onChange={handleImportSelected} hidden />
               )}
             </div>
           </div>
 
-          {headerNote}
+          <section className="workspace-start" aria-label="Start editing">
+            <div className="workspace-start-copy"><span className="workspace-eyebrow">From footage to finished reel</span><h2>Make something worth watching.</h2><p>Edit your video, style every word, and make it yours.</p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /> Create a reel <ArrowUpRight size={16} /></button><span className="workspace-drop-hint">or drop a video file anywhere</span></div>
+            <div className="workspace-film" aria-hidden="true"><div className="workspace-film-frame"><span>YOUR STORY.</span><strong>IN MOTION.</strong><span className="workspace-film-caption">Every word. Every frame.</span></div><div className="workspace-film-track"><Scissors size={13} /><i /><i /><i /><Captions size={14} /></div></div>
+          </section>
+          <div className="workspace-library-header"><div><h2>Project library <span>{count}</span></h2><p>Pick up where you left off.</p></div></div>
+          <div className="workspace-toolbar">
+            <label className="workspace-search"><Search size={16} /><input type="search" placeholder="Search projects…" aria-label="Search projects" value={query} onChange={e => setQuery(e.target.value)} /></label>
+            <select aria-label="Sort projects" value={sort} onChange={e => setSort(e.target.value)}><option value="recent">Last edited</option><option value="name">Name A–Z</option></select>
+            <div className="workspace-view"><button aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><LayoutGrid size={17} /></button><button aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List size={17} /></button></div>
+          </div>
+          {headerNote && <div className="workspace-library-actions">{headerNote}</div>}
 
           {error && (
             <div role="alert" className={ERROR_BANNER}>
@@ -197,8 +219,9 @@ export const ProjectsListPage = memo(function ProjectsListPage({
               <StatusPill label="Loading projects" tone="info" active />
             </div>
           ) : count > 0 ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
-              {projects!.map((p) => (
+            <div className={`workspace-projects workspace-projects--${view}`}>
+              {visibleProjects.length === 0 && <p className="workspace-no-results" role="status">No projects match “{query}”. Try another name.</p>}
+              {visibleProjects.map((p) => (
                 <ProjectCard
                   key={p.id}
                   project={p}
@@ -210,6 +233,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
             </div>
           ) : (
             <div className={EMPTY_STATE}>
+              <FolderOpen size={32} className="text-accent" />
               <h2 className={EMPTY_TITLE}>{emptyTitle}</h2>
               <p className={EMPTY_SUB}>{emptyBody}</p>
             </div>

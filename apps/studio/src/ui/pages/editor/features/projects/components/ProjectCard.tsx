@@ -1,3 +1,4 @@
+import { Play } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ProjectThumbnailSource } from '@core/projects/domain/ProjectThumbnailSource';
@@ -14,7 +15,7 @@ interface ProjectCardProps {
 }
 
 const CARD =
-  'group/card relative flex flex-col bg-surface-1 border border-edge-subtle rounded-sm overflow-hidden ' +
+  'workspace-project-card group/card relative flex flex-col bg-surface-1 border border-edge-subtle rounded-sm overflow-hidden ' +
   'cursor-pointer transition-colors duration-quick ease-standard ' +
   'hover:border-edge-medium ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0';
@@ -50,21 +51,22 @@ export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete
         onClick={() => onOpen(project.id)}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter') onOpen(project.id); }}
+        onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(project.id); } }}
       >
-        <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+        <div className="workspace-project-thumbnail relative aspect-video bg-black flex items-center justify-center overflow-hidden">
           {thumbUrl
             ? <img src={thumbUrl} alt="" className="w-full h-full object-cover block" />
             : <div className="font-mono text-2xs uppercase tracking-[0.08em] text-fg-faint">No preview</div>
           }
+          <span className="workspace-project-play" aria-hidden="true"><Play size={19} fill="currentColor" /></span>
           {project.video.duration > 0 && (
             <span className={DURATION_BADGE}>{formatDuration(project.video.duration)}</span>
           )}
         </div>
-        <div className="px-3 pt-2.5 pb-2 flex flex-col gap-1 min-w-0">
-          <div className="text-sm font-medium text-fg-primary truncate" title={project.name}>{project.name}</div>
+        <div className="workspace-project-details px-3 pt-2.5 pb-2 flex flex-col gap-1 min-w-0">
+          <div className="workspace-project-name text-sm font-medium text-fg-primary truncate" title={project.name}>{project.name}</div>
           <div className="flex items-center gap-2 text-2xs text-fg-faint">
-            <span className="tabular-nums flex-1 truncate">{formatDate(project.updatedAt)}</span>
+            <span className="tabular-nums flex-1 truncate">Edited {formatDate(project.updatedAt)}</span>
             <div onClick={(e) => e.stopPropagation()}>
               <ProjectActionsMenu
                 projectId={project.id}

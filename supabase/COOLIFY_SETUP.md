@@ -45,3 +45,23 @@ The frontend's inline Dockerfile preserves its custom caption templates and incl
 A synthetic test video and Roman Hinglish caption were saved through the live editor, then reopened from a separate origin with no preview cache. Generated QA accounts use `@example.invalid` email addresses and hold only synthetic test data. No real user password was created or changed.
 
 The configured `www.cap.yogeshaihub.in` application alias currently lacks DNS; use the working `cap.yogeshaihub.in` domain. Scheduled off-server backups have not been configured.
+
+## User administration
+
+Apply `migrations/20261015_reelstudio_admin.sql` after the projects migration.
+Then apply `migrations/20261015_reelstudio_admin_owner.sql` to grant
+administrator access to **yogeshkukadiya92@gmail.com**. This account must
+already exist and be confirmed (autoconfirmed accounts also qualify).
+The migration fails explicitly if the account is missing; create the account
+through the normal signup flow first, then rerun it. It does not create or
+change a password, and it can safely be rerun.
+
+Sign in again to see **Admin panel** in the account bar, or open `/admin`
+(under the application's configured base path). Administrators can search
+accounts, page through results, change display names, and grant or remove
+administrator access. Self-editing is disabled so the last administrator
+cannot accidentally remove their own access. All administration RPCs enforce
+permissions in the database; ordinary users cannot read the administrator
+table or modify roles. User-editable profile metadata never grants access.
+No service-role key belongs in the browser. Account deletion and suspension
+are not part of this panel.

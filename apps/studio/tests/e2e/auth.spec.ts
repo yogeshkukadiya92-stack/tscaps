@@ -20,6 +20,8 @@ test('sign up validation, sign in, session restore, and sign out', async ({ page
   await page.goto('/projects');
   await expect(page.getByRole('heading', { name: 'Welcome to ReelStudio' })).toBeVisible();
   await page.getByRole('button', { name: 'Sign up', exact: true }).click();
+  await expect(page).toHaveURL(/\/signup$/);
+  await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
   await page.getByLabel('Your name', { exact: true }).fill('Test creator');
   await page.getByLabel('Email', { exact: true }).fill('test@example.test');
   await page.getByLabel('Password', { exact: true }).fill('strong-test-password');
@@ -27,6 +29,9 @@ test('sign up validation, sign in, session restore, and sign out', async ({ page
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByRole('alert')).toHaveText('The passwords do not match.');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page).toHaveURL(/\/signin$/);
+  await expect(page.getByRole('heading', { name: 'Welcome to ReelStudio' })).toBeVisible();
+  await expect(page.getByLabel('Email', { exact: true })).toHaveValue('test@example.test');
   await page.getByLabel('Password', { exact: true }).fill('strong-test-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
   await expect(page.getByRole('heading', { name: 'Your projects', exact: true })).toBeVisible();

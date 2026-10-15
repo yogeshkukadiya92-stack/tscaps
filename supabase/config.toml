@@ -1,0 +1,7 @@
+[functions.reelstudio-billing]
+verify_jwt = false
+# The handler validates the bearer token with Supabase Auth before every account action.
+
+[functions.razorpay-webhook]
+verify_jwt = false
+# Provider requests use the raw-body HMAC signature instead of a Supabase JWT.

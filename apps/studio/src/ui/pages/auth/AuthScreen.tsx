@@ -1,16 +1,18 @@
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
-import { Wordmark } from '@ui/_shared/components/Wordmark/Wordmark';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 
 type Mode = 'signin' | 'signup' | 'reset';
 const INPUT = 'w-full rounded-md border border-edge-medium bg-surface-1 text-fg-primary p-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
-export function AuthScreen({ initialError, recovering, onRecovered }: { initialError: string; recovering: boolean; onRecovered: () => void }) {
+export function AuthScreen({ initialError, recovering, onRecovered, initialMode = 'signin' }: { initialError: string; recovering: boolean; onRecovered: () => void; initialMode?: Mode }) {
   const { client } = useCloudAuth();
   const emailEnabled = window.__REELSTUDIO_CONFIG__?.emailEnabled !== false;
-  const [mode, setMode] = useState<Mode>('signin');
-  const [email, setEmail] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [email, setEmail] = useState(typeof location.state?.authEmail === 'string' ? location.state.authEmail : '');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [name, setName] = useState('');
@@ -22,7 +24,8 @@ export function AuthScreen({ initialError, recovering, onRecovered }: { initialE
   const redirect = `${window.location.origin}${import.meta.env.BASE_URL}projects`;
 
   async function submit(event: FormEvent) {
-    event.preventDefault(); if (!client || pending) return;
+    event.preventDefault(); if (pending) return;
+    if (!client) { setError('Account services are not configured on this installation. You can open the local studio instead.'); return; }
     setPending(true); setError(''); setNotice('');
     try {
       if ((mode === 'signup' || recovering) && password !== confirmation) throw new Error('The passwords do not match.');
@@ -46,11 +49,18 @@ export function AuthScreen({ initialError, recovering, onRecovered }: { initialE
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Something went wrong. Please try again.'); }
     finally { setPending(false); }
   }
-  function switchMode(next: Mode) { setMode(next); setError(''); setNotice(''); setPassword(''); setConfirmation(''); }
+  function switchMode(next: Mode) {
+    const destination = next === 'signup' ? '/signup' : '/signin';
+    if (next !== 'reset' && location.pathname !== destination) {
+      navigate(destination, { state: { ...location.state, authEmail: email } });
+      return;
+    }
+    setMode(next); setError(''); setNotice(''); setPassword(''); setConfirmation('');
+  }
 
-  return <main className="min-h-dvh bg-surface-0 text-fg-primary flex flex-col">
-    <header className="border-b border-edge-subtle px-6 py-5"><Wordmark size="md" /></header>
-    <div className="flex-1 grid place-items-center px-5 py-10">
+  return <section className="public-auth bg-surface-0 text-fg-primary flex flex-col">
+
+    <div className="public-auth-layout"><aside className="public-auth-story"><span className="public-eyebrow">THE CREATOR’S WORKSPACE</span><h2>Your next great reel<br />starts with one upload.</h2><p>Turn your footage into a story with animated captions, precise edits and a style that’s yours.</p><div className="public-caption-demo"><span>Make every</span><strong>word count.</strong><small>YOUR FOOTAGE. YOUR VOICE. YOUR STYLE.</small></div><Link to="/features">Explore the editing tools <ArrowRight size={16} /></Link></aside><div className="public-auth-form">
       <div className="w-full max-w-[420px] flex flex-col gap-6">
         <div><h1 className="text-3xl font-semibold tracking-tight m-0">{title}</h1>
           <p className="text-sm text-fg-secondary mt-3 leading-relaxed">{recovering || mode === 'reset' ? 'Get back to creating your next reel.' : 'Your reels, captions and edits — saved to your account, ready on any device.'}</p></div>
@@ -77,8 +87,9 @@ export function AuthScreen({ initialError, recovering, onRecovered }: { initialE
           <button className={BTN_PRIMARY} type="submit" disabled={pending}>{pending ? 'Please wait…' : recovering ? 'Save new password' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}<ArrowRight size={16} /></button>
         </form>
         {!recovering && emailEnabled && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? 'Back to sign in' : 'Forgot password?'}</button>}
+        {!client && <Link to="/projects" className="text-sm text-accent">Open local studio →</Link>}
         <p className="flex items-center justify-center gap-2 text-xs text-fg-muted m-0"><LockKeyhole size={14} />Your projects and source videos are private.</p>
       </div>
-    </div>
-  </main>;
+    </div></div>
+  </section>;
 }

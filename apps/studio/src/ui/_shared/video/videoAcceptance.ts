@@ -18,3 +18,9 @@ export const ACCEPTED_VIDEO_LABEL = 'Video or audio · MP4 · WEBM · MOV · MP3
 
 export const VIDEO_UNSUPPORTED_MESSAGE =
   'Please use a video (MP4, WebM, MOV) or audio (MP3, WAV, M4A, AAC, OGG, FLAC) file.';
+
+/** Video-only entry point used by the project library. */
+export const VIDEO_FILE_ACCEPT = 'video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov';
+export const isAcceptedVideoFile = (file: File): boolean => ACCEPTED_VIDEO_TYPES.includes(file.type) || (!file.type && /\.(mp4|webm|mov)$/i.test(file.name));
+export const VIDEO_ONLY_LABEL = 'Video · MP4 · WebM · MOV';
+export const VIDEO_ONLY_UNSUPPORTED_MESSAGE = 'Please upload a video in MP4, WebM or MOV format.';

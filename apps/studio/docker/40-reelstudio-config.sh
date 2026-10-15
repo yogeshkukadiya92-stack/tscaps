@@ -2,6 +2,8 @@
 set -eu
 export SUPABASE_URL="${SUPABASE_URL:-}" SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-}"
 export AUTH_EMAIL_ENABLED="${AUTH_EMAIL_ENABLED:-false}"
+export BILLING_ENABLED="${BILLING_ENABLED:-false}"
+case "$BILLING_ENABLED" in true|false) ;; *) echo 'Invalid billing setting' >&2; exit 1;; esac
 case "$AUTH_EMAIL_ENABLED" in true|false) ;; *) echo 'Invalid email setting' >&2; exit 1;; esac
 # Only public client configuration. Reject characters that can escape the JavaScript string.
 case "$SUPABASE_URL" in *[!a-zA-Z0-9_:/.-]*) echo 'Invalid Supabase URL' >&2; exit 1;; esac
@@ -17,4 +19,4 @@ case "$SUPABASE_ANON_KEY" in
     ;;
   *) echo 'The browser requires a public Supabase key' >&2; exit 1;;
 esac
-envsubst '${SUPABASE_URL} ${SUPABASE_ANON_KEY} ${AUTH_EMAIL_ENABLED}' < /usr/share/nginx/html/config.template.js > /usr/share/nginx/html/config.js
+envsubst '${SUPABASE_URL} ${SUPABASE_ANON_KEY} ${AUTH_EMAIL_ENABLED} ${BILLING_ENABLED}' < /usr/share/nginx/html/config.template.js > /usr/share/nginx/html/config.js

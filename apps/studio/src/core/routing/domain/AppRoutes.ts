@@ -19,6 +19,10 @@ export class AppRoutes {
     return `${this.prefix}/projects`;
   }
 
+  admin(): string {
+    return `${this.prefix}/admin`;
+  }
+
   editor(): string {
     return `${this.prefix}/editor`;
   }

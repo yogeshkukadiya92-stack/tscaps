@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 declare global {
   interface Window {
-    __REELSTUDIO_CONFIG__?: { supabaseUrl?: string; supabaseAnonKey?: string; emailEnabled?: boolean };
+    __REELSTUDIO_CONFIG__?: { supabaseUrl?: string; supabaseAnonKey?: string; emailEnabled?: boolean; billingEnabled?: boolean };
   }
 }
 
