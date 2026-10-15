@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Document, Line, Section, Segment, TimeFragment, Word } from '@tscaps/engine';
-import { autoPauseCuts, planAutoEdit, DEFAULT_AUTO_EDIT_OPTIONS, type QuietWindow, type AutoEditStyle } from '@core/creative/AutoEdit';
+import { autoPauseCuts, planAutoEdit, sameAutoEditInputs, DEFAULT_AUTO_EDIT_OPTIONS, type QuietWindow, type AutoEditStyle } from '@core/creative/AutoEdit';
 import { compositionSpans, newCreativeProject, readCreativeProject } from '@core/creative/CreativeProject';
 import { newMotionEffect } from '@core/creative/MotionEffects';
 import { REEL_PRESETS } from '@core/creative/ReelPresets';
@@ -81,7 +81,7 @@ describe('Auto Edit', () => {
     const draft = planAutoEdit(project, [originalSheet], document, windows, [], 'clean', DEFAULT_AUTO_EDIT_OPTIONS);
     store.commit(); store.patch({ creative: draft.project, sheets: draft.sheets });
     expect(readCreativeProject(JSON.parse(JSON.stringify(draft.project)))?.autoEdit?.style).toBe('clean');
-    expect(() => planAutoEdit(draft.project, draft.sheets, document, windows, [], 'energetic', DEFAULT_AUTO_EDIT_OPTIONS)).toThrow('already applied');
+    expect(planAutoEdit(draft.project, draft.sheets, document, windows, [], 'energetic', DEFAULT_AUTO_EDIT_OPTIONS).project.autoEdit?.style).toBe('energetic');
     store.undo(); expect(store.snapshot().creative).toBe(project); expect(store.snapshot().sheets[0]).toBe(originalSheet);
     store.redo(); expect(store.snapshot().creative).toBe(draft.project); expect(store.snapshot().sheets).toEqual(draft.sheets);
     expect(() => readCreativeProject({ ...project, autoEdit: { style: 'unknown' } })).toThrow('Invalid auto edit style');
@@ -105,7 +105,7 @@ describe('Reel template recipes', () => {
     const draft = planAutoEdit(newCreativeProject(6), [original], document, windows, [], preset.style, DEFAULT_AUTO_EDIT_OPTIONS, recipe);
     expect(draft.sheets[0]!.template).toBe(template);
     expect(draft.sheets[0]!.typographyConfig.fontSize).toBe(4);
-    expect(draft.project.autoEdit).toEqual({ style: preset.style, preset: preset.id });
+    expect(draft.project.autoEdit).toMatchObject({ style: preset.style, preset: preset.id });
     expect(readCreativeProject(JSON.parse(JSON.stringify(draft.project)))!.autoEdit?.preset).toBe(preset.id);
     expect(draft.project.effects!.length).toBeGreaterThan(0);
   });
@@ -124,4 +124,79 @@ describe('Reel template recipes', () => {
     expect(() => planAutoEdit(newCreativeProject(6), [original], document, windows, [], preset.style, DEFAULT_AUTO_EDIT_OPTIONS, { id: preset.id, template: original.template })).toThrow('does not match');
     expect(() => readCreativeProject({ ...newCreativeProject(6), autoEdit: { style: 'clean', preset: 'missing' } })).toThrow('Invalid reel template');
   });
+});
+
+
+describe('Changing Auto Edit styles safely', () => {
+  it('replaces auto-owned effects, cuts and caption sizes after serialization without accumulating edits', () => {
+    const original = newCreativeProject(6), originalSheet = sheet();
+    const first = planAutoEdit(original, [originalSheet], document, windows, [], 'clean', DEFAULT_AUTO_EDIT_OPTIONS);
+    const loaded = readCreativeProject(JSON.parse(JSON.stringify(first.project)))!;
+    const second = planAutoEdit(loaded, first.sheets, document, windows, [], 'energetic', DEFAULT_AUTO_EDIT_OPTIONS);
+    const fresh = planAutoEdit(original, [originalSheet], document, windows, [], 'energetic', DEFAULT_AUTO_EDIT_OPTIONS);
+    expect(second.project.silences).toEqual(fresh.project.silences);
+    expect(second.project.effects?.map(e => [e.start, e.end, e.intensity])).toEqual(fresh.project.effects?.map(e => [e.start, e.end, e.intensity]));
+    expect(second.sheets[0]!.typographyConfig.fontSize).toBe(4.2);
+    const third = planAutoEdit(readCreativeProject(JSON.parse(JSON.stringify(second.project)))!, second.sheets, document, windows, [], 'professional', DEFAULT_AUTO_EDIT_OPTIONS);
+    expect(third.sheets[0]!.typographyConfig.fontSize).toBe(3.13);
+    expect(third.project.effects?.[0]?.intensity).toBe(0.08);
+  });
+  it('keeps manually edited and deleted auto effects, restored cuts, custom settings and caption sizes', () => {
+    const first = planAutoEdit(newCreativeProject(30), [sheet()], document, windows, [], 'clean', DEFAULT_AUTO_EDIT_OPTIONS);
+    const changed = { ...first.project, effects: [{ ...first.project.effects![0]!, intensity: 0.55 }],
+      silences: [], settings: { ...first.project.settings, contrast: 1.4 } };
+    const customSheet = first.sheets[0]!.with({ typographyConfig: { ...first.sheets[0]!.typographyConfig, fontSize: 7 } });
+    const next = planAutoEdit(readCreativeProject(JSON.parse(JSON.stringify(changed)))!, [customSheet], document, windows, [], 'energetic', DEFAULT_AUTO_EDIT_OPTIONS);
+    expect(next.project.effects!.find(e => e.id === changed.effects[0]!.id)?.intensity).toBe(0.55);
+    for (const removed of first.project.effects!.slice(1)) expect(next.project.effects!.some(e => e.start < removed.end && e.end > removed.start)).toBe(false);
+    expect(next.project.silences).toEqual([]);
+    expect(next.project.settings.contrast).toBe(1.4);
+    expect(next.sheets[0]!.typographyConfig.fontSize).toBe(7);
+    expect(next.project.clips).toEqual(changed.clips);
+  });
+  it('keeps edits from older projects without history and still allows a different style', () => {
+    const original = newCreativeProject(6);
+    original.autoEdit = { style: 'clean' }; original.effects = [newMotionEffect('digital-zoom', 0, 2)];
+    const next = planAutoEdit(original, [], document, windows, [], 'professional', DEFAULT_AUTO_EDIT_OPTIONS);
+    expect(next.project.effects![0]).toBe(original.effects[0]);
+    expect(next.project.autoEdit?.style).toBe('professional');
+    expect(next.notes.some(n => n.includes('older edit'))).toBe(true);
+  });
+  it('rejects malformed generation history in imported projects', () => {
+    const first = planAutoEdit(newCreativeProject(6), [], document, windows, [], 'clean', DEFAULT_AUTO_EDIT_OPTIONS);
+    expect(() => readCreativeProject({ ...first.project, autoEdit: { ...first.project.autoEdit, generation: { ...first.project.autoEdit!.generation, settings: { before: { speed: 10 }, after: {} } } } })).toThrow('Invalid auto edit history');
+  });
+});
+
+
+it('keeps drafts valid across font reflow but detects word edits and manual creative changes', () => {
+  const store = new EditorStore();
+  store.patch({ creative: newCreativeProject(6), document, sheets: [sheet()] });
+  const before = store.snapshot();
+  store.patch({ document: document.with({ sections: [...document.sections] }) });
+  expect(sameAutoEditInputs(before, store.snapshot())).toBe(true);
+  const section = document.sections[0]!, segment = section.segments[0]!, line = segment.lines[0]!;
+  store.patch({ document: document.with({ sections: [section.with({ segments: [segment.with({ lines: [line.with({ words: line.words.map((w, i) => i === 0 ? w.with({ text: 'changed' }) : w) })] })] })] }) });
+  expect(sameAutoEditInputs(before, store.snapshot())).toBe(false);
+  store.patch({ document, sheets: [before.sheets[0]!.with({ name: 'Renamed captions' })] });
+  expect(sameAutoEditInputs(before, store.snapshot())).toBe(false);
+  store.patch({ document, creative: { ...before.creative!, settings: { ...before.creative!.settings, contrast: 1.2 } } });
+  expect(sameAutoEditInputs(before, store.snapshot())).toBe(false);
+});
+
+
+it('preserves manual settings and caption sizes even when changed back to original defaults', () => {
+  const originalSheet = sheet();
+  const first = planAutoEdit(newCreativeProject(6), [originalSheet], document, windows, [], 'energetic', DEFAULT_AUTO_EDIT_OPTIONS);
+  const manual = { ...first.project, settings: { ...first.project.settings, cleanup: false, normalize: false, contrast: 1 } };
+  const caption = first.sheets[0]!.with({ typographyConfig: { ...first.sheets[0]!.typographyConfig, fontSize: originalSheet.typographyConfig.fontSize } });
+  const second = planAutoEdit(readCreativeProject(JSON.parse(JSON.stringify(manual)))!, [caption], document, windows, [], 'professional', DEFAULT_AUTO_EDIT_OPTIONS);
+  expect(second.project.settings.cleanup).toBe(false);
+  expect(second.project.settings.normalize).toBe(false);
+  expect(second.project.settings.contrast).toBe(1);
+  expect(second.sheets[0]!.typographyConfig.fontSize).toBe(originalSheet.typographyConfig.fontSize);
+  const third = planAutoEdit(second.project, second.sheets, document, windows, [], 'clean', DEFAULT_AUTO_EDIT_OPTIONS);
+  expect(third.project.settings.normalize).toBe(false);
+  expect(third.project.settings.contrast).toBe(1);
+  expect(third.sheets[0]!.typographyConfig.fontSize).toBe(originalSheet.typographyConfig.fontSize);
 });

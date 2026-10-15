@@ -88,6 +88,7 @@ export function EditorPage({
   videoOverlay,
   banner,
 }: EditorPageProps) {
+  const [draftPreviewActive, setDraftPreviewActive] = useState(false);
   const activeMode = useActiveEditorMode();
   const workspace = useEditorWorkspaceStore();
   const editor = useEditor();
@@ -277,7 +278,7 @@ export function EditorPage({
           canUndo={state.canUndo}
           canRedo={state.canRedo}
           showExport={showExport}
-          exportDisabled={exportDisabled}
+          exportDisabled={exportDisabled || draftPreviewActive}
           onOpenExportSettings={onOpenExportSettings}
           projectName={state.projectName}
           canRename={state.projectId !== null}
@@ -285,13 +286,13 @@ export function EditorPage({
           onBack={onBack}
           dirty={state.dirty}
           saveStatus={saveStatus}
-          canSave={canSave}
+          canSave={canSave && !draftPreviewActive}
           onSave={onSave}
         />
         <nav role="tablist" aria-label="Editor workspace" className="flex gap-2 w-full shrink-0 pb-3">
           {workspaceModes.map(mode => <button key={mode.id} role="tab" aria-selected={activeMode === mode.id} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium ${activeMode === mode.id ? 'bg-accent text-white' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}{mode.label}</button>)}
         </nav>
-        {activeMode === 'creative' && <CreativeStudio state={state} />}
+        {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} />}
         <div className={activeMode === 'creative' ? 'hidden' : 'flex flex-col w-full flex-1 min-h-0'}>
         {isMobile ? (
           <MobileEditorLayout

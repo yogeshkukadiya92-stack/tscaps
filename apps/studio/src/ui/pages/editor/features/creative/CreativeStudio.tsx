@@ -1,5 +1,5 @@
 import { AutoEditPanel } from '@ui/pages/editor/features/creative/AutoEditPanel';
-import type { AutoEditDraft } from '@core/creative/AutoEdit';
+import { sameAutoEditInputs, type AutoEditDraft } from '@core/creative/AutoEdit';
 import { MotionEffectsGallery } from '@ui/pages/editor/features/creative/MotionEffectsGallery';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ALL_FORMATS, BlobSource, Input } from 'mediabunny';
@@ -20,9 +20,10 @@ import { Slider } from '@ui/_shared/components/controls/fields/Slider';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 
 const INPUT = 'w-full min-w-0 bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary';
+const previewPositions = new WeakMap<object, { projectId: string; time: number }>();
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'The edit could not be completed.';
 
-export function CreativeStudio({ state }: { state: EditorState }) {
+export function CreativeStudio({ state, onDraftPreviewChange }: { state: EditorState; onDraftPreviewChange: (active: boolean) => void }) {
   const videos = useVideos(), playback = usePlayback(), editor = useEditor(), projects = useProjects();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false), [error, setError] = useState('');
@@ -58,7 +59,7 @@ export function CreativeStudio({ state }: { state: EditorState }) {
   return <div className="w-full flex-1 min-h-0 flex flex-col" aria-label="Creative workspace">
     {error && <div className="p-4"><p role="alert" className="text-sm text-danger">{error}</p><button className={BTN_SECONDARY} disabled={loading} onClick={() => void launch()}>Retry opening editor</button></div>}
     {!file && !error && <p role="status" className="p-4 text-sm text-fg-muted">Preparing your reel editor…</p>}
-    {file && state.creative && <StudioSession key={state.projectId} file={file} state={state} project={state.creative} />}
+    {file && state.creative && <StudioSession key={state.projectId} file={file} state={state} project={state.creative} onDraftPreviewChange={onDraftPreviewChange} />}
   </div>;
 }
 
@@ -70,22 +71,30 @@ function NumberField({ label, value, min = 0, max, step = 0.1, change }: {
     onChange={event => { if (event.target.value !== '' && Number.isFinite(event.target.valueAsNumber)) change(Math.max(min, Math.min(max ?? Infinity, event.target.valueAsNumber))); }} /></label>;
 }
 
-function StudioSession({ file, state, project }: { file: File; state: EditorState; project: CreativeProject }) {
+function StudioSession({ file, state, project, onDraftPreviewChange }: { file: File; state: EditorState; project: CreativeProject; onDraftPreviewChange: (active: boolean) => void }) {
   const editor = useEditor(), projects = useProjects(), exporter = useExport();
   const [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false), [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false), [playing, setPlaying] = useState(false), [progress, setProgress] = useState(0);
-  const [time, setTime] = useState(0), [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
+  const [time, setTime] = useState(() => { const saved = previewPositions.get(editor.store); return saved?.projectId === state.projectId ? saved.time : 0; }), [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
   const [result, setResult] = useState<Blob | null>(null);
+  const timeRef = useRef(time);
+  const comparisonHost = useRef<HTMLDivElement>(null);
+  const [comparison, setComparison] = useState<{ draft: AutoEditDraft; base: EditorState } | null>(null);
+  const [comparisonSide, setComparisonSide] = useState<'before' | 'after'>('after');
+  const validComparison = comparison && sameAutoEditInputs(comparison.base, state) ? comparison : null;
+  const viewProject = validComparison && comparisonSide === 'after' ? validComparison.draft.project : project;
+  const viewSheets = validComparison && comparisonSide === 'after' ? validComparison.draft.sheets : state.sheets;
   const previewHost = useRef<HTMLDivElement>(null), session = useRef<CreativeSession | null>(null);
   const playingRef = useRef(false), audioContext = useRef<AudioContext | null>(null), audioNode = useRef<AudioBufferSourceNode | null>(null);
   const exportAbort = useRef<AbortController | null>(null), generation = useRef(0);
   const saveChain = useRef(Promise.resolve());
   const projectId = state.projectId!;
+  useEffect(() => () => { previewPositions.set(editor.store, { projectId, time: timeRef.current }); }, [editor.store, projectId]);
   const settings = project.settings;
   const cuts = useMemo(() => state.cuts.list().map(r => ({ start: r.startSec, end: r.endSec })), [state.cuts]);
-  const spans = useMemo(() => compositionSpans(project, cuts), [project, cuts]);
+  const spans = useMemo(() => compositionSpans(viewProject, cuts), [viewProject, cuts]);
   const duration = spans.at(-1)?.outputEnd ?? 0;
   const [previewRevision, setPreviewRevision] = useState(0);
 
@@ -110,10 +119,15 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
     catch (cause) { setError(errorText(cause)); }
     finally { setSaving(false); }
   }
-  async function plan() {
+  async function plan(previewSheets = editor.store.snapshot().sheets) {
     const current = editor.store.snapshot();
     if (!current.document || !current.sheets.length) return null;
-    return exporter.planner.plan({ document: current.document, sheets: current.sheets, elementStyles: current.elementStyles,
+    const layout = current.video.layout;
+    const document = previewSheets !== current.sheets && layout ? editor.deriver.derive(current.document, previewSheets, {
+      videoWidth: layout.width, videoHeight: layout.height, videoDurationSeconds: current.video.duration,
+      frozenSegments: current.frozenSegments, decorationOverrides: current.decorationOverrides,
+    }) : current.document;
+    return exporter.planner.plan({ document, sheets: previewSheets, elementStyles: current.elementStyles,
       decorationOverrides: current.decorationOverrides, cuts: CutRegistry.empty(), behindActorOverrides: current.behindActorOverrides,
       projectId: current.projectId, videoLayout: current.video.layout });
   }
@@ -126,15 +140,16 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
     const timer = window.setTimeout(() => {
       setReady(false);
       void (async () => {
-        prepared = exporter.creativeRenderer.session({ original: file, project, cuts, plan: await plan() });
+        prepared = exporter.creativeRenderer.session({ original: file, project: viewProject, cuts, plan: await plan(viewSheets) });
         await prepared.open(360, abort.signal);
-        await prepared.paint(0);
+        const position = Math.max(0, Math.min(timeRef.current, prepared.duration - 0.001));
+        await prepared.paint(position);
         if (!active || token !== generation.current) return;
         session.current = prepared;
         prepared.canvas.className = 'block w-full max-h-[52vh] object-contain rounded-lg bg-black';
         prepared.canvas.setAttribute('aria-label', 'Full reel preview');
         previewHost.current?.replaceChildren(prepared.canvas);
-        setTime(0); setReady(true);
+        timeRef.current = position; setTime(position); setPlaying(false); setReady(true);
       })().catch(cause => { if (active && !abort.signal.aborted) setError(errorText(cause)); })
         .finally(() => { if (!active) prepared?.close(); });
     }, 250);
@@ -147,7 +162,7 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
     };
     // The project object includes every visual/audio edit; caption state is refreshed when this workspace opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project, cuts, file, busy, previewRevision]);
+  }, [viewProject, viewSheets, cuts, file, busy, previewRevision]);
   useEffect(() => () => { exportAbort.current?.abort(); void audioContext.current?.close(); }, []);
 
   async function preview() {
@@ -168,7 +183,7 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
         const position = Math.min(duration - 0.00001, context.currentTime - origin);
         try { await current.paint(position); }
         catch (cause) { if (session.current === current && playingRef.current) setError(errorText(cause)); stop(); return; }
-        setTime(position);
+        timeRef.current = position; setTime(position);
         if (position >= duration - 0.04) { stop(); return; }
         requestAnimationFrame(() => void tick());
       };
@@ -176,7 +191,7 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
     } catch (cause) { if (session.current === current) setError(errorText(cause)); stop(); }
   }
   async function seek(value: number) {
-    stop(); setTime(value);
+    stop(); timeRef.current = value; setTime(value);
     try { await session.current?.paint(value); } catch (cause) { setError(errorText(cause)); }
   }
   async function upload(files: FileList | null, kind: 'clip' | 'overlay' | 'music', replaceId?: string) {
@@ -253,21 +268,37 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
     setPreviewRevision(v => v + 1);
     setNotice('Auto Edit applied. Preview your reel, adjust any edit and save when ready.');
   }
+  function compare(draft: AutoEditDraft | null) {
+    stop();
+    if ((draft?.project ?? project) !== viewProject || (draft?.sheets ?? state.sheets) !== viewSheets) setReady(false);
+    setComparison(draft ? { draft, base: editor.store.snapshot() } : null); setComparisonSide('after');
+    if (draft) requestAnimationFrame(() => comparisonHost.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  }
   const locked = busy || uploading || saving || analyzing;
+  const editingLocked = locked || !!validComparison;
+  useEffect(() => {
+    onDraftPreviewChange(!!validComparison);
+    return () => onDraftPreviewChange(false);
+  }, [validComparison, onDraftPreviewChange]);
   return <section aria-label="Creative Studio" className="flex flex-col flex-1 min-h-0 w-full gap-3 overflow-y-auto lg:overflow-hidden">
     <div className="flex items-center gap-3 shrink-0"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Creative Studio</h2><p className="text-xs text-fg-muted m-0">Clips, effects, audio and captions. One finished reel.</p></div></div>
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,1fr)] gap-5 min-h-0 lg:flex-1">
       <div className="flex flex-col gap-3 min-w-0 lg:overflow-y-auto lg:pr-2">
+        {validComparison && <div ref={comparisonHost} className="rounded-lg border border-accent/40 bg-surface-1 p-3 flex flex-col gap-2" aria-label="Before and after preview">
+          <div className="flex gap-2" role="group" aria-label="Preview version">{(['before', 'after'] as const).map(side => <button key={side} className={comparisonSide === side ? BTN_PRIMARY : BTN_SECONDARY} aria-pressed={comparisonSide === side} disabled={locked} onClick={() => { if (side !== comparisonSide) { stop(); setReady(false); setComparisonSide(side); } }}>{side === 'before' ? 'Before' : 'After'}</button>)}</div>
+          <p className="text-xs text-fg-muted m-0">{comparisonSide === 'before' ? 'Before · Your saved/current edit' : 'After · Proposed auto edit'} · Draft only. Apply to save or export.</p>
+          <button className={BTN_SECONDARY} disabled={locked} onClick={() => compare(null)}>Close comparison</button>
+        </div>}
         <div ref={previewHost} className="bg-black rounded-lg min-h-40 shrink-0" />
         {!ready && !busy && <p className="text-xs text-fg-muted">Preparing full reel preview…</p>}
         <input aria-label="Reel playhead" type="range" min="0" max={Math.max(0, duration - 0.001)} step="0.033333" value={time}
           disabled={!ready || locked} onChange={event => void seek(Number(event.target.value))} />
-        <p className="text-xs text-fg-muted m-0">{time.toFixed(1)} / {duration.toFixed(1)}s · 30 fps · {settings.portrait ? '1080 × 1920' : 'Original ratio, up to 1080 on the short side'}</p>
+        <p className="text-xs text-fg-muted m-0">{time.toFixed(1)} / {duration.toFixed(1)}s · 30 fps · {viewProject.settings.portrait ? '1080 × 1920' : 'Original ratio, up to 1080 on the short side'}</p>
         <div className="flex gap-2 flex-wrap">
           <button className={BTN_SECONDARY} disabled={!ready || locked} onClick={() => playing ? stop() : void preview()}>{playing ? 'Stop preview' : 'Preview'}</button>
-          <button className={BTN_SECONDARY} disabled={locked} onClick={() => { stop(); editor.store.undo(); setPreviewRevision(v => v + 1); }}>Undo</button>
-          <button className={BTN_SECONDARY} disabled={locked} onClick={() => { stop(); editor.store.redo(); setPreviewRevision(v => v + 1); }}>Redo</button>
-          <button className={BTN_SECONDARY} disabled={locked} onClick={() => void save()}>Save creative changes</button>
+          <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => { stop(); editor.store.undo(); setPreviewRevision(v => v + 1); }}>Undo</button>
+          <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => { stop(); editor.store.redo(); setPreviewRevision(v => v + 1); }}>Redo</button>
+          <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => void save()}>Save creative changes</button>
         </div>
         <p className="text-xs text-fg-muted m-0">Captions stay linked to the original clips through cuts, speed and reordering. Added clips keep their own audio; B-roll is muted.</p>
         {settings.speed !== 1 && <p className="text-xs text-fg-muted m-0">Speed changes also change voice pitch in the mixed reel.</p>}
@@ -276,16 +307,16 @@ function StudioSession({ file, state, project }: { file: File; state: EditorStat
         {uploading && <p role="status" className="text-xs">Preparing and saving media…</p>}
         <label className="text-xs">Export format<select aria-label="Export format" className={INPUT} value={format} disabled={locked} onChange={event => { setFormat(event.target.value as 'mp4' | 'webm'); setResult(null); }}><option value="mp4">MP4 · H.264 / AAC</option><option value="webm">WebM · VP9 / Opus</option></select></label>
         {busy ? <><p role="status">Rendering {progress.toFixed(0)}%</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}>Cancel export</button></>
-          : <button className={BTN_PRIMARY} disabled={locked || duration < 0.1} onClick={() => void render()}>Render edited reel</button>}
-        {result && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
+          : <button className={BTN_PRIMARY} disabled={editingLocked || duration < 0.1} onClick={() => void render()}>Render edited reel</button>}
+        {result && !validComparison && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
       </div>
       <div className="flex flex-col min-h-0 min-w-0 gap-3">
       <nav aria-label="Creative tools" className="flex flex-wrap gap-2 shrink-0">
         {['Auto', 'Effects', 'Clips', 'B-roll', 'Audio', 'Look', 'Timing'].map(label => <button key={label} className={BTN_SECONDARY} onClick={() => document.getElementById(`creative-${label}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>{label === 'Auto' ? 'Auto Edit' : label}</button>)}
       </nav>
       <div className="flex flex-col gap-5 min-w-0 lg:overflow-y-auto lg:pr-2">
-      <AutoEditPanel file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} />
-      <fieldset disabled={locked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
+      <AutoEditPanel file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
+      <fieldset disabled={editingLocked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
         <div id="creative-Effects" className="rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2">
         <MotionEffectsGallery effects={project.effects ?? []} duration={duration} time={time} boundaries={spans.slice(1).map(s => s.outputStart)} ready={ready}
           onSeek={value => void seek(value)} onChange={effects => change({ ...project, effects })} /></div>
