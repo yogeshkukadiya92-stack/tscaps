@@ -49,3 +49,17 @@ def test_long_audio_offsets_timestamps_without_duplicate_overlap():
     assert len(calls) == 2
     assert [word['text'] for word in result['words']] == ['first', 'boundary']
     assert result['words'][1]['start'] == 600
+
+
+def test_final_word_endpoint_drift_is_clamped():
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
+        'words': [{'word': 'છે', 'start': 0.7, 'end': 1.4}]}))
+    result = transcribe_groq(np.zeros(16000), 'gu', transport)
+    assert result['words'] == [{'text': 'છે', 'start': 0.7, 'end': 1.0}]
+
+
+def test_large_out_of_range_endpoint_still_fails():
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
+        'words': [{'word': 'bad', 'start': 0.7, 'end': 20}]}))
+    with pytest.raises(HTTPException):
+        transcribe_groq(np.zeros(16000), 'gu', transport)

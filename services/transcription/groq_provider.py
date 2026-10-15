@@ -85,7 +85,9 @@ def transcribe_groq(pcm, language, transport=None):
                     if not text or not math.isfinite(absolute_start) or not math.isfinite(absolute_end) or absolute_end < absolute_start:
                         raise ValueError('Invalid word')
                     if core_start <= absolute_start < core_end:
-                        if absolute_end > duration + 0.1:
+                        # Whisper can round the final word past the clip boundary.
+                        # Accept at most one second of endpoint drift and clamp it.
+                        if absolute_end > duration + 1:
                             raise ValueError('Out-of-range word')
                         words.append({'text': text, 'start': absolute_start, 'end': min(duration, absolute_end)})
             except (ValueError, KeyError, TypeError, AttributeError) as error:
