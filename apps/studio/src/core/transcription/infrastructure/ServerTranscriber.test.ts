@@ -40,6 +40,7 @@ describe('audio-only server transcription', () => {
     expect(document.getWords()[0]?.time.end).toBe(0.5);
   });
   it.each([
+    null,
     { words: [{ text: 'bad', start: 0, end: 10 }] },
     { words: [{ text: 'bad', start: -1, end: 0 }] },
     { words: [null] }, { words: [] },
@@ -48,5 +49,35 @@ describe('audio-only server transcription', () => {
   });
   it('does not silently replace server errors with local inference', async () => {
     await expect(setup({}, 429).transcriber.transcribe(new Blob())).rejects.toMatchObject({ name: 'ServerTranscriptionFailedError' });
+  });
+  it('refreshes an expired session once before retrying the same extracted audio', async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response('{}', { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ words: [{ text: 'hello', start: 0, end: 0.5 }] })));
+    const refresh = vi.fn().mockResolvedValue('fresh-token');
+    const decoder = { decode: vi.fn().mockResolvedValue(new Float32Array(16000)) };
+    const transcriber = new ServerTranscriber('https://processing.test', decoder,
+      new PreprocessingProgressStore(), async () => 'expired-token', request, refresh);
+    expect((await transcriber.transcribe(new Blob())).getWords()[0]?.text).toBe('hello');
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(decoder.decode).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[1]![1].headers.Authorization).toBe('Bearer fresh-token');
+    expect(request.mock.calls[1]![1].body).toBe(request.mock.calls[0]![1].body);
+  });
+  it('stops after one authentication retry', async () => {
+    const request = vi.fn().mockImplementation(() => Promise.resolve(new Response('{}', { status: 401 })));
+    const transcriber = new ServerTranscriber('https://processing.test',
+      { decode: async () => new Float32Array(16000) }, new PreprocessingProgressStore(),
+      async () => 'token', request, async () => 'fresh-token');
+    await expect(transcriber.transcribe(new Blob())).rejects.toMatchObject({ reason: 'session', status: 401 });
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+  it.each([
+    [403, {}, 'forbidden'], [429, { detail: 'Monthly transcription budget reached' }, 'budget'],
+    [429, {}, 'busy'], [503, {}, 'unavailable'], [413, {}, 'too-long'], [524, {}, 'timeout'],
+  ])('preserves an actionable reason for HTTP %s without retrying inference', async (status, body, reason) => {
+    const { transcriber, request } = setup(body, status as number);
+    await expect(transcriber.transcribe(new Blob())).rejects.toMatchObject({ reason, status });
+    expect(request).toHaveBeenCalledTimes(1);
   });
 });

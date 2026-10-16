@@ -58,6 +58,12 @@ export function bootTranscription(deps: TranscriptionDependencies) {
     const { data, error } = await client.auth.getSession();
     if (error || !data.session) throw new Error('Sign in to use server transcription.');
     return data.session.access_token;
+  }, undefined, async () => {
+    const client = getSupabaseClient();
+    if (!client) throw new Error('Sign in to use server transcription.');
+    const { data, error } = await client.auth.refreshSession();
+    if (error || !data.session) throw new Error('Sign in to use server transcription.');
+    return data.session.access_token;
   }) : buildLocalTranscriber(deps));
 
   const untranscribedRegionsStore = new UntranscribedRegionsStore();

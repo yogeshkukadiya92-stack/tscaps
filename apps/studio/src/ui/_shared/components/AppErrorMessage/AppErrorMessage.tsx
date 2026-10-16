@@ -1,3 +1,4 @@
+import type { ServerTranscriptionFailedError } from '@core/transcription/domain/errors/ServerTranscriptionFailedError';
 import type { ReactElement } from 'react';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { FailureReason } from '@core/errors/domain/FailureReason';
@@ -119,7 +120,7 @@ export function useAppErrorShortDescription(error: AppError): string {
     case 'ProjectExportFailedError':         return "Something went wrong while packaging your project.";
     case 'ProjectImportFailedError':         return "The file couldn't be read as a tscaps export.";
     case 'AudioExtractionFailedError':       return describeAudioExtractionFailure(reason);
-    case 'ServerTranscriptionFailedError':   return 'Please retry. Check your connection and sign in again if your session expired. The server may be busy. Existing captions are preserved.';
+    case 'ServerTranscriptionFailedError':   return describeServerTranscriptionFailure(error as ServerTranscriptionFailedError);
     case 'LocalTranscriptionFailedError':    return describeLocalTranscriptionFailure(reason);
     case 'TranscriptionModelCacheFailedError': return describeModelCacheFailure(reason);
     case 'SubtitleFileReadFailedError':      return 'None of the captions in the file had a readable timecode.';
@@ -278,7 +279,7 @@ export function AppErrorMessage({ error, isMobile = false }: AppErrorMessageProp
     case 'ProjectExportFailedError':         return <ProjectExportFailedBody />;
     case 'ProjectImportFailedError':         return <ProjectImportFailedBody />;
     case 'AudioExtractionFailedError':       return <AudioExtractionFailedBody reason={reason} isMobile={isMobile} />;
-    case 'ServerTranscriptionFailedError':   return <p>Please retry. Check your connection and sign in again if your session expired. The server may be busy. Existing captions are preserved.</p>;
+    case 'ServerTranscriptionFailedError':   return <p>{describeServerTranscriptionFailure(error as ServerTranscriptionFailedError)}</p>;
     case 'LocalTranscriptionFailedError':    return <LocalTranscriptionFailedBody reason={reason} isMobile={isMobile} />;
     case 'TranscriptionModelCacheFailedError': return <TranscriptionModelCacheFailedBody reason={reason} />;
     case 'SubtitleFileReadFailedError':      return <SubtitleFileReadFailedBody />;
@@ -829,4 +830,21 @@ function SupportLink(): ReactElement {
       {SUPPORT_EMAIL}
     </a>
   );
+}
+
+function describeServerTranscriptionFailure(error: ServerTranscriptionFailedError): string {
+  const messages = {
+    session: 'Your sign-in session expired. Sign in again, then retry transcription.',
+    forbidden: 'This account is not enabled for server transcription. Contact the site owner.',
+    busy: 'The transcription service is busy or rate limited. Wait a little, then press Start again.',
+    budget: 'The monthly server transcription budget has been reached. Contact the site owner or import a subtitle file.',
+    unavailable: 'The transcription service could not process this audio. Retry shortly; if it keeps failing, contact the site owner.',
+    'invalid-response': 'The server returned unreadable captions or invalid word timings. Retry; if it happens again, contact the site owner.',
+    'no-speech': 'No speech was recognized. Check that the video has audible speech and select the language being spoken.',
+    'too-long': 'The audio is too large for the server. Trim the video to less than 30 minutes, then retry.',
+    timeout: 'Transcription took too long. Try a shorter video, then retry.',
+    network: 'The connection to the transcription server failed. Check your connection, then retry.',
+    unknown: 'Transcription could not finish. Retry; if it keeps failing, contact the site owner.',
+  };
+  return `${messages[error.reason ?? 'unknown']}${error.status ? ` (HTTP ${error.status})` : ''} Existing captions are preserved.`;
 }
