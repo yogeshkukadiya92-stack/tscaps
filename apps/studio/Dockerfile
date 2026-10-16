@@ -21,6 +21,8 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/engine ./packages/engine
 COPY templates ./templates
 COPY apps/studio ./apps/studio
+# Studio typechecks the shared billing contract from its regression tests.
+COPY supabase/functions/_shared ./supabase/functions/_shared
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter ./apps/studio build
