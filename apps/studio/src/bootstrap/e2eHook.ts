@@ -31,7 +31,7 @@ declare global {
       setVideoLayout: (width: number, height: number) => void;
       setDocument: (json: unknown) => Promise<void>;
       documentWords: () => Array<{ id: string; text: string; start: number; end: number }>;
-      triggerExport: () => Promise<void>;
+      triggerExport: (format?: 'mp4' | 'webm') => Promise<void>;
       playPreview: () => Promise<void>;
       pausePreview: () => void;
       seekPreview: (sourceTimeSec: number) => void;
@@ -48,12 +48,14 @@ interface BlobRef {
 class RecordingExportWriter implements ExportWriter {
   private chunks: Array<{ data: Uint8Array; position: number }> = [];
   private opened = false;
+  private mimeType = 'video/mp4';
 
   constructor(private readonly blobRef: BlobRef) {}
 
-  async open(_format: OutputFormat): Promise<void> {
+  async open(format: OutputFormat): Promise<void> {
     if (this.opened) throw new Error('writer already opened');
     this.opened = true;
+    this.mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
   }
 
   stream(): WritableStream<RenderOutputChunk> {
@@ -77,7 +79,7 @@ class RecordingExportWriter implements ExportWriter {
     const buffer = new Uint8Array(size);
     for (const chunk of this.chunks) buffer.set(chunk.data, chunk.position);
     this.chunks = [];
-    this.blobRef.value = new Blob([buffer], { type: 'video/mp4' });
+    this.blobRef.value = new Blob([buffer], { type: this.mimeType });
     // Return null so ExportVideoAction.triggerDownload is skipped.
     return null;
   }
@@ -236,7 +238,7 @@ export function attachE2EHook(deps: E2EHookDeps): void {
 
     seekPreview: (sourceTimeSec: number) => deps.previewSurface.seek(sourceTimeSec),
 
-    triggerExport: async () => {
+    triggerExport: async (format = 'mp4') => {
       const onDone = new Promise<void>((resolve) => {
         let seenRunning = false;
         const listener = () => {
@@ -251,7 +253,7 @@ export function attachE2EHook(deps: E2EHookDeps): void {
         deps.exportStore.addEventListener('change', listener);
       });
 
-      void deps.exportRun.execute({ format: 'mp4', quality: 'low', resolution: 'original' });
+      void deps.exportRun.execute({ format, quality: 'low', resolution: 'original' });
 
       await onDone;
 

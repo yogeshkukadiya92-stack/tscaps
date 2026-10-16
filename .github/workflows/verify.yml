@@ -62,7 +62,7 @@ jobs:
         run: pnpm --filter ./apps/studio build
 
       - name: Run E2E
-        run: pnpm --filter ./apps/studio e2e
+        run: pnpm --filter ./apps/studio e2e --reporter=line
 
       - name: Upload E2E artifacts on failure
         if: failure()

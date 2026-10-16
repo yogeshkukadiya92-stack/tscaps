@@ -9,7 +9,7 @@ declare global {
       setDocument: (json: unknown) => Promise<void>;
       documentWords: () => Array<{ id: string; text: string; start: number; end: number }>;
       seekPreview: (sourceTimeSec: number) => void;
-      triggerExport: () => Promise<void>;
+      triggerExport: (format?: 'mp4' | 'webm') => Promise<void>;
       lastResult: { blob: Blob; sizeBytes: number; mimeType: string } | { error: string } | undefined;
     };
   }

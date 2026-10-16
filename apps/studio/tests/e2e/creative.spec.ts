@@ -11,6 +11,19 @@ function musicWav() {
   for (let i = 0; i < samples; i++) wav.writeInt16LE(Math.round(Math.sin(i * 2 * Math.PI * 220 / 48000) * 8000), 44 + i * 2);
   return { name: 'music.wav', mimeType: 'audio/wav', buffer: wav };
 }
+async function selectEncodableFormat(page: Page, dialog: ReturnType<Page['getByRole']>): Promise<'mp4' | 'webm'> {
+  // Linux's Chromium can lack AAC encoding. Keep the same pixel/audio assertions
+  // and exercise WebM there, rather than waiting for an impossible MP4 download.
+  const aac = process.env['E2E_FORCE_WEBM'] !== '1' && await page.evaluate(async () => {
+    const scope = globalThis as unknown as { AudioEncoder?: { isConfigSupported(config: object): Promise<{ supported?: boolean }> } };
+    try {
+      return !!(await scope.AudioEncoder?.isConfigSupported({ codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, bitrate: 192000 }))?.supported;
+    } catch { return false; }
+  });
+  const format = aac ? 'mp4' : 'webm';
+  await dialog.getByLabel('Export format', { exact: true }).selectOption(format);
+  return format;
+}
 async function openStudio(page: Page) {
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
@@ -25,7 +38,8 @@ async function openStudio(page: Page) {
   expect(canvas).not.toBeNull();
   expect(playhead).not.toBeNull();
   expect(playhead!.y).toBeGreaterThanOrEqual(canvas!.y + canvas!.height);
-  return { dialog, bytes };
+  const format = await selectEncodableFormat(page, dialog);
+  return { dialog, bytes, format };
 }
 async function storedProject(page: Page) {
   return page.evaluate(async () => {
@@ -92,7 +106,7 @@ test('creative settings, music, clips and B-roll survive a full project reload',
 
 test('unified export includes added clips, portrait FHD, captions and audible music', async ({ page }) => {
   test.setTimeout(180000);
-  const { dialog, bytes } = await openStudio(page);
+  const { dialog, bytes, format } = await openStudio(page);
   await dialog.getByLabel('Portrait canvas · 1080 × 1920').check();
   await dialog.getByRole('textbox', { name: 'Text', exact: true }).fill('ONE FINAL EXPORT');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
@@ -111,7 +125,7 @@ test('unified export includes added clips, portrait FHD, captions and audible mu
   await dialog.getByRole('button', { name: 'Render edited reel' }).click();
   await expect(dialog.getByRole('button', { name: 'Download reel' })).toBeVisible({ timeout: 120000 });
   const downloading = page.waitForEvent('download'); await dialog.getByRole('button', { name: 'Download reel' }).click();
-  const download = await downloading; await download.saveAs('/tmp/reelstudio-unified.mp4'); const output = await readFile((await download.path())!);
+  const download = await downloading; await download.saveAs(`/tmp/reelstudio-unified.${format}`); const output = await readFile((await download.path())!);
   const stats = await decode(page, output);
   expect(stats.width).toBe(1080); expect(stats.height).toBe(1920);
   // This location is black in the letterboxed original; the timed picture-in-picture paints it.
@@ -120,7 +134,7 @@ test('unified export includes added clips, portrait FHD, captions and audible mu
   // AAC encoders may include up to a few priming/padding packets in decoded PCM.
   expect(Math.abs(stats.duration - 1)).toBeLessThan(0.1); expect(stats.rms).toBeGreaterThan(0.01);
   // Main Export must use the same composition, rather than silently exporting the original.
-  await page.evaluate(async () => { await window.__tscapsE2E!.triggerExport(); });
+  await page.evaluate(async selectedFormat => { await window.__tscapsE2E!.triggerExport(selectedFormat); }, format);
   const mainBytes = await page.evaluate(async () => {
     const result = window.__tscapsE2E!.lastResult!;
     if ('error' in result) throw new Error(result.error);
@@ -128,6 +142,30 @@ test('unified export includes added clips, portrait FHD, captions and audible mu
   });
   const main = await decode(page, Buffer.from(mainBytes));
   expect(main.width).toBe(1080); expect(main.height).toBe(1920); expect(Math.abs(main.videoDuration - 1)).toBeLessThan(0.1); expect(Math.abs(main.duration - 1)).toBeLessThan(0.1);
+});
+
+test('unsupported AAC explains MP4 failure and WebM still exports audible video', async ({ page }) => {
+  await page.addInitScript(() => {
+    const scope = globalThis as unknown as { AudioEncoder?: { isConfigSupported(config: { codec: string }): Promise<unknown> } };
+    const encoder = scope.AudioEncoder;
+    if (!encoder) return;
+    const original = encoder.isConfigSupported.bind(encoder);
+    encoder.isConfigSupported = async config => config.codec.startsWith('mp4a')
+      ? { supported: false, config } : original(config);
+  });
+  const { dialog } = await openStudio(page);
+  await dialog.getByLabel('Export format', { exact: true }).selectOption('mp4');
+  await dialog.getByRole('button', { name: 'Render edited reel', exact: true }).click();
+  await expect(dialog.getByRole('alert')).toContainText('This browser cannot encode MP4');
+  await dialog.getByLabel('Export format', { exact: true }).selectOption('webm');
+  await dialog.getByRole('button', { name: 'Render edited reel', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: 'Download reel', exact: true })).toBeVisible({ timeout: 60000 });
+  const downloading = page.waitForEvent('download');
+  await dialog.getByRole('button', { name: 'Download reel', exact: true }).click();
+  const bytes = await readFile((await (await downloading).path())!);
+  const result = await decode(page, bytes);
+  expect(result.width).toBe(128); expect(result.height).toBe(128);
+  expect(result.rms).toBeGreaterThan(0.01);
 });
 
 test('mobile split, reorder, undo, cancellation and music-only export', async ({ page }) => {
@@ -204,7 +242,7 @@ for (const name of ['Digital Zoom', 'Checklist', 'Phone Mockup', 'Headline Wall'
     const downloading = page.waitForEvent('download'); await dialog.getByRole('button', { name: 'Download reel' }).click();
     const bytes = await readFile((await (await downloading).path())!);
     const difference = await page.evaluate(async ({ data, expected, at }) => {
-      const url = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'video/mp4' }));
+      const url = URL.createObjectURL(new Blob([new Uint8Array(data)]));
       const video = document.createElement('video'); video.src = url;
       await new Promise<void>((resolve, reject) => { video.onloadeddata = () => resolve(); video.onerror = () => reject(new Error('Decode failed')); });
       await new Promise<void>(resolve => { video.onseeked = () => resolve(); video.currentTime = at + 0.001; });
@@ -346,6 +384,7 @@ for (const recipe of [
     await expect(panel.getByRole('status')).toContainText(`Template: ${recipe.name}`);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     if (recipe.id === 'quick-tips') {
+      await selectEncodableFormat(page, dialog);
       await dialog.getByRole('button', { name: 'Render edited reel', exact: true }).click();
       await expect(dialog.getByRole('button', { name: 'Download reel', exact: true })).toBeVisible({ timeout: 60000 });
       const downloadPromise = page.waitForEvent('download');
