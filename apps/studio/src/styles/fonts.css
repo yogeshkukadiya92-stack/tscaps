@@ -14,6 +14,10 @@
 
 /* Variable fonts (full wght axis, italic where applicable) */
 @import '@fontsource-variable/inter';
+@import '@fontsource-variable/open-sans';
+@import '@fontsource-variable/source-sans-3';
+@import '@fontsource-variable/merriweather';
+@import '@fontsource-variable/merriweather/wght-italic.css';
 @import '@fontsource-variable/manrope';
 @import '@fontsource-variable/montserrat';
 @import '@fontsource-variable/nunito';
@@ -46,6 +50,22 @@
 @import '@fontsource/poppins/700.css';
 @import '@fontsource/roboto/400.css';
 @import '@fontsource/roboto/700.css';
+@import '@fontsource/lato/400.css';
+@import '@fontsource/lato/700.css';
+@import '@fontsource/lato/400-italic.css';
+@import '@fontsource/lato/700-italic.css';
+
+/* Hindi / Devanagari choices, bundled for both preview and export. */
+@import '@fontsource-variable/noto-sans-devanagari/wght.css';
+@import '@fontsource-variable/noto-serif-devanagari/wght.css';
+@import '@fontsource/mukta/400.css';
+@import '@fontsource/mukta/700.css';
+@import '@fontsource/hind/400.css';
+@import '@fontsource/hind/700.css';
+@import '@fontsource/rajdhani/400.css';
+@import '@fontsource/rajdhani/700.css';
+@import '@fontsource/tiro-devanagari-hindi/400.css';
+@import '@fontsource/tiro-devanagari-hindi/400-italic.css';
 
 /* Static, single-weight display / script families
    (bold toggle relies on browser synthesis or is a no-op for these) */

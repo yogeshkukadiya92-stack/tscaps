@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { create, type Font } from 'fontkitten';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FONT_STACKS } from '@core/fonts/domain/FontStackCatalog';
+import { FONT_FAMILIES } from '@core/fonts/domain/FontFamilyCatalog';
 import { FONT_SCRIPTS, type FontScript } from '@core/fonts/domain/FontScript';
 import { FONT_SCRIPT_RANGES } from '@core/fonts/domain/FontScriptRanges';
 import { UnicodeRangeParser } from '@core/fonts/services/UnicodeRangeParser';
@@ -79,6 +80,17 @@ let coverage: BundledFontCoverage;
 beforeAll(() => { coverage = new BundledFontCoverage(); });
 
 describe('catalog stacks cover the minimum alphabet for every assigned script', () => {
+  it.each(FONT_FAMILIES)('picker family $family covers its offered scripts', ({ family, draws }) => {
+    const profiles = coverage.families.get(family);
+    expect(profiles?.size, `${family} must be bundled`).toBeGreaterThan(0);
+    for (const script of draws) {
+      for (const [profile, supported] of profiles!) {
+        const missing = [...REQUIRED_CHARACTERS[script]].filter((character) => !supported.has(character.codePointAt(0)!));
+        expect(missing, `${family} (${profile}) is missing ${script} glyphs`).toEqual([]);
+      }
+    }
+  });
+
   it.each(FONT_STACKS)('$id', ({ id, faces }) => {
     for (const script of FONT_SCRIPTS) {
       const family = faces[script];

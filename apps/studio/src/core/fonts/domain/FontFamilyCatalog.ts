@@ -55,6 +55,9 @@ export const FONT_FAMILIES: readonly CatalogFamily[] = [
   { family: 'Poppins', draws: LATIN_DEVANAGARI },
   { family: 'Montserrat Variable', draws: LATIN_CYRILLIC },
   { family: 'Roboto', draws: LATIN_CYRILLIC_GREEK },
+  { family: 'Open Sans Variable', draws: LATIN_CYRILLIC_GREEK },
+  { family: 'Lato', draws: LATIN },
+  { family: 'Source Sans 3 Variable', draws: LATIN_CYRILLIC_GREEK },
   { family: 'Anton', draws: LATIN },
   { family: 'Bebas Neue', draws: LATIN },
   { family: 'Bangers', draws: LATIN },
@@ -78,6 +81,7 @@ export const FONT_FAMILIES: readonly CatalogFamily[] = [
   { family: 'IM Fell English', draws: LATIN },
   { family: 'Fraunces Variable', draws: LATIN },
   { family: 'Lora Variable', draws: LATIN_CYRILLIC },
+  { family: 'Merriweather Variable', draws: LATIN_CYRILLIC },
   // Script / cursive
   { family: 'Kalam', draws: LATIN_DEVANAGARI },
   { family: 'Dancing Script Variable', draws: LATIN },
@@ -95,7 +99,7 @@ export const FONT_FAMILIES: readonly CatalogFamily[] = [
   { family: 'Cairo Variable', draws: ARABIC },
   { family: 'Noto Sans Arabic Variable', draws: ARABIC },
   { family: 'Noto Kufi Arabic Variable', draws: ARABIC },
-  { family: 'Tajawal', draws: ARABIC },
+  { family: 'Tajawal', draws: ['arabic'] },
   { family: 'Lalezar', draws: ARABIC },
   { family: 'Amiri', draws: ARABIC },
 
@@ -109,6 +113,14 @@ export const FONT_FAMILIES: readonly CatalogFamily[] = [
   // of the catalog — a template tuned for Latin may need its line spacing
   // raised before Urdu captions fit.
   { family: 'Noto Nastaliq Urdu', draws: URDU },
+
+  // Devanagari (Hindi / Marathi), alongside Poppins and Kalam above
+  { family: 'Noto Sans Devanagari Variable', draws: ['devanagari'] },
+  { family: 'Noto Serif Devanagari Variable', draws: ['devanagari'] },
+  { family: 'Mukta', draws: ['devanagari'] },
+  { family: 'Hind', draws: ['devanagari'] },
+  { family: 'Rajdhani', draws: ['devanagari'] },
+  { family: 'Tiro Devanagari Hindi', draws: ['devanagari'] },
 
   // Indic and Thai
   { family: 'Noto Sans Bengali Variable', draws: BENGALI },

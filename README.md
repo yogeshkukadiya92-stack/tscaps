@@ -43,6 +43,8 @@ Refresh recovery requires available browser storage. If saving the source fails 
 
 Every caption template is CSS. You can pick one from the gallery and tune it with the editor controls (font, size, colour, timing, animation). Or open the CSS tab and write whatever you want. The controls are the surface; CSS is the escape hatch that keeps the door open.
 
+The Typography font picker offers fonts for the caption's writing system. Hindi/Devanagari choices include Poppins, Kalam, Noto Sans Devanagari, Noto Serif Devanagari, Mukta, Hind, Rajdhani and Tiro Devanagari Hindi. English choices also include Open Sans, Lato, Source Sans 3 and Merriweather. Font files ship with the app for preview and video export; use **Upload custom font** for additional licensed fonts.
+
 ## Sample outputs
 
 ### Change transcription language or replace captions

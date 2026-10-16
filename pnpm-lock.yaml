@@ -70,6 +70,9 @@ importers:
       '@fontsource-variable/manrope':
         specifier: ^5.2.8
         version: 5.3.0
+      '@fontsource-variable/merriweather':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource-variable/montserrat':
         specifier: ^5.2.8
         version: 5.3.0
@@ -80,6 +83,9 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/noto-sans-bengali':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/noto-sans-devanagari':
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/noto-sans-tamil':
@@ -94,6 +100,9 @@ importers:
       '@fontsource-variable/noto-serif-bengali':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource-variable/noto-serif-devanagari':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource-variable/noto-serif-tamil':
         specifier: ^5.3.0
         version: 5.3.0
@@ -105,6 +114,9 @@ importers:
         version: 5.3.0
       '@fontsource-variable/nunito':
         specifier: ^5.2.7
+        version: 5.3.0
+      '@fontsource-variable/open-sans':
+        specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/oswald':
         specifier: ^5.2.8
@@ -118,6 +130,9 @@ importers:
       '@fontsource-variable/rubik':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource-variable/source-sans-3':
+        specifier: ^5.3.1
+        version: 5.3.1
       '@fontsource-variable/vazirmatn':
         specifier: ^5.3.0
         version: 5.3.0
@@ -139,6 +154,9 @@ importers:
       '@fontsource/dm-serif-display':
         specifier: ^5.2.8
         version: 5.3.0
+      '@fontsource/hind':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource/im-fell-english':
         specifier: ^5.3.0
         version: 5.3.0
@@ -148,8 +166,14 @@ importers:
       '@fontsource/lalezar':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource/lato':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource/lobster':
         specifier: ^5.2.8
+        version: 5.3.0
+      '@fontsource/mukta':
+        specifier: ^5.3.0
         version: 5.3.0
       '@fontsource/noto-nastaliq-urdu':
         specifier: ^5.3.0
@@ -166,6 +190,9 @@ importers:
       '@fontsource/press-start-2p':
         specifier: ^5.2.7
         version: 5.3.0
+      '@fontsource/rajdhani':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource/righteous':
         specifier: ^5.2.7
         version: 5.3.0
@@ -173,6 +200,9 @@ importers:
         specifier: ^5.2.10
         version: 5.3.0
       '@fontsource/tajawal':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/tiro-devanagari-hindi':
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource/vt323':
@@ -870,6 +900,9 @@ packages:
   '@fontsource-variable/manrope@5.3.0':
     resolution: {integrity: sha512-6D5dgokHsWDDMtmXHznKa0hK229NN+1a4BLPmUCLqcO1Pw5EEhWY5RFt0AcXnVRAljFFPfRtLkJePQj6LSsV6g==}
 
+  '@fontsource-variable/merriweather@5.3.0':
+    resolution: {integrity: sha512-wK7S4NtPXWUWll/sZCdub93pqSCnFkpKFbnoOE8fh+9Ut6JFjgkc9UlBxHJ0RVMkDpoWwGwMwYYTMvd3G9aAXA==}
+
   '@fontsource-variable/montserrat@5.3.0':
     resolution: {integrity: sha512-7PaZoxaxrWLAyrhO46v65An9LhUhfkTExWLhfbywYZCnZEgg/W1rEHnlNmZKjNZ3nJTVYyicqxlJt10z/26yTA==}
 
@@ -881,6 +914,9 @@ packages:
 
   '@fontsource-variable/noto-sans-bengali@5.3.0':
     resolution: {integrity: sha512-035m0mzOcsVC1GHFH1ioeXjIFqVhuflGvnn8Xvr6esaZlGErNe1d+Jx2sEN/2WGPhjrT+5wwKPPSO8rbBeQo3w==}
+
+  '@fontsource-variable/noto-sans-devanagari@5.3.0':
+    resolution: {integrity: sha512-52XBcJS3jRvZ5ugFXJvdKgffXPYnN08LeodXkgCbepOdMKVRVTQu1yj071cq8S3zmUwT6w6XKKXRSQlQkwwNNg==}
 
   '@fontsource-variable/noto-sans-tamil@5.3.0':
     resolution: {integrity: sha512-zyyajkRVJb7Uy6T2+ws2hR+0U7FnJqMfzakls3WgWNZ4ia0EFHLyFAHLZdUV5yiFzHufc701KOxktrwrI3J7FQ==}
@@ -894,6 +930,9 @@ packages:
   '@fontsource-variable/noto-serif-bengali@5.3.0':
     resolution: {integrity: sha512-YD4G49G5tXgNLbiKB/kQ6d3UJG9J64X5xFI2GozQUNBTqTo5r7NyIxoN7lU/GeKIU2j55lQefnvLvT3Pw7Yqfg==}
 
+  '@fontsource-variable/noto-serif-devanagari@5.3.0':
+    resolution: {integrity: sha512-84YrMomsQD13XgFj2fzFUthEI7v1gfzY7zABt61TF7lmkVg+w6ej8LznaDhS3P+ZisBHNhzE3xuvkGhFhWh53w==}
+
   '@fontsource-variable/noto-serif-tamil@5.3.0':
     resolution: {integrity: sha512-zo7vizxKzSX8TB1ln2Oql1j2W2S+3W33G24fgYIyOB5vNkl30F0GrX5b/KHCAMjC5+wOq1i1vC7OjtN3uOOR7A==}
 
@@ -906,6 +945,9 @@ packages:
   '@fontsource-variable/nunito@5.3.0':
     resolution: {integrity: sha512-tw0ch7evIDSwoeUy+0XzocYHfbRWLeCRPJy22KgbrLjDLAbNw/fErBiil10Ssrs3Sjr55zaZrr36a975j8cBkQ==}
 
+  '@fontsource-variable/open-sans@5.3.0':
+    resolution: {integrity: sha512-VOfhZfLIOBVa6K/dTEu7scqQXYdGa4jBX8quFpQ0S6574B+W2EOBJf9PkqyVtMEI7WWIWNEbpvPc3vY1mN2mmQ==}
+
   '@fontsource-variable/oswald@5.3.0':
     resolution: {integrity: sha512-sSZzcTeaQGNyZbTVlS4tNNHElK38UktFLqKd6NQDLFCBV27320rQC3kXSZVytYm1PPjKmPxqVaGwqj7LEKUWQw==}
 
@@ -917,6 +959,9 @@ packages:
 
   '@fontsource-variable/rubik@5.3.0':
     resolution: {integrity: sha512-yQUf8qle24MJYA+EuauyF+cqjjN6I715nGjitt3sGmwZA0XfA4fWJcLq1C/diREZl4Qzn1E80nLMc0ipC/a4Lg==}
+
+  '@fontsource-variable/source-sans-3@5.3.1':
+    resolution: {integrity: sha512-u0p5Z/PM2e1uxYOMiodLM6NVzxHwULcB6Oi7QSr2WU/sdoLBFP/BeOZ3YYHeJ6rHsjPZA1nZweZVaV7sf2MAyQ==}
 
   '@fontsource-variable/vazirmatn@5.3.0':
     resolution: {integrity: sha512-ZA68W8JHbMdNzzwjYHUWKB2PH22QpxNEnk0ukcXM+XiqYMV6ZWJZAKuNXcrMR2JjuIAwsfAU3KknCXPI6wXUvw==}
@@ -939,6 +984,9 @@ packages:
   '@fontsource/dm-serif-display@5.3.0':
     resolution: {integrity: sha512-ecRclUcYeto9fB7ghkB36H4MtUoaUYFjjornWYYeLCMHzaWEDPk2kIWgZOq0mKBNRxclRSieKcFeLonlMYDTKg==}
 
+  '@fontsource/hind@5.3.0':
+    resolution: {integrity: sha512-tN9N0AurZa2N8JakQw8Eqs5/1Rzpw7J6YA1mYpkkHZ3iTw1JjbSHq6V6hGjhRdZlUMHk1sN+jOhPmuF+RkRKEg==}
+
   '@fontsource/im-fell-english@5.3.0':
     resolution: {integrity: sha512-FcgdWfY9WeUM2gQkfmwhn4Ed9LVtlll8LSSZvHfbsUrnHK5tHHnGg6BgwAfHogp52adU3eE89J/3B52qV3b+Vw==}
 
@@ -948,8 +996,14 @@ packages:
   '@fontsource/lalezar@5.3.0':
     resolution: {integrity: sha512-ptwEfWP7OlucVaRHpuMo6tfvw9xDcBEoaiIvzSDUb7z5pih+DZIRKLarulkJunVR+DnQ5VaJVjuVVOwrqiq7Cw==}
 
+  '@fontsource/lato@5.3.0':
+    resolution: {integrity: sha512-0WhF/4rhrw+ErIyneKvhHn2YAl+xf8GDtllgOgOzDmeaSlLQtjpChXaQOpWhG2BchQW0WJy2zLV12Hdg0ndOMw==}
+
   '@fontsource/lobster@5.3.0':
     resolution: {integrity: sha512-jt+RDk/8Sstl1Omhox62gTbvRSLbh06kn5BNfDFgf4rNuDPHF+19eWYFxzq5FsdkalbRJNtc5p5C3qE0+leNVg==}
+
+  '@fontsource/mukta@5.3.0':
+    resolution: {integrity: sha512-BIM9rx9SmHOcVR8cmOba9LnaFwhfiaFcclwgKV9rH4DIdCmD/tBBhtY02GGukuayxSbqfZ6pXzSO88IigTewDw==}
 
   '@fontsource/noto-nastaliq-urdu@5.3.0':
     resolution: {integrity: sha512-rhozTu22mlnDp5R8A4gGeNJvoLroHEV0TytCwly20w1LMA+VXs/MyhORGJu3i3SWZFdyeCFe5EF5xzraq6zd6A==}
@@ -966,6 +1020,9 @@ packages:
   '@fontsource/press-start-2p@5.3.0':
     resolution: {integrity: sha512-gxWFxdeDglPhEYSwEeooomcaFK8kSQYLQwVxfnOJeYRj2sPEHXjpVtFgEaYfqzOjuAJGrIcJOipu2KY5YkbyuQ==}
 
+  '@fontsource/rajdhani@5.3.0':
+    resolution: {integrity: sha512-oBJgSIibWJvVBKseme1JczqPLoDHN97LHti4uh0LjfcJqQoVmnQQlRKIpEjTJV559rmVQ6qbVZZwKwk2wkBTtw==}
+
   '@fontsource/righteous@5.3.0':
     resolution: {integrity: sha512-xr3w0E1jtc7xoXLfgJrcaKqWjvh5XiAAthVLrl9v9HKC7TfwMy3nARytetfi2GIgo51+aWsEJ51Uyd3XEXbj/A==}
 
@@ -974,6 +1031,9 @@ packages:
 
   '@fontsource/tajawal@5.3.0':
     resolution: {integrity: sha512-R2GUdHHAebeZ+CyYvulaSECfZe3BWbNjEWX3TXG0Csnx4RADO/zyqk6Y//NYdSx5n74zRJh9HTvd61mpX/UzZQ==}
+
+  '@fontsource/tiro-devanagari-hindi@5.3.0':
+    resolution: {integrity: sha512-nlREPH/UItPmrRg2RY4O/oQNBtbwAzKyHk3ZexW1b75p8YrjmhdiPWOg9rm6dyM5v8FnIR392BG3Fdhu3+wTkg==}
 
   '@fontsource/vt323@5.3.0':
     resolution: {integrity: sha512-3w33Rg/0+R1587HQfz4t7Q7e0GGeCqr3wmzIwqdGInUnrGEwMA5eX39GP4Z9wpTQnwfhVOhYuxuRwRUeIcicbw==}
@@ -3588,6 +3648,8 @@ snapshots:
 
   '@fontsource-variable/manrope@5.3.0': {}
 
+  '@fontsource-variable/merriweather@5.3.0': {}
+
   '@fontsource-variable/montserrat@5.3.0': {}
 
   '@fontsource-variable/noto-kufi-arabic@5.3.0': {}
@@ -3595,6 +3657,8 @@ snapshots:
   '@fontsource-variable/noto-sans-arabic@5.3.0': {}
 
   '@fontsource-variable/noto-sans-bengali@5.3.0': {}
+
+  '@fontsource-variable/noto-sans-devanagari@5.3.0': {}
 
   '@fontsource-variable/noto-sans-tamil@5.3.0': {}
 
@@ -3604,6 +3668,8 @@ snapshots:
 
   '@fontsource-variable/noto-serif-bengali@5.3.0': {}
 
+  '@fontsource-variable/noto-serif-devanagari@5.3.0': {}
+
   '@fontsource-variable/noto-serif-tamil@5.3.0': {}
 
   '@fontsource-variable/noto-serif-telugu@5.3.0': {}
@@ -3612,6 +3678,8 @@ snapshots:
 
   '@fontsource-variable/nunito@5.3.0': {}
 
+  '@fontsource-variable/open-sans@5.3.0': {}
+
   '@fontsource-variable/oswald@5.3.0': {}
 
   '@fontsource-variable/playfair-display@5.3.0': {}
@@ -3619,6 +3687,8 @@ snapshots:
   '@fontsource-variable/raleway@5.3.0': {}
 
   '@fontsource-variable/rubik@5.3.0': {}
+
+  '@fontsource-variable/source-sans-3@5.3.1': {}
 
   '@fontsource-variable/vazirmatn@5.3.0': {}
 
@@ -3634,13 +3704,19 @@ snapshots:
 
   '@fontsource/dm-serif-display@5.3.0': {}
 
+  '@fontsource/hind@5.3.0': {}
+
   '@fontsource/im-fell-english@5.3.0': {}
 
   '@fontsource/kalam@5.3.0': {}
 
   '@fontsource/lalezar@5.3.0': {}
 
+  '@fontsource/lato@5.3.0': {}
+
   '@fontsource/lobster@5.3.0': {}
+
+  '@fontsource/mukta@5.3.0': {}
 
   '@fontsource/noto-nastaliq-urdu@5.3.0': {}
 
@@ -3652,11 +3728,15 @@ snapshots:
 
   '@fontsource/press-start-2p@5.3.0': {}
 
+  '@fontsource/rajdhani@5.3.0': {}
+
   '@fontsource/righteous@5.3.0': {}
 
   '@fontsource/roboto@5.3.0': {}
 
   '@fontsource/tajawal@5.3.0': {}
+
+  '@fontsource/tiro-devanagari-hindi@5.3.0': {}
 
   '@fontsource/vt323@5.3.0': {}
 
