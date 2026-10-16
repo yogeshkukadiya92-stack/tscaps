@@ -38,6 +38,22 @@ export interface CatalogFontStack {
 // stack of its own, authored the same way.
 export const FONT_STACKS: readonly CatalogFontStack[] = [
   {
+    id: 'hind',
+    faces: {
+      latin: 'Inter Variable',
+      arabic: 'Vazirmatn Variable',
+      hebrew: 'Heebo Variable',
+      urdu: 'Noto Nastaliq Urdu',
+      cyrillic: 'Inter Variable',
+      greek: 'Inter Variable',
+      devanagari: 'Hind',
+      bengali: 'Noto Sans Bengali Variable',
+      telugu: 'Noto Sans Telugu Variable',
+      tamil: 'Noto Sans Tamil Variable',
+      thai: 'Noto Sans Thai Variable',
+    },
+  },
+  {
     id: 'inter',
     faces: {
       latin: 'Inter Variable',

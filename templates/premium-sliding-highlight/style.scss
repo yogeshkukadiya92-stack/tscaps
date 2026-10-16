@@ -1,0 +1,6 @@
+@use '../_lib/premium-caption' as *;
+
+@include premium-caption(
+  $mode: box, $motion: slide, $font: 'Inter Variable', $size: 3.3cqh,
+  $weight: 700, $case: none, $ink: #ffffff, $accent: #ffffff, $paper: #803fe0
+);

@@ -1,0 +1,6 @@
+@use '../_lib/premium-caption' as *;
+
+@include premium-caption(
+  $mode: podcast, $motion: fade, $font: 'Montserrat Variable', $size: 3.6cqh,
+  $weight: 800, $case: uppercase, $ink: #ffffff, $accent: #ffffff, $paper: #151515
+);

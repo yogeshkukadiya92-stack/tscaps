@@ -1,0 +1,84 @@
+{
+  "name": "Slam",
+  "category": "premium-captions",
+  "addedOn": "2026-10-16",
+  "typography": {
+    "fontStack": "anton",
+    "fontSize": 5.2,
+    "fontWeight": 400,
+    "textCase": "uppercase",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.12
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "default": "#ffffff",
+      "label": "Text",
+      "type": "color",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "default": "#ffffff",
+      "label": "Accent",
+      "type": "color",
+      "group": "style",
+      "subgroup": "colors"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 3
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 30
+    }
+  ],
+  "lineSplitter": {
+    "type": "balanced-pixel-width",
+    "minLines": 1,
+    "maxLines": 3,
+    "maxWidthRatio": 0.78
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.7,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "effects": [
+    {
+      "type": "gap_free",
+      "enabled": true
+    }
+  ],
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#ffffff"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Rose",
+      "overrides": {
+        "highlight-color": "#ff8fc7"
+      }
+    }
+  ]
+}

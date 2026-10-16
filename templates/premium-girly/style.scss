@@ -1,0 +1,6 @@
+@use '../_lib/premium-caption' as *;
+
+@include premium-caption(
+  $mode: girly, $motion: wobble, $font: 'Comfortaa Variable', $size: 3.8cqh,
+  $weight: 700, $case: none, $ink: #ffc9e7, $accent: #ff76b8, $paper: #151515
+);

@@ -6,7 +6,7 @@
 export type TemplateCategory = 'key-moments' | 'modern' | 'viral' | 'classic' | 'lab'
   | 'studio-treatments' | 'real-estate' | 'perspective' | 'behind-person'
   | 'playful' | 'multiline' | 'dynamic' | 'editorial' | 'neon-fx'
-  | 'creators' | 'desi' | 'social' | 'retro';
+  | 'creators' | 'desi' | 'social' | 'retro' | 'premium-captions';
 
 /**
  * How the gallery shows a family. `clip` plays a burned-in sample over
@@ -44,6 +44,7 @@ export interface TemplateCategoryDefinition {
  * least.
  */
 export const TEMPLATE_CATEGORIES: Readonly<Record<TemplateCategory, TemplateCategoryDefinition>> = {
+  'premium-captions': { label: 'Premium captions', preview: 'tile', previewRows: 3 },
   modern: { label: 'Modern', preview: 'clip', previewRows: 3 },
   'key-moments': { label: 'Key moments', preview: 'clip', previewRows: 1 },
   viral: { label: 'Viral', preview: 'tile', previewRows: 2 },
