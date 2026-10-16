@@ -1,0 +1,132 @@
+@use 'caption-treatment' as *;
+
+// Caption presets composed from the same narration-clock primitives as export.
+// Structural changes are fixed per preset; active-word states never reflow text.
+@mixin premium-caption($mode, $motion, $font, $size, $weight, $case, $ink, $accent, $paper) {
+  $base: highlight;
+  @if $mode == hero or $mode == red-wipe or $mode == script-hero or $mode == creator or $mode == gilded or $mode == estate { $base: hero; }
+  @if $mode == box or $mode == paper or $mode == pill or $mode == neon or $mode == sweep { $base: $mode; }
+  @if $mode == focus { $base: box; }
+  @include caption-treatment(
+    $font: $font, $size: $size, $weight: $weight, $case: $case,
+    $ink: $ink, $accent: $accent, $paper: $paper,
+    $treatment: $base, $motion: $motion, $hero-font: $font
+  );
+
+  @if $mode == hidden {
+    // Deliberately suppress the complete overlay, including decorations.
+    .segment { visibility: hidden; }
+  }
+  @if $mode == red-wipe or $mode == script-hero {
+    .first-line-in-segment + .line {
+      font-family: var(--tscaps-big-word-font-family, 'Playfair Display Variable');
+      font-style: italic;
+      text-transform: none;
+    }
+  }
+  @if $mode == red-wipe {
+    .first-line-in-segment + .line {
+      color: var(--tscaps-primary-color, $ink);
+    }
+    .first-line-in-segment + .line .word::before {
+      content: ''; position: absolute; inset: -0.02em -0.12em; z-index: -1;
+      background: var(--tscaps-highlight-color, $accent);
+    }
+  }
+  @if $mode == creator {
+    .first-line-in-segment { background: #171717c9; border-radius: 0.12em; }
+    .first-line-in-segment + .line { font-style: italic; text-shadow: 0.04em 0.05em 0 #225e91; }
+  }
+  @if $mode == podcast {
+    .word-not-narrated-yet { opacity: 0.25; }
+    .segment { text-align: var(--tscaps-text-align, left); }
+    .line:nth-child(3) { font-size: 0.75em; }
+  }
+  @if $mode == stack {
+    .line { max-width: 6.5em; margin-inline: auto; }
+    .line:nth-child(2) { color: var(--tscaps-highlight-color, $accent); }
+  }
+  @if $mode == scatter {
+    .line:nth-child(even) { text-align: right; color: var(--tscaps-highlight-color, $accent); }
+    .line:nth-child(odd) { text-align: left; }
+    .word:nth-child(3n) { rotate: -3deg; }
+  }
+  @if $mode == open {
+    .word-not-narrated-yet {
+      color: transparent;
+      -webkit-text-stroke: 0.025em var(--tscaps-primary-color, $ink);
+      text-shadow: none;
+    }
+  }
+  @if $mode == focus {
+    .word-being-narrated { color: var(--tscaps-highlight-color, $accent); }
+    .word:not(.word-being-narrated) { color: var(--tscaps-primary-color, $ink); }
+  }
+  @if $mode == karaoke-plate or $mode == notification or $mode == chat or $mode == chat-left or $mode == torn {
+    .segment { position: relative; background: var(--tscaps-bg-color, $paper); border-radius: 0.35em; padding: 0.3em 0.5em; }
+    .word { text-shadow: none; }
+  }
+  @if $mode == karaoke-plate {
+    .word-already-narrated { color: var(--tscaps-highlight-color, $accent); }
+  }
+  @if $mode == notification {
+    .segment { padding: 1.1em 0.7em 0.5em 2.3em; border: 0.045em solid #ffffff80; border-radius: 0.65em; }
+    .segment::before { content: 'SOCIAL                         now'; position: absolute; top: 0.4em; left: 3.5em; font: 600 0.6em 'Inter Variable'; letter-spacing: 0.08em; }
+    .segment::after { content: '◎'; position: absolute; left: 0.35em; top: 0.4em; width: 1.4em; line-height: 1.4; text-align: center; border-radius: 0.3em; background: linear-gradient(35deg, #ffb343, #e22585, #854dff); color: #ffffff; }
+  }
+  @if $mode == chat or $mode == chat-left {
+    .segment { border-radius: 1.2em; padding: 0.4em 0.8em; box-shadow: 0 0 0.5em #54dfac40; }
+    .segment::after { content: ''; position: absolute; bottom: 0; right: 0; width: 0.5em; height: 0.65em; background: var(--tscaps-bg-color, $paper); clip-path: polygon(0 0, 100% 100%, 0 85%); }
+    @if $mode == chat-left {
+      .segment::after { left: 0; right: auto; scale: -1 1; }
+    }
+  }
+  @if $mode == gradient or $mode == gilded {
+    .word {
+      background-image: linear-gradient(110deg, var(--tscaps-primary-color, $ink), var(--tscaps-highlight-color, $accent));
+      background-clip: text; -webkit-background-clip: text; color: transparent; text-shadow: none;
+    }
+    .word-being-narrated { color: transparent; }
+    @if $mode == gilded {
+      .first-line-in-segment + .line .word { background-image: linear-gradient(180deg, #fff5d1, var(--tscaps-highlight-color, $accent), #a35d10); }
+    }
+  }
+  @if $mode == girly {
+    .word:nth-child(even) { font-style: italic; rotate: -3deg; }
+    .word-being-narrated::after { content: '♡'; position: absolute; right: -0.1em; top: -0.7em; font-size: 0.55em; color: var(--tscaps-highlight-color, $accent); }
+  }
+  @if $mode == bubble {
+    .word { text-shadow: 0.04em 0.04em 0 var(--tscaps-highlight-color, $accent), -0.03em -0.03em 0 var(--tscaps-highlight-color, $accent); }
+    .word-being-narrated { border-radius: 50%; background: #ff9bce50; }
+  }
+  @if $mode == spotlight {
+    .word-not-narrated-yet, .word-already-narrated { opacity: 0.25; }
+    .word-being-narrated { text-shadow: 0 0 0.3em var(--tscaps-highlight-color, $accent); }
+  }
+  @if $mode == sticker {
+    .word { -webkit-text-stroke: 0.035em #151515; paint-order: stroke fill; }
+    .word-being-narrated { text-shadow: 0.08em 0.08em 0 var(--tscaps-highlight-color, $accent); }
+  }
+  @if $mode == ransom {
+    .word { background: var(--tscaps-bg-color, $paper); color: var(--tscaps-primary-color, $ink); padding: 0.05em 0.13em; text-shadow: none; rotate: -4deg; box-shadow: 0.04em 0.05em 0 #0005; }
+    .word:nth-child(even) { rotate: 5deg; background: var(--tscaps-highlight-color, $accent); }
+    .word:nth-child(3n) { font-family: 'Playfair Display Variable'; font-style: italic; }
+    .word-being-narrated { color: var(--tscaps-primary-color, $ink); }
+  }
+  @if $mode == torn {
+    .segment { border-radius: 0; clip-path: polygon(0 7%, 8% 2%, 18% 6%, 30% 0, 43% 5%, 58% 1%, 72% 6%, 87% 2%, 100% 6%, 99% 94%, 87% 100%, 72% 95%, 58% 99%, 43% 94%, 30% 100%, 18% 95%, 6% 99%, 0 94%); padding: 0.4em 0.6em; }
+  }
+  @if $mode == pill {
+    .segment { border-radius: 2em; padding: 0.2em 0.85em; }
+    .word-being-narrated::before { display: none; }
+  }
+  @if $mode == estate {
+    .first-line-in-segment + .line { font-size: clamp(1em, calc(9em / max(var(--line-char-count, 1), 1)), 1.7em); text-shadow: 0.03em 0.035em 0 #0006, 0.06em 0.07em 0 #0004, 0 0.1em 0.15em #0007; }
+  }
+  @if $mode == video-cutout {
+    .segment { position: relative; isolation: isolate; background: #000; }
+    .word { color: var(--tscaps-primary-color, $ink); text-shadow: none; mix-blend-mode: difference; }
+    .word-being-narrated { color: var(--tscaps-highlight-color, $accent); }
+    .tscaps-video-frame-layer { z-index: -1; }
+  }
+}

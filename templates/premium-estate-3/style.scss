@@ -1,0 +1,6 @@
+@use '../_lib/premium-caption' as *;
+
+@include premium-caption(
+  $mode: estate, $motion: pop, $font: 'Montserrat Variable', $size: 6cqh,
+  $weight: 900, $case: none, $ink: #ffce64, $accent: #ffce64, $paper: #151515
+);

@@ -1,0 +1,6 @@
+@use '../_lib/premium-caption' as *;
+
+@include premium-caption(
+  $mode: gradient, $motion: rise, $font: 'Inter Variable', $size: 3.6cqh,
+  $weight: 600, $case: none, $ink: #ffc4dc, $accent: #9ed8ff, $paper: #151515
+);
