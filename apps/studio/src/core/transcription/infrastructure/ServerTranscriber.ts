@@ -47,10 +47,14 @@ export class ServerTranscriber implements ConfigurableTranscriber {
         const word = item as { text?: unknown; start?: unknown; end?: unknown } | null;
         if (!word || typeof word.text !== 'string' || !word.text.trim() || word.text.length > 500
           || typeof word.start !== 'number' || typeof word.end !== 'number'
-          || !Number.isFinite(word.start) || !Number.isFinite(word.end) || word.start < previousStart
+          || !Number.isFinite(word.start) || !Number.isFinite(word.end) || word.start < 0 || word.start < previousStart - 0.5
           || word.end < word.start || word.end > duration + 0.1) throw new ServerTranscriptionFailedError(new Error('Invalid word timestamps'), 'invalid-response');
-        previousStart = word.start;
-        return new Word({ text: word.text.trim(), time: new TimeFragment(word.start, Math.min(duration, word.end)) });
+        // Whisper can place a following word slightly before the preceding
+        // word's start (overlapping speech/alignment jitter). Keep text order
+        // and normalize bounded jitter instead of discarding the whole reel.
+        const start = Math.min(duration, Math.max(previousStart, word.start));
+        previousStart = start;
+        return new Word({ text: word.text.trim(), time: new TimeFragment(start, Math.max(start, Math.min(duration, word.end))) });
       });
       if (!words.length) throw new ServerTranscriptionFailedError(new Error('No speech was recognized'), 'no-speech');
       this.progress.setInferringProgress(1);

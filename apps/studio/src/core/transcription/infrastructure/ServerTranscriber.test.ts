@@ -50,6 +50,25 @@ describe('audio-only server transcription', () => {
   it('does not silently replace server errors with local inference', async () => {
     await expect(setup({}, 429).transcriber.transcribe(new Blob())).rejects.toMatchObject({ name: 'ServerTranscriptionFailedError' });
   });
+  it('keeps the complete reel when Whisper returns a slightly earlier next word', async () => {
+    const request = vi.fn().mockResolvedValue(new Response(JSON.stringify({ words: [
+      { text: 'first', start: 21.34, end: 21.5 },
+      { text: 'उसे', start: 21.1, end: 22.82 },
+      { text: 'next', start: 22.82, end: 23 },
+    ] })));
+    const transcriber = new ServerTranscriber('https://processing.test',
+      { decode: async () => new Float32Array(24 * 16000) }, new PreprocessingProgressStore(), async () => 'token', request);
+    const words = (await transcriber.transcribe(new Blob())).getWords();
+    expect(words.map(word => word.text)).toEqual(['first', 'उसे', 'next']);
+    expect(words.map(word => word.time.start)).toEqual([21.34, 21.34, 22.82]);
+    expect(words[1]?.time.end).toBe(22.82);
+  });
+  it('still rejects large backward timestamp jumps', async () => {
+    const { transcriber } = setup({ words: [
+      { text: 'first', start: 0.8, end: 0.9 }, { text: 'bad', start: 0.1, end: 0.5 },
+    ] });
+    await expect(transcriber.transcribe(new Blob())).rejects.toMatchObject({ reason: 'invalid-response' });
+  });
   it('refreshes an expired session once before retrying the same extracted audio', async () => {
     const request = vi.fn()
       .mockResolvedValueOnce(new Response('{}', { status: 401 }))
