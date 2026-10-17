@@ -126,7 +126,7 @@ function stackOf(latin: string, arabic: string): FontStack {
     hebrew: latin,
     cyrillic: latin,
     greek: latin,
-    devanagari: latin,
+    devanagari: latin, gujarati: latin,
     bengali: latin,
     telugu: latin,
     tamil: latin,
@@ -476,7 +476,7 @@ describe('a stack whose faces come from families of different weights', () => {
     const compiled = newCompiler(mixed).compile({
       stack: FontStack.of({
         latin: LATIN_FACE, arabic: LATIN_FACE, urdu: LATIN_FACE, hebrew: LATIN_FACE,
-        cyrillic: CYRILLIC_FACE, greek: GREEK_FACE, devanagari: DEVANAGARI_FACE,
+        cyrillic: CYRILLIC_FACE, greek: GREEK_FACE, devanagari: DEVANAGARI_FACE, gujarati: DEVANAGARI_FACE,
         bengali: LATIN_FACE, telugu: LATIN_FACE, tamil: LATIN_FACE, thai: LATIN_FACE,
       }),
       scripts: new CaptionScripts('latin', new Set<FontScript>(['latin', 'cyrillic', 'greek', 'devanagari'])),
@@ -530,7 +530,7 @@ describe('a stack whose faces disagree about having an italic', () => {
     const compiled = newCompiler(mixed).compile({
       stack: FontStack.of({
         latin: ROMAN_AND_ITALIC_FACE, arabic: ROMAN_AND_ITALIC_FACE, urdu: ROMAN_AND_ITALIC_FACE,
-        hebrew: ROMAN_AND_ITALIC_FACE, cyrillic: ROMAN_AND_ITALIC_FACE, devanagari: ROMAN_AND_ITALIC_FACE,
+        hebrew: ROMAN_AND_ITALIC_FACE, cyrillic: ROMAN_AND_ITALIC_FACE, devanagari: ROMAN_AND_ITALIC_FACE, gujarati: ROMAN_AND_ITALIC_FACE,
         greek: ROMAN_ONLY_FACE, bengali: ROMAN_AND_ITALIC_FACE, telugu: ROMAN_AND_ITALIC_FACE,
         tamil: ROMAN_AND_ITALIC_FACE, thai: ROMAN_AND_ITALIC_FACE,
       }),
@@ -579,7 +579,7 @@ describe('a compiled family asked for a weight none of its faces ships', () => {
     const compiled = newCompiler(mixed).compile({
       stack: FontStack.of({
         latin: LATIN_FACE, arabic: LATIN_FACE, urdu: LATIN_FACE, hebrew: LATIN_FACE,
-        cyrillic: LATIN_FACE, devanagari: LATIN_FACE, greek: GREEK_FACE,
+        cyrillic: LATIN_FACE, devanagari: LATIN_FACE, gujarati: LATIN_FACE, greek: GREEK_FACE,
         bengali: LATIN_FACE, telugu: LATIN_FACE, tamil: LATIN_FACE, thai: LATIN_FACE,
       }),
       scripts: new CaptionScripts('latin', new Set<FontScript>(['latin', 'greek'])),
@@ -619,7 +619,7 @@ describe('a compiled family whose faces all ship a regular and a bold', () => {
     const compiled = newCompiler(mixed).compile({
       stack: FontStack.of({
         latin: BOLD_LATIN_FACE, cyrillic: BOLD_LATIN_FACE, greek: BOLD_LATIN_FACE,
-        devanagari: BOLD_LATIN_FACE, hebrew: BOLD_LATIN_FACE,
+        devanagari: BOLD_LATIN_FACE, gujarati: BOLD_LATIN_FACE, hebrew: BOLD_LATIN_FACE,
         arabic: BOLD_ARABIC_FACE, urdu: BOLD_ARABIC_FACE,
         bengali: BOLD_LATIN_FACE, telugu: BOLD_LATIN_FACE,
         tamil: BOLD_LATIN_FACE, thai: BOLD_LATIN_FACE,

@@ -85,6 +85,7 @@ export const TemplateCard = memo(function TemplateCard({
           onHoverLost={onHoverLost}
           aspectClass="aspect-[4/2]"
         />
+        <span className="w-full px-2 py-1.5 text-left text-xs text-fg-secondary">{template.metadata.name}</span>
       </button>
 
       {isNew && <TemplateNewBadge />}

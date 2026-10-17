@@ -88,6 +88,9 @@ importers:
       '@fontsource-variable/noto-sans-devanagari':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource-variable/noto-sans-gujarati':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource-variable/noto-sans-tamil':
         specifier: ^5.3.0
         version: 5.3.0
@@ -101,6 +104,9 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/noto-serif-devanagari':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/noto-serif-gujarati':
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/noto-serif-tamil':
@@ -918,6 +924,9 @@ packages:
   '@fontsource-variable/noto-sans-devanagari@5.3.0':
     resolution: {integrity: sha512-52XBcJS3jRvZ5ugFXJvdKgffXPYnN08LeodXkgCbepOdMKVRVTQu1yj071cq8S3zmUwT6w6XKKXRSQlQkwwNNg==}
 
+  '@fontsource-variable/noto-sans-gujarati@5.3.0':
+    resolution: {integrity: sha512-fmQPxALCXOCe6FKaI9ZRu3R28BkhhEWQ3H8QMVCB3xRo6I7iwCZ2KunlIDPAfIDee3cYwucus5ORRqAFa62Ekg==}
+
   '@fontsource-variable/noto-sans-tamil@5.3.0':
     resolution: {integrity: sha512-zyyajkRVJb7Uy6T2+ws2hR+0U7FnJqMfzakls3WgWNZ4ia0EFHLyFAHLZdUV5yiFzHufc701KOxktrwrI3J7FQ==}
 
@@ -932,6 +941,9 @@ packages:
 
   '@fontsource-variable/noto-serif-devanagari@5.3.0':
     resolution: {integrity: sha512-84YrMomsQD13XgFj2fzFUthEI7v1gfzY7zABt61TF7lmkVg+w6ej8LznaDhS3P+ZisBHNhzE3xuvkGhFhWh53w==}
+
+  '@fontsource-variable/noto-serif-gujarati@5.3.0':
+    resolution: {integrity: sha512-iNeP8M9I1Ygk3luK8sC6eS7vTLdE5qKuen/kQBCE4bv7PCR6kOg4Be750ZSp7Tk6gCRHpj+HfiUNPUJWSvYOmQ==}
 
   '@fontsource-variable/noto-serif-tamil@5.3.0':
     resolution: {integrity: sha512-zo7vizxKzSX8TB1ln2Oql1j2W2S+3W33G24fgYIyOB5vNkl30F0GrX5b/KHCAMjC5+wOq1i1vC7OjtN3uOOR7A==}
@@ -3660,6 +3672,8 @@ snapshots:
 
   '@fontsource-variable/noto-sans-devanagari@5.3.0': {}
 
+  '@fontsource-variable/noto-sans-gujarati@5.3.0': {}
+
   '@fontsource-variable/noto-sans-tamil@5.3.0': {}
 
   '@fontsource-variable/noto-sans-telugu@5.3.0': {}
@@ -3669,6 +3683,8 @@ snapshots:
   '@fontsource-variable/noto-serif-bengali@5.3.0': {}
 
   '@fontsource-variable/noto-serif-devanagari@5.3.0': {}
+
+  '@fontsource-variable/noto-serif-gujarati@5.3.0': {}
 
   '@fontsource-variable/noto-serif-tamil@5.3.0': {}
 

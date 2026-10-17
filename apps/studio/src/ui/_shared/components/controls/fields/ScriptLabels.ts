@@ -23,6 +23,7 @@ export const SCRIPT_LABELS: Readonly<Record<FontFaceSlot, ScriptLabel>> = {
   cyrillic: { name: 'Cyrillic', sample: 'Абвг' },
   greek: { name: 'Greek', sample: 'Αβγδ' },
   devanagari: { name: 'Devanagari', sample: 'अआइई' },
+  gujarati: { name: 'Gujarati', sample: 'અઆઇઈ' },
   bengali: { name: 'Bengali', sample: 'অআইঈ' },
   telugu: { name: 'Telugu', sample: 'అఆఇఈ' },
   tamil: { name: 'Tamil', sample: 'அஆஇஈ' },

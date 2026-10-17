@@ -45,16 +45,16 @@ export class FontStack {
    * A stack read back from somewhere that keeps no fallback to fill its
    * gaps, or `null` when the payload is not one face per script.
    *
-   * All or nothing: a stack missing a face would silently paint that
-   * writing system in whatever the device supplies, where no stack at
-   * all leaves the element on what it inherits, which renders.
+   * Historical stacks missing only Gujarati are upgraded to its bundled
+   * sans face. Any other missing face still invalidates the stored stack.
    */
   static fromStoredFaces(value: unknown): FontStack | null {
     if (value === null || typeof value !== 'object') return null;
     const stored = value as Record<string, unknown>;
     const faces = {} as Record<FontScript, string>;
     for (const script of FONT_SCRIPTS) {
-      const held = stored[script];
+      // Saved stacks from before Gujarati became managed keep their tuned faces.
+      const held = stored[script] ?? (script === 'gujarati' ? 'Noto Sans Gujarati Variable' : undefined);
       if (typeof held !== 'string' || held.length === 0) return null;
       faces[script] = held;
     }

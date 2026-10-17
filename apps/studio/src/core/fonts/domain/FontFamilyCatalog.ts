@@ -122,6 +122,9 @@ export const FONT_FAMILIES: readonly CatalogFamily[] = [
   { family: 'Rajdhani', draws: ['devanagari'] },
   { family: 'Tiro Devanagari Hindi', draws: ['devanagari'] },
 
+  { family: 'Noto Sans Gujarati Variable', draws: ['gujarati'] },
+  { family: 'Noto Serif Gujarati Variable', draws: ['gujarati'] },
+
   // Indic and Thai
   { family: 'Noto Sans Bengali Variable', draws: BENGALI },
   { family: 'Noto Serif Bengali Variable', draws: BENGALI },

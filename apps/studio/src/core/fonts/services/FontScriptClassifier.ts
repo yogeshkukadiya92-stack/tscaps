@@ -7,6 +7,7 @@ const HEBREW = /\p{Script=Hebrew}/u;
 const CYRILLIC = /\p{Script=Cyrillic}/u;
 const GREEK = /\p{Script=Greek}/u;
 const DEVANAGARI = /\p{Script=Devanagari}/u;
+const GUJARATI = /\p{Script=Gujarati}/u;
 const BENGALI = /\p{Script=Bengali}/u;
 const TELUGU = /\p{Script=Telugu}/u;
 const TAMIL = /\p{Script=Tamil}/u;
@@ -20,6 +21,7 @@ const PATTERNS: ReadonlyArray<readonly [FontScript, RegExp]> = [
   ['arabic', ARABIC],
   ['hebrew', HEBREW],
   ['devanagari', DEVANAGARI],
+  ['gujarati', GUJARATI],
   ['bengali', BENGALI],
   ['telugu', TELUGU],
   ['tamil', TAMIL],
@@ -33,7 +35,7 @@ const PATTERNS: ReadonlyArray<readonly [FontScript, RegExp]> = [
 // keeps today's behaviour, while mis-leading it away from Latin changes the
 // metrics of every caption on the sheet.
 const TIE_ORDER: readonly FontFaceSlot[] = [
-  'latin', 'arabic', 'hebrew', 'cyrillic', 'greek', 'devanagari',
+  'latin', 'arabic', 'hebrew', 'cyrillic', 'greek', 'devanagari', 'gujarati',
   'bengali', 'telugu', 'tamil', 'thai', 'other',
 ];
 

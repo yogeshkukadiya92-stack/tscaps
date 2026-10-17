@@ -1,3 +1,4 @@
+import { TemplatePreviewLanguageContext, TEMPLATE_PREVIEW_LANGUAGES, type TemplatePreviewLanguage } from '@ui/_shared/contexts/TemplatePreviewLanguageContext';
 import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { ChevronLeft, Search } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
@@ -82,6 +83,7 @@ export const TemplateSelector = memo(function TemplateSelector({
   sectionAdornments,
 }: TemplateSelectorProps) {
   const [query, setQuery] = useState('');
+  const [previewLanguage, setPreviewLanguage] = useState<TemplatePreviewLanguage>('en');
   const [openedSectionId, setOpenedSectionId] = useState<TemplateGallerySectionId | null>(null);
 
   const [layout] = useState(() => new TemplateGalleryLayout());
@@ -163,6 +165,7 @@ export const TemplateSelector = memo(function TemplateSelector({
   );
 
   return (
+    <TemplatePreviewLanguageContext.Provider value={previewLanguage}>
     <div className={`flex flex-col ${SEARCH_TO_BODY_GAP} ${HEADER_TO_SEARCH_PADDING} pb-2`}>
       <div className={SEARCH_FIELD_CLASS}>
         <Search size={13} className="text-fg-faint shrink-0 group-focus-within/search:text-fg-muted transition-colors duration-quick ease-standard" />
@@ -173,6 +176,17 @@ export const TemplateSelector = memo(function TemplateSelector({
           placeholder="Search templates"
           className="flex-1 min-w-0 bg-transparent border-none outline-none text-fg-secondary text-xs placeholder:text-fg-faint"
         />
+      </div>
+
+      <div role="group" aria-label="Caption preview language" className="flex flex-wrap gap-2">
+        {TEMPLATE_PREVIEW_LANGUAGES.map(language => (
+          <button key={language.id} type="button" aria-pressed={previewLanguage === language.id}
+            onClick={() => setPreviewLanguage(language.id)}
+            className={`px-2.5 py-1.5 rounded-md border text-xs ${previewLanguage === language.id ? 'border-accent text-accent bg-accent/10' : 'border-edge-medium text-fg-secondary'}`}>
+            {language.label}
+          </button>
+        ))}
+        <p className="w-full text-xs text-fg-muted">Preview all 58 premium styles in your language. Hover to see motion.</p>
       </div>
 
       {query.trim() !== '' ? (
@@ -222,5 +236,6 @@ export const TemplateSelector = memo(function TemplateSelector({
         </div>
       )}
     </div>
+    </TemplatePreviewLanguageContext.Provider>
   );
 });

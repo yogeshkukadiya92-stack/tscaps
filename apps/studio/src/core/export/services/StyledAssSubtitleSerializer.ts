@@ -25,7 +25,7 @@ export function serializeStyledAss(document: Document, sheets: readonly Sheet[],
       const alignment = (align.verticalAlign === 'top' ? 6 : align.verticalAlign === 'center' ? 3 : 0) + (center ? 2 : right ? 3 : 1);
       const x = (horizontal === 'start' || horizontal === 'end') && rtl ? 1 - align.horizontalOffset : align.horizontalOffset;
       position = `{\\pos(${Math.round(x * width)},${Math.round(align.verticalOffset * height)})}`;
-      const font = typography.fontStack.familyFor(/[\u0900-\u097f]/.test(section.getText()) ? 'devanagari' : 'latin').replace(/[,\r\n]/g, '');
+      const font = typography.fontStack.familyFor(/[\u0a80-\u0aff]/.test(section.getText()) ? 'gujarati' : /[\u0900-\u097f]/.test(section.getText()) ? 'devanagari' : 'latin').replace(/[,\r\n]/g, '');
       const text = assColour(values['primary-color'] ?? values['text-color'], '#ffffff');
       const accent = assColour(values['highlight-color'] ?? values['accent-color'], '#ffd84d');
       styles.push(`Style: ${name},${font},${Math.max(1, Math.round(typography.fontSize * height / 100))},${granularity === 'word' ? accent : text},${text},&H00000000,&H00000000,${typography.fontWeight >= 600 ? -1 : 0},${typography.italic ? -1 : 0},${typography.underline ? -1 : 0},${typography.strikethrough ? -1 : 0},100,100,${typography.letterSpacing},0,1,2,0,${alignment},0,0,0,1`);

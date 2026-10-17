@@ -210,6 +210,7 @@ export const FONT_SCRIPT_RANGES: Readonly<Record<Exclude<FontScript, 'urdu'>, Un
     [0xA8E0, 0xA8FF],
     [0x11B00, 0x11B09],
   ]),
+  gujarati: new UnicodeRangeSet([[0x0A81, 0x0AFF]]),
   bengali: new UnicodeRangeSet([
     [0x2BC, 0x2BC],
     [0x951, 0x952],

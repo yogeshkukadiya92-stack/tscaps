@@ -1,3 +1,5 @@
+import { useTemplatePreviewLanguage } from '@ui/_shared/contexts/TemplatePreviewLanguageContext';
+import { TemplatePreviewLocalized } from '@ui/_shared/components/TemplatePreview/TemplatePreviewLocalized';
 import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Template } from '@core/templates/domain/Template';
 import type { WordSplitter } from '@tscaps/engine';
@@ -72,6 +74,7 @@ export function TemplatePreviewFrame({
   onHoverLost,
   aspectClass,
 }: TemplatePreviewFrameProps) {
+  const language = useTemplatePreviewLanguage();
   const { wordSplitter } = useEngine();
   const artifacts = useTemplatePreviewArtifactsBuilder();
   const [fitScale, setFitScale] = useState(1);
@@ -146,7 +149,9 @@ export function TemplatePreviewFrame({
         }}
       >
         <div ref={contentRef} style={{ width: 'max-content' }}>
-          {isHovered ? (
+          {language !== 'en' ? (
+            <TemplatePreviewLocalized template={template} language={language} isHovered={isHovered} hostRef={hostRef} onHoverLost={onHoverLost} cssVars={templateVars} />
+          ) : isHovered ? (
             <TemplatePreviewAnimated
               letterSplitter={letterSplitter}
               hostRef={hostRef}

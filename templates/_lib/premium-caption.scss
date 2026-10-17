@@ -1,4 +1,5 @@
 @use 'caption-treatment' as *;
+@use 'font-stack' as *;
 
 // Caption presets composed from the same narration-clock primitives as export.
 // Structural changes are fixed per preset; active-word states never reflow text.
@@ -43,7 +44,7 @@
     .line:nth-child(3) { font-size: 0.75em; }
   }
   @if $mode == stack {
-    .line { max-width: 6.5em; margin-inline: auto; }
+    .line { margin-inline: auto; }
     .line:nth-child(2) { color: var(--tscaps-highlight-color, $accent); }
   }
   @if $mode == scatter {
@@ -110,7 +111,7 @@
   @if $mode == ransom {
     .word { background: var(--tscaps-bg-color, $paper); color: var(--tscaps-primary-color, $ink); padding: 0.05em 0.13em; text-shadow: none; rotate: -4deg; box-shadow: 0.04em 0.05em 0 #0005; }
     .word:nth-child(even) { rotate: 5deg; background: var(--tscaps-highlight-color, $accent); }
-    .word:nth-child(3n) { font-family: 'Playfair Display Variable'; font-style: italic; }
+    .word:nth-child(3n) { font-family: font-stack('playfair-display'); font-style: italic; }
     .word-being-narrated { color: var(--tscaps-primary-color, $ink); }
   }
   @if $mode == torn {

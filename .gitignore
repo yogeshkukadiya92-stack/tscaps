@@ -19,5 +19,6 @@ templates/*/style.build.css
 templates/*/filters.build.svg
 templates/*/controls.build.json
 templates/*/animations.build.json
+templates/*/fonts.build.json
 templates/_lib/animation/presets.build.json
 

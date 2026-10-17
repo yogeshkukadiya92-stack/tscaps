@@ -132,3 +132,13 @@ describe('the stack a family leads', () => {
     expect(uploaded.familyFor('arabic')).toBe(library.stackFor('inter').familyFor('arabic'));
   });
 });
+
+describe('stacks saved before Gujarati support', () => {
+  it('preserves tuned faces and fills the new Gujarati face', () => {
+    const legacy: Record<string, string> = { ...library.stackFor('anton').with('devanagari', 'Hind').toSnapshot() };
+    delete legacy['gujarati'];
+    const restored = FontStack.fromStoredFaces(legacy)!;
+    expect(restored.familyFor('devanagari')).toBe('Hind');
+    expect(restored.familyFor('gujarati')).toBe('Noto Sans Gujarati Variable');
+  });
+});

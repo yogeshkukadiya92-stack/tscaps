@@ -34,7 +34,7 @@ function checkEncodedVideo(path: string, hidden: boolean) {
   const stride = 360 * 640 * 3;
   expect(frames.length / stride).toBe(96);
   let edges = 0;
-  const visible = [0, 0];
+  const visible = [0, 0, 0];
   for (let offset = 0, frame = 0; offset < frames.length; offset += stride, frame++) {
     const bg = [frames[offset]!, frames[offset + 1]!, frames[offset + 2]!];
     for (let pixel = 0; pixel < stride; pixel += 3) {
@@ -42,19 +42,19 @@ function checkEncodedVideo(path: string, hidden: boolean) {
       const x = (pixel / 3) % 360;
       const y = Math.floor(pixel / 3 / 360);
       if (x < 3 || x >= 357 || y < 3 || y >= 637) edges++;
-      visible[frame < 48 ? 0 : 1]!++;
+      visible[Math.min(2, Math.floor(frame / 32))]!++;
     }
   }
   expect(edges, 'caption pixels at the video boundary').toBe(0);
   for (const pixels of visible) {
     if (hidden) expect(pixels).toBe(0);
-    else expect(pixels, 'English and Hindi must each burn into the video').toBeGreaterThan(10);
+    else expect(pixels, 'English, Hindi and Gujarati must each burn into the video').toBeGreaterThan(10);
   }
 }
 
-const words = ['Make', 'every', 'video', 'look', 'amazing', 'आज', 'हम', 'नया', 'वीडियो', 'बनाएंगे'];
+const words = ['Make', 'every', 'video', 'amazing', 'आज', 'नया', 'वीडियो', 'बनाएंगे', 'તમારા', 'કૅપ્શન', 'સરસ', 'દેખાશે'];
 const document = { sections: [{ kind: 'main', segments: [{ lines: [{ words: words.map((text, i) => ({
-  text, start: i * 0.4, end: (i + 1) * 0.4,
+  text, start: i / 3, end: (i + 1) / 3,
 })) }] }] }] };
 
 for (const id of ids) {

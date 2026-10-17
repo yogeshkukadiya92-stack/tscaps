@@ -12,7 +12,12 @@ reproductions. No vendor source, fonts, footage or paid assets were copied.
 
 Each preset supplies its own typography, word grouping, colours and narration
 motion through the existing template pipeline. Most have Original, Ice and Rose
-accent variants. Hindi uses a Hind stack with bundled Devanagari glyphs.
+accent variants. Hindi uses bundled Devanagari glyphs. Gujarati is a managed script in every
+font stack, with bundled Noto Sans Gujarati and Noto Serif Gujarati faces.
+The Templates panel has English, Hindi and Gujarati sample switches; changing
+the sample language does not translate or modify the transcript. Localized
+previews apply each preset’s segment and line splitters and narration clock,
+with whole words to preserve Indic shaping. Hover plays the motion.
 
 ## Practical differences
 
@@ -30,11 +35,12 @@ accent variants. Hindi uses a Hind stack with bundled Devanagari glyphs.
 Run `pnpm templates:build`, `pnpm templates:contract`, and the studio tests.
 `PremiumTemplates.test.ts` (under presentation/editor/services) loads all 58 authored configurations with their real
 built CSS and registries, checks font-stack IDs and gallery grouping. Release QC exports all 58 presets at 720×1280, 24 fps, with a four-second
-English/Hindi caption sequence and AAC audio. Every encoded frame is decoded;
+English/Hindi/Gujarati caption sequence and AAC audio. Every encoded frame is decoded;
 boundary pixels, missing captions, missing audio and decode failures are checked.
 Estate 2/3 hero sizing was reduced after this check caught animation overshoot
-at the left/right edge. All 58 files passed after that fix. Contact sheets were
-visually reviewed for both scripts. This is a synthetic release sample, not a
+at the left/right edge. Triple leaves line widths to the measured splitter so
+wide Gujarati lines remain centred. All 58 files passed after that fix. Contact sheets were
+visually reviewed for all three scripts. This is a synthetic release sample, not a
 promise for every custom font/size or reference-style parity.
 
 The opt-in export suite requires FFmpeg/ffprobe on PATH and generates its own

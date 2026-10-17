@@ -1,3 +1,5 @@
+@import '@fontsource-variable/noto-sans-gujarati/wght.css';
+@import '@fontsource-variable/noto-serif-gujarati/wght.css';
 /* Subtitle font catalog. Each `@import` registers the family's `@font-face`
    declarations with the document; templates reference them via
    `font-family: var(--tscaps-font-family, ...)`.

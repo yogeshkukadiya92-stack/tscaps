@@ -7,6 +7,7 @@ export const FONT_SCRIPTS = [
   'cyrillic',
   'greek',
   'devanagari',
+  'gujarati',
   'bengali',
   'telugu',
   'tamil',

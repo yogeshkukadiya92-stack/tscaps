@@ -225,7 +225,7 @@ describe('one field applied to an explicit selection', () => {
  */
 describe('the font a caption is given', () => {
   const STACK = { latin: 'Anton', arabic: 'Lalezar', urdu: 'Lalezar', hebrew: 'Heebo Variable',
-    cyrillic: 'Inter Variable', greek: 'Inter Variable', devanagari: 'Poppins',
+    cyrillic: 'Inter Variable', greek: 'Inter Variable', devanagari: 'Poppins', gujarati: 'Poppins',
     bengali: 'Noto Sans Bengali Variable', telugu: 'Noto Sans Telugu Variable',
     tamil: 'Noto Sans Tamil Variable', thai: 'Noto Sans Thai Variable' };
 
