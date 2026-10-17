@@ -35,6 +35,10 @@ test('administrator can inspect usage, filter, and review an audited limit chang
   await page.screenshot({ path: '/tmp/reelstudio-admin-usage-preview.png', fullPage: true });
   await page.getByRole('button', { name: 'Usage & limits' }).click();
   await expect(page.getByRole('region', { name: 'Account usage and limits' })).toContainText('Transcriptions');
+  await expect(page.getByRole('region', { name: 'Account usage and limits' }).getByRole('heading', { level: 2 })).toBeFocused();
+  await page.getByRole('button', { name: 'Review changes', exact: true }).click();
+  await expect(page.getByLabel('Reason for change', { exact: true })).toBeFocused();
+  await expect(page.locator('#admin-validation')).toBeVisible();
   await page.getByLabel('Project limit', { exact: true }).fill('5');
   await page.getByLabel('Storage limit (MB)', { exact: true }).fill('200');
   await page.getByLabel('Adjust AI credits (+ / −)', { exact: true }).fill('10');

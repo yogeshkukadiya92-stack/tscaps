@@ -1,5 +1,6 @@
+import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 import { memo, useRef, useState, type ReactNode } from 'react';
-import { Plus, Upload, FolderOpen, Film, Search, LayoutGrid, List, ArrowUpRight, Captions, Scissors } from 'lucide-react';
+import { Plus, Upload, FolderOpen, Film, Search, LayoutGrid, List, ArrowUpRight, Captions, Scissors, X } from 'lucide-react';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ThemeController } from '@presentation/theme/controllers/ThemeController';
@@ -67,14 +68,6 @@ const PAGE_HEADER = 'flex items-end justify-between gap-4 flex-wrap';
 const PAGE_TITLE = 'text-2xl lg:text-3xl font-semibold tracking-[-0.022em] text-fg-primary m-0';
 const PAGE_SUBTITLE = 'text-sm text-fg-muted m-0 mt-1';
 
-const BTN_BASE =
-  'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xs text-sm font-medium border ' +
-  'cursor-pointer transition-colors duration-quick ease-standard ' +
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0 ' +
-  'active:duration-instant';
-const BTN_SECONDARY = `${BTN_BASE} bg-surface-1 border-edge-medium text-fg-primary hover:bg-surface-2 hover:border-edge-strong`;
-const BTN_PRIMARY = `${BTN_BASE} bg-accent border-accent text-fg-on-accent hover:bg-accent-hover hover:border-accent-hover`;
-
 const ERROR_BANNER =
   'px-4 py-3 rounded-xs bg-danger/10 border border-danger/30 text-danger text-sm';
 
@@ -118,6 +111,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
   onImportProject,
   theme,
 }: ProjectsListPageProps) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const newInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -195,13 +189,13 @@ export const ProjectsListPage = memo(function ProjectsListPage({
             </div>
           </div>
 
-          <section className="workspace-start" aria-label="Start editing">
-            <div className="workspace-start-copy"><span className="workspace-eyebrow">From footage to finished reel</span><h2>Make something worth watching.</h2><p>Edit your video, style every word, and make it yours.</p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /> Create a reel <ArrowUpRight size={16} /></button><span className="workspace-drop-hint">or drop a video file anywhere</span></div>
+          <section className={`workspace-start ${count > 0 ? 'workspace-start--compact' : ''}`} aria-label="Start editing">
+            <div className="workspace-start-copy"><span className="workspace-eyebrow">Your next reel</span><h2>A great reel starts with your video.</h2><p>Upload a video. Check your captions. Pick a style. Export.</p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /> New project <ArrowUpRight size={16} /></button><span className="workspace-drop-hint">or drop a video file anywhere</span></div>
             <div className="workspace-film" aria-hidden="true"><div className="workspace-film-frame"><span>YOUR STORY.</span><strong>IN MOTION.</strong><span className="workspace-film-caption">Every word. Every frame.</span></div><div className="workspace-film-track"><Scissors size={13} /><i /><i /><i /><Captions size={14} /></div></div>
           </section>
           <div className="workspace-library-header"><div><h2>Project library <span>{count}</span></h2><p>Pick up where you left off.</p></div></div>
           <div className="workspace-toolbar">
-            <label className="workspace-search"><Search size={16} /><input type="search" placeholder="Search projects…" aria-label="Search projects" value={query} onChange={e => setQuery(e.target.value)} /></label>
+            <label className="workspace-search"><Search size={16} /><input ref={searchInputRef} type="search" placeholder="Search projects…" aria-label="Search projects" value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label="Clear project search" onClick={() => { setQuery(''); searchInputRef.current?.focus(); }}><X size={16} /></button>}</label>
             <select aria-label="Sort projects" value={sort} onChange={e => setSort(e.target.value)}><option value="recent">Last edited</option><option value="name">Name A–Z</option></select>
             <div className="workspace-view"><button aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><LayoutGrid size={17} /></button><button aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List size={17} /></button></div>
           </div>

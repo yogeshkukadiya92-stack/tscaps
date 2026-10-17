@@ -102,3 +102,13 @@ body {
               fill var(--duration-base) var(--ease-out-soft),
               stroke var(--duration-base) var(--ease-out-soft) !important;
 }
+
+/* All owned scroll surfaces inherit a visible, theme-aware baseline. */
+:root { --scroll-thumb: rgb(var(--color-fg-muted) / .45); --scroll-track: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: var(--scroll-track); }
+*::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-fg-muted) / .7); }
+*::-webkit-scrollbar-thumb:active { background: rgb(var(--color-fg-secondary)); }
+@media (forced-colors: active) { * { scrollbar-color: auto; } }

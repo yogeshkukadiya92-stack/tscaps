@@ -47,6 +47,9 @@ test('project dashboard handles search, sort, list view and narrow screens', asy
   await expect(page.locator('.workspace-project-name').first()).toHaveText(rows[0]!.name);
   await page.getByRole('searchbox').fill('missing-' + 'x'.repeat(200));
   await expect(page.getByRole('status').filter({ hasText: 'No projects match' })).toBeVisible();
+  await page.getByRole('button', { name: 'Clear project search' }).click();
+  await expect(page.getByRole('searchbox')).toBeFocused();
+  await expect(page.locator('.workspace-project-card')).toHaveCount(2);
   for (const width of [320, 375, 768, 1024, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

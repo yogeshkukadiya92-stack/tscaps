@@ -3,7 +3,7 @@
    docs/DESIGN_IDENTITY.md — values here mirror that document.
 
    Color tokens are stored as **space-separated RGB channels** (e.g.
-   `8 8 11` instead of `#08080B` or `rgb(8, 8, 11)`). The Tailwind
+   `13 18 29` instead of `#08080B` or `rgb(8, 8, 11)`). The Tailwind
    config wraps each channel in `rgb(... / <alpha-value>)` so utilities
    like `bg-surface-1/40` and `border-danger/20` work end-to-end with
    CSS variables. Direct `var(--color-X)` references in legacy CSS must
@@ -57,10 +57,10 @@
 
 :root,
 [data-theme='dark'] {
-  --color-surface-0: 8 8 11;
-  --color-surface-1: 17 17 21;
-  --color-surface-2: 24 24 32;
-  --color-surface-3: 36 36 46;
+  --color-surface-0: 13 18 29;
+  --color-surface-1: 20 28 43;
+  --color-surface-2: 28 38 56;
+  --color-surface-3: 40 52 73;
 
   /* Slightly blue of white, which is what the fixed edges were. */
   --color-edge-tint: 200 200 224;
@@ -134,29 +134,30 @@
   --edge-strong: rgb(var(--color-edge-tint) / var(--edge-strong-alpha));
 
   /* Typography — see DESIGN_IDENTITY.md §Typography */
+  --font-display: 'Manrope Variable', system-ui, sans-serif;
   --font-sans: 'Inter Variable', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-feature-sans: 'cv11' on, 'ss03' on, 'ss01' on;
 }
 
 [data-theme='light'] {
-  /* Warm eggshell surfaces (not pure white) for long editing sessions. */
-  --color-surface-0: 250 248 244;
-  --color-surface-1: 244 241 235;
-  --color-surface-2: 234 230 221;
-  --color-surface-3: 219 213 201;
+  /* Cool canvas with white work surfaces for a clear editing hierarchy. */
+  --color-surface-0: 245 247 252;
+  --color-surface-1: 255 255 255;
+  --color-surface-2: 237 241 249;
+  --color-surface-3: 221 228 242;
 
-  /* Warm, to match the eggshell surfaces it darkens. */
-  --color-edge-tint: 48 32 0;
+  /* Slate edges coordinate with the studio canvas. */
+  --color-edge-tint: 30 49 85;
   --edge-faint-alpha: 0.094;
   --edge-subtle-alpha: 0.126;
   --edge-medium-alpha: 0.224;
   --edge-strong-alpha: 0.443;
 
-  --color-fg-primary: 28 25 22;
-  --color-fg-secondary: 64 58 51;
-  --color-fg-muted: 90 84 75;
-  --color-fg-faint: 110 100 87;
+  --color-fg-primary: 23 34 57;
+  --color-fg-secondary: 58 73 98;
+  --color-fg-muted: 83 99 125;
+  --color-fg-faint: 100 115 139;
   --color-fg-on-accent: 255 255 255;
 
   --color-accent: 47 77 199;

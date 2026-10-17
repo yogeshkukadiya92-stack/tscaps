@@ -13,7 +13,7 @@
    Plus `BTN_GHOST` for icon buttons inside chrome (no border, hover-only). */
 
 const BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-xs border text-sm font-medium ' +
+  'inline-flex items-center justify-center gap-1.5 rounded-lg border text-sm font-medium ' +
   'cursor-pointer transition-colors duration-quick ease-standard ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0 ' +
   'active:duration-instant disabled:opacity-40 disabled:cursor-not-allowed';

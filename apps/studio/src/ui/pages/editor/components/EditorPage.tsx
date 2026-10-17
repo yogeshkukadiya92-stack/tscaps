@@ -1,7 +1,8 @@
+import '@ui/pages/editor/components/EditorWorkspace.css';
 import { useActiveEditorMode } from '@ui/pages/editor/hooks/useActiveEditorMode';
 import { useEditorWorkspaceStore } from '@ui/pages/editor/contexts/EditorWorkspaceContext';
 import { useCallback, useMemo, useState, type ReactNode, type Ref } from 'react';
-import { AudioWaveform, Captions, Check, Clapperboard, Film, ArrowRight } from 'lucide-react';
+import { AudioWaveform, Captions, Check, Clapperboard, Film } from 'lucide-react';
 import { CreativeStudio } from '@ui/pages/editor/features/creative/CreativeStudio';
 import type { Document, Segment } from '@tscaps/engine';
 import type { EditorState } from '@core/editor/domain/EditorState';
@@ -268,7 +269,7 @@ export function EditorPage({
   );
 
   return (
-    <main className="flex flex-col items-center justify-center h-full overflow-hidden px-3 py-2 lg:px-3 lg:py-3">
+    <main className="editor-studio flex flex-col items-center justify-center h-full overflow-hidden px-3 py-2 lg:px-3 lg:py-3">
       {!state.video.url && !state.video.preview ? (
         <VideoDropzone onFile={(file) => videos.actions.load.execute(file)} />
       ) : (
@@ -303,7 +304,7 @@ export function EditorPage({
             <p className="mt-2 mb-0">Timeline is optional — use it to adjust when captions appear. <span lang="gu">લખાણ ક્યારે દેખાય તે બદલવા Timeline વાપરો.</span></p>
           </div>
         </details>
-        <nav role="tablist" aria-label="Editor workspace" className="flex gap-2 w-full min-w-0 shrink-0 pb-3"
+        <nav role="tablist" aria-label="Editor workspace" className="editor-workflow-tabs flex gap-2 w-full min-w-0 shrink-0 pb-3"
           onKeyDown={event => {
             const index = workspaceModes.findIndex(mode => mode.id === activeMode);
             const next = event.key === 'ArrowRight' ? (index + 1) % workspaceModes.length
@@ -316,7 +317,7 @@ export function EditorPage({
             workspace.setActiveMode(workspaceModes[next]!.id);
             event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
           }}>
-          {workspaceModes.map(mode => <button key={mode.id} id={`workspace-tab-${mode.id}`} role="tab" aria-selected={activeMode === mode.id} aria-controls="editor-workspace-panel" tabIndex={activeMode === mode.id ? 0 : -1} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex flex-1 sm:flex-none min-w-0 items-center justify-center gap-1 sm:gap-2 rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'bg-accent text-fg-on-accent' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}{mode.label}</button>)}
+          {workspaceModes.map(mode => <button key={mode.id} id={`workspace-tab-${mode.id}`} role="tab" aria-selected={activeMode === mode.id} aria-controls="editor-workspace-panel" tabIndex={activeMode === mode.id ? 0 : -1} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex flex-1 sm:flex-none min-w-0 items-center justify-center gap-1 sm:gap-2 rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'bg-accent text-fg-on-accent' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}<span>{mode.label}<small aria-hidden="true">{mode.id === 'captions' ? 'Words & style' : mode.id === 'creative' ? 'Music & effects' : 'Timing & cuts'}</small></span></button>)}
         </nav>
         <div id="editor-workspace-panel" role="tabpanel" aria-labelledby={`workspace-tab-${activeMode}`} className="flex flex-col w-full flex-1 min-h-0 min-w-0">
         {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} />}
@@ -343,8 +344,12 @@ export function EditorPage({
                     <p className="mt-1 text-xs text-fg-muted">{state.video.layout ? `${state.video.layout.width} × ${state.video.layout.height} · ` : ''}{Math.floor(state.video.duration / 60)}:{String(Math.floor(state.video.duration % 60)).padStart(2, '0')}</p>
                   </div>
                 </div>
-                <p className="text-xs font-semibold text-fg-muted">WORKSPACE</p>
-                {workspaceModes.map(mode => <button key={mode.id} type="button" onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'border-accent bg-accent/10 text-accent' : 'border-edge-subtle text-fg-secondary hover:bg-surface-2'}`}>{mode.icon}<span className="flex-1">{mode.label}</span><ArrowRight size={14} /></button>)}
+                <div className="space-y-3 text-xs text-fg-muted leading-relaxed">
+                  <p className="font-semibold text-fg-primary">Make it yours</p>
+                  <p><strong className="text-fg-secondary">1. Check the words</strong><br />Open Transcript to correct your captions.</p>
+                  <p><strong className="text-fg-secondary">2. Choose your look</strong><br />Open Templates, then adjust the font and colors.</p>
+                  <p><strong className="text-fg-secondary">3. Watch and export</strong><br />Play the preview. Export downloads your finished reel.</p>
+                </div>
                 <div className="mt-1 rounded-lg bg-surface-2 p-3 text-xs leading-relaxed text-fg-muted">Start with your words, choose a caption design, then preview and export your reel.</div>
               </div>
             }

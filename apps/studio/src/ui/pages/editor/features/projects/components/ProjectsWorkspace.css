@@ -60,3 +60,27 @@
 @media (max-width: 1023px) { .workspace-sidebar { display: none; } .projects-workspace > div { padding: 24px; } }
 @media (max-width: 640px) { .projects-workspace > header > div { height: 60px; } .projects-workspace > div { padding: 20px 16px; } .projects-workspace main h1 { font-size: 25px; } .workspace-start { padding: 24px; } .workspace-film { display: none; } .workspace-toolbar { flex-wrap: wrap; gap: 8px; } .workspace-search { width: 100%; } .workspace-toolbar select { flex: 1; } .workspace-projects { grid-template-columns: 1fr; } .workspace-projects--list .workspace-project-thumbnail { width: 110px; } .projects-workspace main > div:first-child > div:last-child { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { .projects-workspace *, .projects-workspace *::after { transition: none !important; animation: none !important; } }
+/* Creator desk: quiet chrome, a compact starting point, room for actual work. */
+.projects-workspace main h1, .workspace-start h2 { font-family: var(--font-display); }
+.projects-workspace main h1 { font-size: clamp(28px, 3vw, 38px); }
+.projects-workspace > div { gap: 32px; }
+.workspace-start { background: rgb(var(--color-surface-1)); border-color: var(--workspace-line); box-shadow: var(--shadow-sm); }
+.workspace-start--compact { padding: 24px 28px; }
+.workspace-start--compact h2 { font-size: 24px; }
+.workspace-start--compact .workspace-film-frame { height: 110px; }
+.workspace-start--compact .workspace-film { width: 180px; }
+.workspace-start--compact .workspace-film-frame > span:first-child, .workspace-start--compact .workspace-film-frame strong { font-size: 20px; }
+.workspace-start--compact .workspace-start-copy p { margin-block: 8px 16px; }
+.workspace-film-frame { background: rgb(var(--color-accent)); color: rgb(var(--color-fg-on-accent)); border: 0; }
+.workspace-film-frame strong, .workspace-film-frame .workspace-film-caption { color: rgb(var(--color-fg-on-accent)); }
+.workspace-film-track { transform: rotate(4deg); }
+.workspace-project-card { transition: border-color var(--motion-quick), box-shadow var(--motion-quick); }
+.workspace-project-card:hover { box-shadow: var(--shadow-md); }
+.workspace-project-play { opacity: 1; width: 34px; height: 34px; }
+.workspace-search { min-height: 44px; background: rgb(var(--color-surface-1)); }
+.workspace-search input { font-size: 13px; }
+.workspace-search button { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 0; background: transparent; cursor: pointer; }
+.workspace-search button:hover { color: rgb(var(--color-accent)); }
+.workspace-toolbar select { min-height: 44px; }
+.workspace-library-header h2 { font-size: 18px; }
+@media (max-width: 640px) { .workspace-start--compact { padding: 20px; } }
