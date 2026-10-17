@@ -12,6 +12,7 @@ export type TelemetryEventName =
   | 'page_viewed'
   | 'preprocessing_started'
   | 'preprocessing_completed'
+  | 'transcription_completed'
   | 'preprocessing_failed'
   | 'transcription_gaps_detected'
   | 'transcription_model_cache_failed'

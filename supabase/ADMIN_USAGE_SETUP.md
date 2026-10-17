@@ -1,0 +1,13 @@
+# Administrator usage and account controls
+
+Apply `migrations/20261018_reelstudio_admin_usage.sql` after the projects and administrator migrations, then deploy the matching Studio build. Billing and AI-credit migrations are optional: the dashboard explicitly reports those integrations as not configured when absent. The migration can be reapplied.
+
+The report is restricted by `reelstudio_is_admin()`. It shows all-account totals and a searchable, paginated account list with saved/trashed/captioned project counts, saved source-video minutes, live cloud-video object size/count, recent activity, and browser-reported processing, transcription, export success/failure counts. It never returns project payloads, captions, videos, or authentication secrets.
+
+Project minutes are a snapshot of currently saved, non-deleted projects, not lifetime processing or time spent editing. Cloud storage includes objects belonging to soft-deleted projects until removed by retention. Last activity uses sign-in, project saves, and reported events. Completion counters start with this deployment and are best-effort client reports, not billing-grade measurements; earlier or offline activity cannot be reconstructed. No raw telemetry properties are stored.
+
+Administrators can set per-account project/storage limits and pause cloud writes. Blank limits mean unlimited; zero stops new usage. Database triggers enforce project creation/restoration and cloud object writes with a per-user transaction lock. Deletion and existing data are preserved; existing projects can still be saved above a newly reduced project-count limit unless cloud writes are paused. Cloud pause does not suspend login, block local editing, cancel subscriptions, or stop all server-side processing.
+
+Credit adjustments are atomic and available only when the wallet migration is installed. Negative balances are rejected. Adjustments and limit changes require a reason, produce an append-only admin audit entry, and cannot target the acting administrator's own account. The existing account-name/administrator-role editor remains separate; the audit shown here covers limits and credits only. Subscription records are read-only in this panel; payments and cancellation remain in the provider.
+
+Before rollout, exercise the new RPC under both administrator and member identities and verify project-count, storage, pause and duplicate-event behavior inside a rollback-only transaction. The migration was tested with PostgreSQL 16 both with and without the optional billing/credit tables. Do not deploy the frontend before the migration succeeds; the old admin RPC remains available for an old frontend during rollout.

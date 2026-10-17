@@ -122,7 +122,7 @@ test('admin table, search and edit form fit long account details on a phone', as
     const url = route.request().url();
     if (url.includes('/token')) return route.fulfill({ json: { access_token: token, refresh_token: 'test-refresh', expires_in: 3600, token_type: 'bearer', user: { id: user, aud: 'authenticated', email: 'admin@example.test', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } } });
     if (url.includes('rpc/reelstudio_is_admin')) return route.fulfill({ json: true });
-    if (url.includes('rpc/reelstudio_admin_users')) return route.fulfill({ json: [{ id: 'other-user', email, display_name: 'A long display name '.repeat(5), is_admin: false, created_at: '2026-10-01T00:00:00Z', last_sign_in_at: null, total_count: 1 }] });
+    if (url.includes('rpc/reelstudio_admin_usage')) return route.fulfill({ json: { users: [{ id: 'other-user', email, display_name: 'A long display name '.repeat(5), is_admin: false, created_at: '2026-10-01T00:00:00Z', last_sign_in_at: null, projects: 1, deleted_projects: 0, captioned_projects: 1, video_seconds: 60, stored_videos: 1, storage_bytes: 1048576, exports: 0, export_failures: 0, processed_videos: 0, transcriptions: 0, last_active_at: null, cloud_enabled: true, project_limit: null, storage_limit_bytes: null, credit_balance: null, billing: null }], total_count: 1, summary: { users: 1, active_users: 0, projects: 1, storage_bytes: 1048576, exports: 0 }, credits_available: false, billing_available: false, server_now: new Date().toISOString(), audit: [] } });
     if (url.includes('/reelstudio_projects')) return route.fulfill({ json: [] });
     return route.fulfill({ json: {} });
   });

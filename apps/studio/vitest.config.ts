@@ -18,6 +18,7 @@ export default defineConfig({
       '@core': resolve(import.meta.dirname, 'src/core'),
       '@presentation': resolve(import.meta.dirname, 'src/presentation'),
       '@ui': resolve(import.meta.dirname, 'src/ui'),
+      '@shared/telemetry': resolve(import.meta.dirname, './shared/telemetry/index.ts'),
       '@shared/browser': resolve(import.meta.dirname, './shared/browser/index.ts'),
     },
   },

@@ -79,6 +79,7 @@ export class TranscribeAction {
           backend: preference.backend,
         });
       }
+      this.telemetry.capture('transcription_completed');
       return document;
     } catch (err) {
       this.progress.cancel();
