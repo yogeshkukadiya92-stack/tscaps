@@ -128,9 +128,9 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
           {AUTO_EDIT_STYLES.map(preset => <button type="button" key={preset.id} aria-pressed={style === preset.id} onClick={() => { setStyle(preset.id); setDraft(null); onPreview(null); }} className={`rounded-lg border p-3 text-left ${style === preset.id ? 'border-accent bg-surface-3' : 'border-edge-medium bg-surface-2'}`}><strong className="text-sm block">{preset.name}</strong><span className="block text-xs text-fg-muted mt-1">{preset.description}</span></button>)}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          {([['pauses', 'Trim quiet pauses'], ['zooms', 'Add zoom effects'], ['polish', 'Balance voice and colour'], ['captions', 'Style existing captions']] as const).map(([key, label]) => <label key={key} className="flex items-center gap-2"><input type="checkbox" checked={options[key]} onChange={e => { setOptions({ ...options, [key]: e.target.checked }); setDraft(null); onPreview(null); }} />{label}</label>)}
+          {([['pauses', 'Trim quiet pauses'], ['zooms', 'Add zoom effects'], ['polish', 'Add lighting, elements and colour polish'], ['captions', 'Style existing captions']] as const).map(([key, label]) => <label key={key} className="flex items-center gap-2"><input type="checkbox" checked={options[key]} onChange={e => { setOptions({ ...options, [key]: e.target.checked }); setDraft(null); onPreview(null); }} />{label}</label>)}
         </div>
-        <p className="text-xs text-fg-muted m-0">Existing clips, music, words and custom formatting are kept. Reel templates change default caption looks only. No stock music or B-roll is added.</p>
+        <p className="text-xs text-fg-muted m-0">Full editing packs add lighting and opening elements when colour polish is enabled. Quiet pauses are cut only after audio analysis. Existing clips, music, words and custom formatting are kept. Reel templates change default caption looks only. No stock music or B-roll is added.</p>
         <button className={BTN_PRIMARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze(true)}><Sparkles size={16} />Auto edit reel</button>
         <button className={BTN_SECONDARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze()}><Sparkles size={16} />Analyze auto edit</button>
       </fieldset>
@@ -139,7 +139,7 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       {currentDraft && <div className="rounded-md bg-surface-2 p-3 flex flex-col gap-2" aria-label="Auto Edit plan">
         <p className="text-sm font-semibold m-0">Ready to apply · {AUTO_EDIT_STYLES.find(s => s.id === style)?.name}</p>
-        <p className="text-xs m-0">{currentDraft.edit.cutsAdded} pause cuts · {currentDraft.edit.removedSeconds.toFixed(1)}s shorter · {currentDraft.edit.zoomsAdded} zooms · {currentDraft.edit.captionsStyled} caption styles</p>
+        <p className="text-xs m-0">{currentDraft.edit.cutsAdded} pause cuts · {currentDraft.edit.removedSeconds.toFixed(1)}s shorter · {currentDraft.edit.zoomsAdded} zooms · {currentDraft.edit.project.autoEdit?.generation?.effects.filter(e => e.kind !== 'digital-zoom').length ?? 0} lighting / elements · {currentDraft.edit.captionsStyled} caption styles</p>
         {currentDraft.edit.notes.map(note => <p key={note} className="text-xs text-fg-muted m-0">{note}</p>)}
         <p className="text-xs text-fg-muted m-0">Preview Before/After without changing your project. Apply when ready; Undo restores the previous version.</p>
         <div className="flex flex-wrap gap-2"><button className={BTN_SECONDARY} disabled={locked || working} onClick={() => onPreview(currentDraft.edit)}>Preview before / after</button>

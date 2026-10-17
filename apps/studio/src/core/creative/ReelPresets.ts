@@ -2,6 +2,12 @@ import type { AutoEditStyle } from '@core/creative/AutoEdit';
 
 /** Curated editing recipes, not rankings or promises of reach. Caption looks remain editable. */
 export const REEL_PRESETS = [
+  { id: 'golden-story', name: 'Golden Story', templateId: 'scene-storyline', style: 'clean', description: 'Warm light leaks, natural pause cuts, gentle zooms and an opening headline.', category: 'Lifestyle', bestFor: 'Stories · Travel · Wellness' },
+  { id: 'studio-spotlight', name: 'Studio Spotlight', templateId: 'scene-studio', style: 'professional', description: 'Soft spotlight, measured pause cuts, subtle zooms and a headline card.', category: 'Business', bestFor: 'Coaching · Business · Interviews' },
+  { id: 'neon-punch', name: 'Neon Punch', templateId: 'scene-pink-neon', style: 'energetic', description: 'Pink light leaks, tight pause cuts, punch-in zooms and a bold opening headline.', category: 'Bold', bestFor: 'Fitness · Hooks · Entertainment' },
+  { id: 'lesson-focus', name: 'Lesson Focus', templateId: 'scene-grid-notes', style: 'professional', description: 'Cool spotlight, thoughtful pause cuts, focus zooms and a checklist from your words.', category: 'Education', bestFor: 'Lessons · Tutorials · Tips' },
+  { id: 'creator-reveal', name: 'Creator Reveal', templateId: 'scene-pop-bold', style: 'energetic', description: 'Blue light leaks, brisk pause cuts, zooms and a phone reveal with your opening words.', category: 'Creator', bestFor: 'UGC · Reviews · Product stories' },
+  { id: 'cinema-diary', name: 'Cinema Diary', templateId: 'scene-filmstrip', style: 'clean', description: 'Amber spotlight, relaxed pause cuts, slow zooms and a magazine cover opening.', category: 'Lifestyle', bestFor: 'Diary · Personal stories' },
   { id: 'bold-talk', name: 'Bold Talking Head', templateId: 'scene-boldface', style: 'energetic', description: 'Bold word plates, tighter pauses and punch-in zooms.', category: 'Creator', bestFor: 'Advice · Motivation' },
   { id: 'podcast', name: 'Podcast Clip', templateId: 'scene-podcast-cutout', style: 'clean', description: 'Outlined captions, natural pauses and gentle emphasis.', category: 'Creator', bestFor: 'Interviews · Podcasts' },
   { id: 'storytelling', name: 'Storytelling', templateId: 'scene-storyline', style: 'clean', description: 'Editorial captions and relaxed pacing for a spoken story.', category: 'Lifestyle', bestFor: 'Personal stories · Voiceovers' },
@@ -37,4 +43,17 @@ export const REEL_PRESET_CATEGORIES = ['All', 'Creator', 'Business', 'Education'
 export function filterReelPresets(query: string, category: string) {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   return REEL_PRESETS.filter(p => (category === 'All' || p.category === category) && terms.every(term => `${p.name} ${p.description} ${p.bestFor} ${p.style} ${p.category}`.toLowerCase().includes(term)));
+}
+
+/** Full editing packs share the same editable, time-based effects as manual edits. */
+export function reelPresetEffects(id: ReelPresetId) {
+  switch (id) {
+    case 'golden-story': return { lighting: 'light-leak', element: 'headline-wall', color: '#ffb55c', intensity: 0.25 } as const;
+    case 'studio-spotlight': return { lighting: 'spotlight', element: 'headline-wall', color: '#fff1d6', intensity: 0.22 } as const;
+    case 'neon-punch': return { lighting: 'light-leak', element: 'headline-wall', color: '#ff4cbd', intensity: 0.38 } as const;
+    case 'lesson-focus': return { lighting: 'spotlight', element: 'checklist', color: '#90d9ff', intensity: 0.18 } as const;
+    case 'creator-reveal': return { lighting: 'light-leak', element: 'phone-mockup', color: '#68baff', intensity: 0.28 } as const;
+    case 'cinema-diary': return { lighting: 'spotlight', element: 'cover-story', color: '#ffc878', intensity: 0.3 } as const;
+    default: return undefined;
+  }
 }

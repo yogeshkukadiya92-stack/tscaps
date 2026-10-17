@@ -366,6 +366,7 @@ for (const recipe of [
     if (recipe.id === 'business') await page.setViewportSize({ width: 390, height: 844 });
     const { dialog } = await openStudio(page);
     const panel = dialog.getByRole('region', { name: 'Auto Edit', exact: true });
+    await panel.getByRole('searchbox', { name: 'Search reel templates' }).fill(recipe.name);
     await panel.getByRole('button', { name: `Use ${recipe.name} template`, exact: true }).click();
     await expect(panel.getByRole('group', { name: 'Auto Edit style', exact: true }).getByRole('button', { name: new RegExp(`^${recipe.style}`) })).toHaveAttribute('aria-pressed', 'true');
     if (recipe.id === 'bold-talk') await page.screenshot({ path: '/tmp/reelstudio-reel-templates.png' });
@@ -498,6 +499,7 @@ test('preview retains its playhead after edits and clamps it when the reel is sh
 test('a different reel template can be previewed and applied after saving and reloading', async ({ page }) => {
   const { dialog } = await openStudio(page);
   const panel = dialog.getByRole('region', { name: 'Auto Edit', exact: true });
+  await panel.getByRole('searchbox', { name: 'Search reel templates' }).fill('Bold Talking Head');
   await panel.getByRole('button', { name: 'Use Bold Talking Head template', exact: true }).click();
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
@@ -507,6 +509,7 @@ test('a different reel template can be previewed and applied after saving and re
   expect(saved.payload.sheets[0]!.templateId).toBe('scene-boldface');
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await panel.getByRole('searchbox', { name: 'Search reel templates' }).fill('Quick Tips');
   await panel.getByRole('button', { name: 'Use Quick Tips template', exact: true }).click();
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
   await expect(panel.getByLabel('Auto Edit plan')).toContainText('1 caption styles');
@@ -554,3 +557,31 @@ for (const mobile of [false, true]) {
     expect(errors).toEqual([]);
   });
 }
+
+test('full editing pack applies lighting, elements, zooms and measured pause cuts', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const bytes = await readFile(new URL('./fixtures/auto-edit-pauses.mp4', import.meta.url));
+  const doc = { sections: [{ kind: 'main', segments: [{ lines: [{ words: [
+    { text: 'Before', start: 0.2, end: 0.8 }, { text: 'After', start: 3.2, end: 3.8 },
+  ] }] }] }] };
+  await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
+  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
+  const panel = studio.getByRole('region', { name: 'Auto Edit', exact: true });
+  await panel.getByRole('button', { name: 'Use Golden Story template', exact: true }).click();
+  await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+  await expect(panel.getByLabel('Auto Edit plan')).toContainText('1 pause cuts');
+  await expect(panel.getByLabel('Auto Edit plan')).toContainText('2 lighting / elements');
+  await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
+  await expect(studio.getByTestId('motion-effect')).toHaveCount(3);
+  await expect(studio.getByLabel('Effect 3 title', { exact: true })).toHaveValue('Before After');
+  await studio.getByRole('button', { name: 'Preview effect', exact: true }).nth(1).click();
+  await studio.getByRole('button', { name: 'Preview', exact: true }).click();
+  await studio.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await expect(studio.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
+  const saved = await storedProject(page);
+  expect(saved.payload.creative.effects?.map(effect => effect.kind)).toEqual(['digital-zoom', 'light-leak', 'headline-wall']);
+  await page.screenshot({ path: test.info().outputPath('golden-story-pack.png') });
+  expect(errors).toEqual([]);
+});

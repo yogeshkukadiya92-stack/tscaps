@@ -80,7 +80,7 @@ export const EditorWorkspacePane = memo(function EditorWorkspacePane({
   const toolModes = modes.filter((m) => m.role === 'tool');
   return (
     <Tabs.Root
-      value={activeId}
+      value={modes.some(mode => mode.id === activeId) ? activeId : (modes[0]?.id ?? activeId)}
       onValueChange={(v) => store.setActiveMode(v as EditorModeId)}
       className="flex flex-col h-full min-h-0 gap-2 lg:gap-3"
       data-tscaps-sidebar

@@ -3,7 +3,7 @@ import { Document, Line, Section, Segment, TimeFragment, Word } from '@tscaps/en
 import { autoPauseCuts, planAutoEdit, sameAutoEditInputs, DEFAULT_AUTO_EDIT_OPTIONS, type QuietWindow, type AutoEditStyle } from '@core/creative/AutoEdit';
 import { compositionSpans, newCreativeProject, readCreativeProject } from '@core/creative/CreativeProject';
 import { newMotionEffect } from '@core/creative/MotionEffects';
-import { REEL_PRESETS, filterReelPresets } from '@core/creative/ReelPresets';
+import { REEL_PRESETS, reelPresetEffects, filterReelPresets } from '@core/creative/ReelPresets';
 import { EditorStore } from '@core/editor/store/EditorStore';
 import { Sheet } from '@core/sheets/domain/Sheet';
 import { TYPOGRAPHY_DEFAULTS } from '@core/sheets/domain/TypographyConfig';
@@ -204,8 +204,8 @@ it('preserves manual settings and caption sizes even when changed back to origin
 
 describe('Expanded reel catalog', () => {
   it('keeps distinct identities and finds multilingual creator topics within categories', () => {
-    expect(REEL_PRESETS).toHaveLength(25);
-    expect(new Set(REEL_PRESETS.map(p => p.id)).size).toBe(25);
+    expect(REEL_PRESETS).toHaveLength(31);
+    expect(new Set(REEL_PRESETS.map(p => p.id)).size).toBe(REEL_PRESETS.length);
     expect(new Set(REEL_PRESETS.map(p => p.templateId)).size).toBe(25);
     expect(filterReelPresets('  GUJARATI  ', 'Creator').map(p => p.id)).toEqual(['desi-creator']);
     expect(filterReelPresets('neon', 'Business')).toEqual([]);
@@ -222,4 +222,25 @@ describe('Expanded reel catalog', () => {
     expect(brisk.project.effects![0]!.intensity).toBe(calm.project.effects![0]!.intensity);
     expect(brisk.project.settings.speed).toBe(1);
   });
+});
+
+describe('full editing packs', () => {
+  for (const preset of REEL_PRESETS.filter(p => reelPresetEffects(p.id))) {
+    it(`renders and saves ${preset.name} with cuts, zoom, lighting and real opening words`, () => {
+      const template = { metadata: { id: preset.templateId } } as Template;
+      const draft = planAutoEdit(newCreativeProject(6), [], document, windows, [], preset.style, DEFAULT_AUTO_EDIT_OPTIONS, { id: preset.id, template });
+      expect(draft.cutsAdded).toBeGreaterThan(0);
+      expect(draft.zoomsAdded).toBeGreaterThan(0);
+      const pack = reelPresetEffects(preset.id)!;
+      expect(draft.project.effects?.some(e => e.kind === pack.lighting)).toBe(true);
+      expect(draft.project.effects?.find(e => e.kind === pack.element)?.title).toContain('word0');
+      expect(draft.project.effects?.every(e => e.end <= compositionSpans(draft.project, []).at(-1)!.outputEnd)).toBe(true);
+      expect(readCreativeProject(JSON.parse(JSON.stringify(draft.project)))?.effects).toEqual(draft.project.effects);
+      const repeated = planAutoEdit(draft.project, [], document, windows, [], preset.style, DEFAULT_AUTO_EDIT_OPTIONS, { id: preset.id, template });
+      expect(repeated.project.effects).toHaveLength(draft.project.effects!.length);
+      const disabled = planAutoEdit(newCreativeProject(6), [], document, windows, [], preset.style, { pauses: false, zooms: false, polish: false, captions: false }, { id: preset.id, template });
+      expect(disabled.project.effects ?? []).toHaveLength(0);
+      expect(disabled.cutsAdded).toBe(0);
+    });
+  }
 });

@@ -1,5 +1,7 @@
 /** Output-timeline effects. Rendering depends only on time, never playback history. */
 export const MOTION_EFFECTS = [
+  { kind: 'light-leak', name: 'Light Leak', hint: 'A soft wash of coloured light', icon: '☀' },
+  { kind: 'spotlight', name: 'Spotlight', hint: 'Soft light with shaded edges', icon: '◉' },
   { kind: 'digital-zoom', name: 'Digital Zoom', hint: 'Smooth focus on a detail', icon: '↗' },
   { kind: 'checklist', name: 'Checklist', hint: 'Reveal points one by one', icon: '☑' },
   { kind: 'phone-mockup', name: 'Phone Mockup', hint: 'Your reel inside a phone', icon: '▯' },
@@ -77,6 +79,25 @@ export function paintMotionEffects(canvas: HTMLCanvasElement, scratch: HTMLCanva
     };
     ctx.save();
     switch (effect.kind) {
+      case 'light-leak': {
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = envelope * effect.intensity * 0.65;
+        const x = w * (0.1 + p * 0.65), y = h * effect.y;
+        const light = ctx.createRadialGradient(x, y, 0, x, y, Math.max(w, h) * 0.85);
+        light.addColorStop(0, effect.color); light.addColorStop(1, 'transparent');
+        ctx.fillStyle = light; ctx.fillRect(0, 0, w, h);
+        break;
+      }
+      case 'spotlight': {
+        const radius = Math.max(w, h) * 0.8;
+        const light = ctx.createRadialGradient(w * effect.x, h * effect.y, radius * 0.12, w * effect.x, h * effect.y, radius);
+        light.addColorStop(0, 'transparent'); light.addColorStop(1, '#000000');
+        ctx.globalAlpha = envelope * effect.intensity;
+        ctx.fillStyle = light; ctx.fillRect(0, 0, w, h);
+        ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = envelope * effect.intensity * 0.18;
+        ctx.fillStyle = effect.color; ctx.fillRect(0, 0, w, h);
+        break;
+      }
       case 'digital-zoom': zoom(1 + envelope * effect.intensity * 0.8); break;
       case 'zoom-through': {
         const boundary = transitionBoundary(effect.start, effect.end, boundaries);

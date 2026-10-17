@@ -1,7 +1,7 @@
 import { useActiveEditorMode } from '@ui/pages/editor/hooks/useActiveEditorMode';
 import { useEditorWorkspaceStore } from '@ui/pages/editor/contexts/EditorWorkspaceContext';
 import { useCallback, useMemo, useState, type ReactNode, type Ref } from 'react';
-import { AudioWaveform, Captions, Check, Clapperboard } from 'lucide-react';
+import { AudioWaveform, Captions, Check, Clapperboard, Film, ArrowRight } from 'lucide-react';
 import { CreativeStudio } from '@ui/pages/editor/features/creative/CreativeStudio';
 import type { Document, Segment } from '@tscaps/engine';
 import type { EditorState } from '@core/editor/domain/EditorState';
@@ -260,7 +260,7 @@ export function EditorPage({
 
   const sidebar = (
     <EditorWorkspacePane
-      modes={workspaceModes}
+      modes={isMobile ? workspaceModes : [workspaceModes[0]!]}
       hideModeTabs
       selectionBar={<ElementSelectionBar document={visibleDocument} selectionController={selectionController} />}
       inspector={<ElementInspector document={visibleDocument} selectionController={selectionController} />}
@@ -268,7 +268,7 @@ export function EditorPage({
   );
 
   return (
-    <main className="flex flex-col items-center justify-center h-full overflow-hidden px-3 py-2 lg:px-6 lg:py-4">
+    <main className="flex flex-col items-center justify-center h-full overflow-hidden px-3 py-2 lg:px-3 lg:py-3">
       {!state.video.url && !state.video.preview ? (
         <VideoDropzone onFile={(file) => videos.actions.load.execute(file)} />
       ) : (
@@ -333,6 +333,21 @@ export function EditorPage({
             videoBox={videoBox}
             playbackControls={playbackControls}
             sidebar={sidebar}
+            timeline={<div className="h-full min-h-0" onPointerDownCapture={() => workspace.setActiveMode('timeline')} onFocusCapture={() => workspace.setActiveMode('timeline')}>{workspaceModes[2]!.panel}</div>}
+            library={
+              <div className="flex flex-col gap-4 text-sm">
+                <div className="rounded-lg border border-edge-subtle overflow-hidden">
+                  <div className="aspect-video bg-surface-2 flex items-center justify-center text-accent"><Film size={32} strokeWidth={1.5} /></div>
+                  <div className="p-3">
+                    <p className="font-medium text-fg-primary truncate" title={state.video.fileName ?? 'Video'}>{state.video.fileName ?? 'Video'}</p>
+                    <p className="mt-1 text-xs text-fg-muted">{state.video.layout ? `${state.video.layout.width} × ${state.video.layout.height} · ` : ''}{Math.floor(state.video.duration / 60)}:{String(Math.floor(state.video.duration % 60)).padStart(2, '0')}</p>
+                  </div>
+                </div>
+                <p className="text-xs font-semibold text-fg-muted">WORKSPACE</p>
+                {workspaceModes.map(mode => <button key={mode.id} type="button" onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'border-accent bg-accent/10 text-accent' : 'border-edge-subtle text-fg-secondary hover:bg-surface-2'}`}>{mode.icon}<span className="flex-1">{mode.label}</span><ArrowRight size={14} /></button>)}
+                <div className="mt-1 rounded-lg bg-surface-2 p-3 text-xs leading-relaxed text-fg-muted">Start with your words, choose a caption design, then preview and export your reel.</div>
+              </div>
+            }
           />
         )}
         </div>

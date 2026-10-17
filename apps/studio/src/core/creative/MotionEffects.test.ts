@@ -11,7 +11,7 @@ describe('Motion effects', () => {
     expect(readCreativeProject(JSON.parse(JSON.stringify(project)))?.effects).toEqual(project.effects);
     const store = new EditorStore(); store.patch({ creative: project }); store.commit();
     store.patch({ creative: { ...project, effects: [] } });
-    store.undo(); expect(store.snapshot().creative?.effects).toHaveLength(8);
+    store.undo(); expect(store.snapshot().creative?.effects).toHaveLength(MOTION_EFFECTS.length);
     store.redo(); expect(store.snapshot().creative?.effects).toEqual([]);
   });
   it('rejects malformed timing, duplicated IDs and unbounded input', () => {

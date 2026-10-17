@@ -1,5 +1,5 @@
 import { AUTO_SETTING_KEYS, type AutoEditGeneration, type AutoSettings } from '@core/creative/AutoEditGeneration';
-import { REEL_PRESETS, type ReelPresetId } from '@core/creative/ReelPresets';
+import { REEL_PRESETS, reelPresetEffects, type ReelPresetId } from '@core/creative/ReelPresets';
 import type { Template } from '@core/templates/domain/Template';
 import { StyleValues } from '@core/sheets/domain/StyleValues';
 import type { Document } from '@tscaps/engine';
@@ -183,6 +183,22 @@ export function planAutoEdit(project: CreativeProject, sheets: readonly Sheet[],
       effects.push({ ...newMotionEffect('digital-zoom', start, end), intensity: style.zoom });
     }
   }
+  const zoomsAdded = effects.slice(oldCount).filter(effect => effect.kind === 'digital-zoom').length;
+  const pack = recipe ? reelPresetEffects(recipe.id) : undefined;
+  if (pack && options.polish) {
+    const duration = after.at(-1)?.outputEnd ?? 0;
+    const openingWords = document?.getWords().slice(0, 12).map(word => word.text) ?? [];
+    const opening = openingWords.slice(0, 5).join(' ');
+    const addPackEffect = (kind: import('@core/creative/MotionEffects').MotionEffectKind, start: number, end: number) => {
+      if (end - start < 0.25 || effects.length >= 40 || prepared.protectedEffects.some(e => e.start < end && e.end > start)) return;
+      effects.push({ ...newMotionEffect(kind, start, end), color: pack.color, intensity: pack.intensity,
+        title: opening.slice(0, 80), lines: [openingWords.slice(0, 4), openingWords.slice(4, 8), openingWords.slice(8, 12)].filter(row => row.length).map(row => row.join(' ')).join('\n') });
+    };
+    // Lighting and titles use the final output clock, after silence cuts.
+    addPackEffect(pack.lighting, 0, duration);
+    if (opening) addPackEffect(pack.element, Math.min(0.25, duration / 8), Math.min(duration, 4.5));
+    notes.push('Lighting and opening elements were added as editable motion effects. Edit their text and timing below.');
+  }
   let captionsStyled = 0;
   const nextSheets = sheets.map(sheet => {
     if (!options.captions || !words.length || prepared.protectedCaptions.includes(sheet.id) || sheet.cssOverride || sheet.linkGroupId) return sheet;
@@ -219,7 +235,7 @@ export function planAutoEdit(project: CreativeProject, sheets: readonly Sheet[],
       ...(recipe ? { recipeStyle: captionStyle(sheet) } : {}) });
   });
   next = { ...next, effects, autoEdit: { style: styleId, ...(recipe ? { preset: recipe.id } : {}), generation } };
-  return { project: next, sheets: nextSheets, cutsAdded: added.length, removedSeconds: Math.max(0, (before.at(-1)?.outputEnd ?? 0) - (after.at(-1)?.outputEnd ?? 0)), zoomsAdded: effects.length - oldCount, captionsStyled, notes };
+  return { project: next, sheets: nextSheets, cutsAdded: added.length, removedSeconds: Math.max(0, (before.at(-1)?.outputEnd ?? 0) - (after.at(-1)?.outputEnd ?? 0)), zoomsAdded, captionsStyled, notes };
 }
 
 /** Font loading reflows captions without editing words; it must not invalidate a draft. */
