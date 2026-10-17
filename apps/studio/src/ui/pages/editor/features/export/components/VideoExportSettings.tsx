@@ -120,6 +120,7 @@ export function VideoExportSettings({
 
   return (
     <div className="flex flex-col gap-4">
+      <p className="m-0 text-sm text-fg-secondary">Your video will include your captions and edits. The default settings are ready to use. Press Export to download it. <span lang="gu">તૈયાર વિડિયો ડાઉનલોડ કરવા Export દબાવો. સેટિંગ બદલવાની જરૂર નથી.</span></p>
       {hasResolutionChoice ? (
         <ResolutionField
           options={activeCatalog.options}

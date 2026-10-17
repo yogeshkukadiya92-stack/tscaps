@@ -152,14 +152,27 @@ export function MobileEditorLayout({ videoBox, playbackControls, sidebar, videoA
         data-tscaps-sidebar
       >
         <div
-          className="flex items-center justify-center py-2 cursor-row-resize touch-none shrink-0"
+          className="flex items-center justify-center py-2 cursor-row-resize touch-none shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
           onPointerDown={onHandlePointerDown}
           onPointerMove={onHandlePointerMove}
           onPointerUp={onHandlePointerUp}
           onPointerCancel={onHandlePointerUp}
           role="separator"
+          tabIndex={0}
           aria-orientation="horizontal"
           aria-label="Resize editor panel"
+          aria-valuemin={Math.round(controller.minPct * 100)}
+          aria-valuemax={Math.round(controller.maxPct * 100)}
+          aria-valuenow={Math.round(pct * 100)}
+          aria-valuetext={`${Math.round(pct * 100)}% editor panel`}
+          onKeyDown={event => {
+            const next = event.key === 'ArrowUp' ? pct + 0.05 : event.key === 'ArrowDown' ? pct - 0.05
+              : event.key === 'Home' ? controller.minPct : event.key === 'End' ? controller.maxPct : null;
+            if (next === null) return;
+            event.preventDefault();
+            event.stopPropagation();
+            controller.resizeTo(next);
+          }}
         >
           <div className="w-10 h-1 bg-edge-strong rounded-full opacity-60" />
         </div>

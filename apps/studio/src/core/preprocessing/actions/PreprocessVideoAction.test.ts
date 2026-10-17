@@ -168,6 +168,7 @@ function buildHarness(overrides: {
   readonly transcribesOnDevice?: boolean;
   readonly compatibilityCheck?: () => Promise<void>;
   readonly exportSupported?: boolean;
+  readonly exportSupportCheck?: () => Promise<boolean>;
   readonly metadata?: VideoSourceMetadata;
 } = {}) {
   const store = new EditorStore();
@@ -247,7 +248,7 @@ function buildHarness(overrides: {
       overrides.videoIsUploaded ?? false,
     ),
     { check: overrides.compatibilityCheck ?? (async () => undefined) },
-    { isSupported: async () => overrides.exportSupported ?? true },
+    { isSupported: overrides.exportSupportCheck ?? (async () => overrides.exportSupported ?? true) },
     new VideoRejectionResolver(
       store,
       new CompositeVideoValidator([
@@ -299,6 +300,15 @@ describe('PreprocessVideoAction', () => {
   function seedVideo(store: EditorStore): void {
     store.patchVideo({ file: new File(['video'], 'clip.mp4', { type: 'video/mp4' }), duration: 30 });
   }
+
+  it('handles a rejected browser encoder probe before starting transcription', async () => {
+    const cause = new DOMException('Encoder initialization failed', 'NotSupportedError');
+    const harness = buildHarness({ exportSupportCheck: async () => { throw cause; } });
+    seedVideo(harness.store);
+    await expect(harness.action.execute({ multipleSpeakers: false })).resolves.toBeUndefined();
+    expect(harness.store.snapshot().error).toMatchObject({ name: 'VideoExportUnsupportedError', cause });
+    expect(harness.transcribeCalls()).toBe(0);
+  });
 
   it('retranscribes without rebuilding the proxy and can undo caption replacement', async () => {
     const harness = buildHarness();

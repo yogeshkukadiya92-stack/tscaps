@@ -213,8 +213,12 @@ export class PreprocessVideoAction {
    * because it is the cheaper question and the more final answer.
    */
   private async rejectionIfExportUnsupported(): Promise<AppError | null> {
-    if (await this.exportSupport.isSupported()) return null;
-    return new VideoExportUnsupportedError();
+    try {
+      if (await this.exportSupport.isSupported()) return null;
+      return new VideoExportUnsupportedError();
+    } catch (cause) {
+      return new VideoExportUnsupportedError({ cause });
+    }
   }
 
   // Let the browser paint the splash before the heavy work starts.

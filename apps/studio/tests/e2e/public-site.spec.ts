@@ -33,3 +33,16 @@ test('public routes fit a mobile viewport', async ({ page }) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });
+
+test('pricing explains AI credits and offers sign in on a small phone', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/pricing');
+  const credits = page.getByRole('region', { name: 'AI editing credits' });
+  await expect(credits.getByRole('heading', { name: 'AI editing credits' })).toBeVisible();
+  await expect(credits.getByText(/23-second video costs 5 credits/)).toBeVisible();
+  await expect(credits.getByText(/purchased separately/)).toBeVisible();
+  await expect(credits.getByRole('button', { name: /Buy/ })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await credits.getByRole('link', { name: 'Sign in to view or buy credits' }).click();
+  await expect(page).toHaveURL(/\/signin$/);
+});

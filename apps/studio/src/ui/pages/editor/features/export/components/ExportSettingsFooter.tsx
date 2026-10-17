@@ -36,7 +36,7 @@ export function ExportSettingsFooter({
   onConfirm,
 }: ExportSettingsFooterProps) {
   return (
-    <div className="flex items-center gap-4 pt-4 border-t border-edge-subtle">
+    <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-edge-subtle">
       <button type="button" className={ALTERNATE_LINK} onClick={onAlternate}>
         {alternateLabel}
       </button>

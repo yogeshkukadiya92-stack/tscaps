@@ -1,3 +1,4 @@
+import { syncCreditOrder } from '../_shared/credits.ts';
 import { env, service, syncSubscription } from '../_shared/runtime.ts';
 import { validSignature } from '../_shared/billing.ts';
 
@@ -7,6 +8,10 @@ Deno.serve(async request => {
     const raw = await request.text();
     if (!await validSignature(env('RAZORPAY_WEBHOOK_SECRET'), raw, request.headers.get('X-Razorpay-Signature') ?? '')) return new Response('Invalid signature', { status: 401 });
     const event = JSON.parse(raw);
+    if (event.event === 'order.paid' || event.event === 'payment.captured') {
+      const orderId = event.payload?.order?.entity?.id ?? event.payload?.payment?.entity?.order_id;
+      if (typeof orderId === 'string' && /^order_[A-Za-z0-9]+$/.test(orderId)) await syncCreditOrder(orderId);
+    }
     const id = event.payload?.subscription?.entity?.id;
     if (typeof id !== 'string' || !/^sub_[A-Za-z0-9]+$/.test(id)) return new Response('Ignored', { status: 200 });
     const { data, error } = await service().from('reelstudio_subscriptions').select('id').eq('id', id).maybeSingle();

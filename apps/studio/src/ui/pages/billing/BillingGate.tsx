@@ -1,3 +1,4 @@
+import { AiCreditsSection } from '@ui/pages/billing/AiCreditsSection';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
 import { accessMilliseconds, billingEnabled, loadRazorpay, SUBSCRIPTION_PLANS, type BillingStatus } from '@core/billing/Billing';
@@ -94,7 +95,7 @@ export function BillingGate({ children }: { children: ReactNode }) {
   const paid = status?.paid_until && Date.parse(status.paid_until) > Date.parse(status.server_now);
   const trial = status && Date.parse(status.trial_ends_at) > Date.parse(status.server_now);
   const subscription = status?.subscription;
-  const panel = <section aria-label="ReelStudio subscription" className="w-full max-w-lg p-7 rounded-lg border border-edge-medium bg-surface-1 text-fg-primary space-y-5">
+  const panel = <section aria-label="ReelStudio subscription" className="w-full max-w-lg my-auto shrink-0 p-5 sm:p-7 rounded-lg border border-edge-medium bg-surface-1 text-fg-primary space-y-5">
     <div><p className="text-sm text-accent mb-2">REELSTUDIO PRO</p><h1 className="text-2xl font-semibold">{!status ? 'Checking your access' : unlocked ? 'Your subscription' : 'Your free trial has ended'}</h1></div>
     <p className="text-fg-secondary">{!status ? 'Please wait while we check your account.' : unlocked ? 'Create, caption and export your reels with ReelStudio.' : 'Choose a weekly or monthly subscription to continue editing and exporting. Your saved projects are kept in your account.'}</p>
     {paid ? <div className="rounded-md border border-edge-subtle p-4"><strong className="text-3xl">{SUBSCRIPTION_PLANS[subscription?.billing_cycle ?? 'monthly'].price}</strong><span className="text-fg-muted"> / {SUBSCRIPTION_PLANS[subscription?.billing_cycle ?? 'monthly'].unit}</span></div>
@@ -119,13 +120,14 @@ export function BillingGate({ children }: { children: ReactNode }) {
       {confirmCancel ? <><p className="text-sm mb-3">Cancel the next renewal? Any already-paid access remains available.</p><button className={BTN_SECONDARY} disabled={busy} onClick={() => void updateSubscription(true)}>Confirm cancellation</button><button className={BTN_SECONDARY} disabled={busy} onClick={() => setConfirmCancel(false)}>Keep subscription</button></>
         : <button className={BTN_SECONDARY} disabled={busy} onClick={() => setConfirmCancel(true)}>Cancel renewal</button>}
     </div>}
+    <AiCreditsSection />
   </section>;
   return <>
     {unlocked && <div className="shrink-0 px-5 py-2 border-b border-edge-subtle flex items-center justify-between gap-3 text-xs text-fg-secondary bg-surface-1">
       <span>{status.is_admin ? 'Administrator access' : paid ? `Subscribed · access until ${date(status.paid_until!)}` : `5-day free trial · ends ${date(status.trial_ends_at)}`}</span>
       <button className={BTN_SECONDARY} onClick={() => setManage(true)}>Subscription</button>
     </div>}
-    {unlocked ? children : <main className="flex-1 overflow-y-auto flex items-center justify-center p-6 bg-surface-0">{panel}</main>}
-    {unlocked && manage && <div role="dialog" aria-modal="true" aria-label="Manage subscription" className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-5 overflow-y-auto">{panel}</div>}
+    {unlocked ? children : <main className="flex-1 overflow-y-auto flex flex-col items-center p-4 bg-surface-0">{panel}</main>}
+    {unlocked && manage && <div role="dialog" aria-modal="true" aria-label="Manage subscription" className="fixed inset-0 z-50 bg-black/70 flex flex-col items-center p-4 overflow-y-auto">{panel}</div>}
   </>;
 }

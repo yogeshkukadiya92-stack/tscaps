@@ -1,8 +1,6 @@
 import type { VideoController } from '@presentation/editor/controllers/VideoController';
 
-const NON_TEXT_INPUT_TYPES = new Set([
-  'range', 'checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'image', 'color',
-]);
+const INTERACTIVE_SELECTOR = 'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [role="tab"], [role="separator"], [role="combobox"], [role="menuitem"]';
 
 /**
  * Listens for video-navigation keyboard shortcuts and dispatches them to
@@ -14,7 +12,7 @@ const NON_TEXT_INPUT_TYPES = new Set([
  *   ,          → slower (step down speed)
  *   .          → faster (step up speed)
  *
- * Skipped when focus is on a text-editing element.
+ * Native controls keep their own keyboard behavior; shortcuts apply on the canvas.
  */
 export class VideoKeyboardController {
   private readonly pressedKeys = new Set<string>();
@@ -32,12 +30,8 @@ export class VideoKeyboardController {
     this.pressedKeys.clear();
   }
 
-  private isTextEditingFocus(el: HTMLElement | null): boolean {
-    if (!el) return false;
-    if (el.isContentEditable) return true;
-    if (el instanceof HTMLTextAreaElement) return true;
-    if (el instanceof HTMLInputElement) return !NON_TEXT_INPUT_TYPES.has(el.type.toLowerCase());
-    return false;
+  private hasInteractiveFocus(el: EventTarget | null): boolean {
+    return el instanceof HTMLElement && (el.isContentEditable || el.closest(INTERACTIVE_SELECTOR) !== null);
   }
 
   /**
@@ -59,9 +53,8 @@ export class VideoKeyboardController {
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     const key = this.normalizedKey(e);
     if (key === undefined) return;
+    if (e.defaultPrevented || this.hasInteractiveFocus(e.target)) return;
     this.pressedKeys.add(key);
-
-    if (this.isTextEditingFocus(e.target as HTMLElement | null)) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
     if (key === 'arrowleft' || key === 'arrowright') {

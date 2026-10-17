@@ -1,9 +1,10 @@
 FROM python:3.11-slim
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 COPY services/transcription/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt nvidia-cublas-cu12 'nvidia-cudnn-cu12==9.*'
 COPY services/transcription/*.py ./
-RUN useradd -m worker && mkdir /models && chown worker /models
+RUN useradd -m worker && mkdir /models /budget && chown worker /models /budget
 USER worker
 ENV WHISPER_DEVICE=cuda WHISPER_COMPUTE_TYPE=int8_float16 WHISPER_BATCH_SIZE=4
 ENV LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.11/site-packages/nvidia/cudnn/lib

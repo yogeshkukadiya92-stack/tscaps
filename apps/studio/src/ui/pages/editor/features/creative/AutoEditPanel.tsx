@@ -1,3 +1,6 @@
+import { AiCredits } from '@ui/pages/billing/AiCredits';
+import { useCloudAuth } from '@bootstrap/CloudAuthContext';
+import { getAiEditServerUrl, requestAiEdit, requestAiQuote, type AiEditQuote, type AiEditPlan } from '@core/creative/AiEditClient';
 import { ReelPresetGallery } from '@ui/pages/editor/features/creative/ReelPresetGallery';
 import { REEL_PRESETS, type ReelPresetId } from '@core/creative/ReelPresets';
 import { useEffect, useRef, useState } from 'react';
@@ -20,6 +23,13 @@ interface Props {
 }
 export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, onPreview }: Props) {
   const editor = useEditor();
+  const { client } = useCloudAuth();
+  const [quality, setQuality] = useState<'standard' | 'high'>('standard');
+  const [quote, setQuote] = useState<AiEditQuote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [aiPlan, setAiPlan] = useState<AiEditPlan | null>(null);
+  const [phase, setPhase] = useState('');
   const [preset, setPreset] = useState<ReelPresetId | null>(state.creative?.autoEdit?.preset ?? null);
   const [style, setStyle] = useState<AutoEditStyle>(state.creative?.autoEdit?.style ?? 'clean');
   const [options, setOptions] = useState(DEFAULT_AUTO_EDIT_OPTIONS);
@@ -31,20 +41,49 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
     const current = editor.store.snapshot();
     return sameAutoEditInputs(base, current);
   };
-  async function analyze(applyImmediately = false) {
+  async function estimate() {
+    if (quoting) return;
+    setQuoting(true); setError(''); setQuote(null);
+    try {
+      const endpoint = getAiEditServerUrl();
+      const base = editor.store.snapshot();
+      if (!endpoint || !client || !base.projectId) throw new Error('Save and upload this project before using AI editing.');
+      const { data } = await client.auth.getSession();
+      if (!data.session) throw new Error('Sign in to use AI editing.');
+      setQuote(await requestAiQuote(endpoint, data.session.access_token, base.projectId, quality, AbortSignal.timeout(150000)));
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not estimate credits.'); }
+    finally { setQuoting(false); }
+  }
+  async function analyze(applyImmediately = false, fromPrompt = false) {
+    if (abortRef.current) return;
     const base = editor.store.snapshot();
     if (!base.creative) return;
-    onPreview(null); onStart(); setWorking(true); onBusy(true); setError(''); setDraft(null); setProgress(0);
+    onPreview(null); onStart(); setWorking(true); onBusy(true); setError(''); setDraft(null); setProgress(0); setAiPlan(null); setPhase(fromPrompt ? 'Reading your instruction…' : 'Analyzing audio…');
     const abort = new AbortController(); abortRef.current = abort;
     const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
     try {
-      const windows = options.pauses ? await analyzeAutoEditAudio(input, abort.signal, setProgress) : [];
+      let selectedStyle = style, selectedOptions = options, selectedPreset = preset;
+      let plan: AiEditPlan | null = null;
+      if (fromPrompt) {
+        const endpoint = getAiEditServerUrl();
+        if (!endpoint || !client || !base.projectId || !quote) throw new Error('Save this project and check the credits first.');
+        const { data, error: sessionError } = await client.auth.getSession();
+        if (sessionError || !data.session) throw new Error('Sign in to use paid AI editing.');
+        plan = await requestAiEdit(endpoint, data.session.access_token, {
+          prompt: prompt.trim(), transcript: base.document?.getWords().map(w => w.text).join(' ').slice(0, 16000) ?? '',
+          duration: base.video.duration, project_id: base.projectId, request_id: crypto.randomUUID(), quality, source_hash: quote.source_hash, max_credits: quote.credits,
+        }, AbortSignal.any([abort.signal, AbortSignal.timeout(240000)]));
+        selectedStyle = plan.style; selectedOptions = plan.options; selectedPreset = plan.preset;
+        setPhase('Checking pauses and preparing your preview…');
+      }
+      const windows = selectedOptions.pauses ? await analyzeAutoEditAudio(input, abort.signal, setProgress) : [];
       abort.signal.throwIfAborted();
       if (!isCurrent(base)) throw new Error('The project changed during analysis. Analyze again to use your latest edits.');
-      const recipe = REEL_PRESETS.find(p => p.id === preset);
+      const recipe = REEL_PRESETS.find(p => p.id === selectedPreset);
       const template = recipe ? base.availableTemplates.find(t => t.metadata.id === recipe.templateId) : undefined;
       if (recipe && !template) throw new Error('This caption template is no longer available. Choose another template.');
-      const edit = planAutoEdit(base.creative, base.sheets, base.document, windows, base.cuts.list().map(c => ({ start: c.startSec, end: c.endSec })), style, options, recipe && template ? { id: recipe.id, template } : undefined, base.availableTemplates);
+      const edit = planAutoEdit(base.creative, base.sheets, base.document, windows, base.cuts.list().map(c => ({ start: c.startSec, end: c.endSec })), selectedStyle, selectedOptions, recipe && template ? { id: recipe.id, template } : undefined, base.availableTemplates);
+      if (plan) { setAiPlan(plan); setQuote(previous => previous ? { ...previous, charge: 0 } : null); setStyle(selectedStyle); setOptions(selectedOptions); setPreset(selectedPreset); }
       if (applyImmediately) { onApply(edit); setDraft(null); }
       else setDraft({ edit, base });
     } catch (cause) {
@@ -59,6 +98,22 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
   const currentDraft = draft && isCurrent(draft.base) ? draft : null;
   return <section id="creative-Auto" aria-label="Auto Edit" className="rounded-lg border border-accent/40 bg-surface-1 p-4 flex flex-col gap-3 scroll-mt-2">
     <div className="flex items-center gap-2"><Sparkles size={20} className="text-accent" /><h3 className="font-semibold m-0">Auto Edit</h3></div>
+    <div className="rounded-md border border-edge-medium bg-surface-2 p-3 flex flex-col gap-2">
+      <h4 className="text-sm font-semibold m-0">AI prompt editing · Credits</h4>
+      <label className="text-sm" htmlFor="ai-edit-prompt">Tell AI how to edit · <span lang="gu">કેવી રીલ બનાવવી છે?</span></label>
+      <textarea id="ai-edit-prompt" rows={3} maxLength={2000} value={prompt} disabled={locked || working}
+        className="w-full min-w-0 rounded-md border border-edge-medium bg-surface-1 p-3 text-sm text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        placeholder="Pauses કાપો, bold captions અને energetic zoom સાથે reel બનાવો."
+        onChange={event => { setPrompt(event.target.value); setAiPlan(null); setDraft(null); onPreview(null); }} />
+      <p className="text-xs text-fg-muted m-0">AI plans pause cuts, caption styling, zooms and voice/colour polish. Your instruction and caption text are sent to the AI provider. Preview before applying; original video stays unchanged.</p>
+      <label className="text-sm flex flex-col gap-1">AI quality<select aria-label="AI quality" value={quality} disabled={locked || working || quoting} className="rounded-md bg-surface-1 border border-edge-medium p-2" onChange={e => { setQuality(e.target.value as 'standard' | 'high'); setQuote(null); }}><option value="standard">Standard · 1× credits</option><option value="high">High · 2× credits</option></select></label>
+      <p className="text-xs text-fg-muted m-0">Quality selects the AI planning model. Choose video resolution separately when exporting.</p>
+      <button type="button" className={BTN_SECONDARY} disabled={locked || working || quoting} onClick={() => void estimate()}>{quoting ? 'Checking uploaded video…' : 'Estimate credits'}</button>
+      {quote && <p role="status" className="text-sm m-0">{quote.duration.toFixed(1)} seconds · {quote.charge} credits for this AI edit</p>}
+      <button type="button" className={BTN_PRIMARY} disabled={locked || working || quoting || !quote || prompt.trim().length < 3} onClick={() => void analyze(false, true)}>Create AI edit{quote ? ` · ${quote.charge} credits` : ''}</button>
+      <AiCredits />
+      {aiPlan && <div role="status" className="text-sm"><p className="m-0">{aiPlan.summary}</p>{aiPlan.limitations.map((note, i) => <p key={i} className="text-xs mt-2 mb-0">{note}</p>)}</div>}
+    </div>
     {applied ? <>
       <p role="status" className="text-sm m-0">{AUTO_EDIT_STYLES.find(s => s.id === applied.style)?.name} auto edit applied. Everything is editable below.{applied.preset && ` Template: ${REEL_PRESETS.find(p => p.id === applied.preset)?.name}.`}</p>
       <p className="text-xs text-fg-muted m-0">Try another style below. Unchanged auto edits are replaced; manual changes are preserved. Undo restores the previous version after applying.</p>
@@ -79,7 +134,7 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
         <button className={BTN_PRIMARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze(true)}><Sparkles size={16} />Auto edit reel</button>
         <button className={BTN_SECONDARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze()}><Sparkles size={16} />Analyze auto edit</button>
       </fieldset>
-      {working && <div><p role="status" className="text-xs">Analyzing audio… {progress.toFixed(0)}%</p><button className={BTN_SECONDARY} onClick={() => { abortRef.current?.abort(); setWorking(false); onBusy(false); }}>Cancel analysis</button></div>}
+      {working && <div><p role="status" className="text-xs">{phase} {progress > 0 && `${progress.toFixed(0)}%`}</p><button className={BTN_SECONDARY} onClick={() => { abortRef.current?.abort(); abortRef.current = null; setWorking(false); onBusy(false); }}>Cancel analysis</button></div>}
       {draft && !currentDraft && <p role="status" className="text-xs text-fg-muted">Your project changed. Analyze again to refresh the preview.</p>}
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       {currentDraft && <div className="rounded-md bg-surface-2 p-3 flex flex-col gap-2" aria-label="Auto Edit plan">

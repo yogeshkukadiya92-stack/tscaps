@@ -16,6 +16,7 @@ interface ProjectsListPageProps {
   projects: ProjectMetadata[] | null;
   isLoading: boolean;
   error: AppError | null;
+  onRetry?: () => void;
   isMobileDevice: boolean;
   /** Destination for the wordmark click. */
   homeHref: string;
@@ -97,6 +98,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
   projects,
   isLoading,
   error,
+  onRetry,
   isMobileDevice,
   homeHref,
   title,
@@ -175,7 +177,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
               <h1 className={PAGE_TITLE}>{title}</h1>
               {count > 0 && <p className={PAGE_SUBTITLE}>{subtitle(count)}</p>}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="workspace-page-actions flex items-center gap-2 min-w-0">
               {onImportProject && (
                 <button type="button" className={BTN_SECONDARY} onClick={handleImportClick}>
                   <Upload size={14} />
@@ -211,6 +213,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
               <div className="text-fg-secondary">
                 <AppErrorMessage error={error} isMobile={isMobileDevice} />
               </div>
+              {onRetry && <button type="button" className={`${BTN_SECONDARY} mt-3`} disabled={isLoading} onClick={onRetry}>Try again</button>}
             </div>
           )}
 
@@ -231,13 +234,13 @@ export const ProjectsListPage = memo(function ProjectsListPage({
                 />
               ))}
             </div>
-          ) : (
+          ) : !error ? (
             <div className={EMPTY_STATE}>
               <FolderOpen size={32} className="text-accent" />
               <h2 className={EMPTY_TITLE}>{emptyTitle}</h2>
               <p className={EMPTY_SUB}>{emptyBody}</p>
             </div>
-          )}
+          ) : null}
 
           {footerNote}
         </main>

@@ -1,5 +1,5 @@
 import '@ui/pages/editor/components/playback/CustomVideoControls.css';
-import { memo, useLayoutEffect, useState, useEffect, useRef } from 'react';
+import { memo, useId, useLayoutEffect, useState, useEffect, useRef } from 'react';
 import type { PlaybackTimeBinder } from '@presentation/editor/controllers/PlaybackTimeBinder';
 import type { PlaybackActions } from '@ui/pages/editor/contexts/PlaybackContext';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -64,9 +64,11 @@ const TimelineSlider = memo(function TimelineSlider({
     <input
       ref={ref}
       type="range"
+      aria-label="Video playhead"
       min={0}
       step={0.001}
-      onPointerDown={() => {
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
         scrubWasPlayingRef.current = isPlaying;
         onScrubStart();
       }}
@@ -101,16 +103,21 @@ export const CustomVideoControls = memo(function CustomVideoControls({
 
   const [gearOpen, setGearOpen] = useState(false);
   const gearRef = useRef<HTMLDivElement>(null);
+  const optionsId = useId();
 
   useEffect(() => {
     if (!gearOpen) return;
-    const onPointerDown = (e: PointerEvent) => {
+    const onPointerDown = (e: Event) => {
       if (gearRef.current && !gearRef.current.contains(e.target as Node)) {
         setGearOpen(false);
       }
     };
     document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
+    document.addEventListener('focusin', onPointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('focusin', onPointerDown);
+    };
   }, [gearOpen]);
 
   return (
@@ -129,7 +136,7 @@ export const CustomVideoControls = memo(function CustomVideoControls({
       </div>
       <div className="custom-video-controls-actions">
         <Tooltip text={isPlaying ? 'Pause' : 'Play'} position="top">
-          <button className="icon-btn play-btn" onClick={playback.togglePlay}>
+          <button className="icon-btn play-btn" aria-label={isPlaying ? 'Pause video' : 'Play video'} onClick={playback.togglePlay}>
             {isPlaying ? (
               <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             ) : (
@@ -140,7 +147,7 @@ export const CustomVideoControls = memo(function CustomVideoControls({
 
         <div className="volume-control">
           <Tooltip text={volume > 0 ? 'Mute' : 'Unmute'} position="top">
-            <button className="icon-btn" onClick={() => playback.setVolume(volume > 0 ? 0 : 1)}>
+            <button className="icon-btn" aria-label={volume > 0 ? 'Mute video' : 'Unmute video'} onClick={() => playback.setVolume(volume > 0 ? 0 : 1)}>
               {volume > 0 ? (
                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
               ) : (
@@ -150,6 +157,7 @@ export const CustomVideoControls = memo(function CustomVideoControls({
           </Tooltip>
           <input
             type="range"
+            aria-label="Video volume"
             min={0} max={1} step={0.01}
             value={volume}
             onChange={(e) => playback.setVolume(parseFloat(e.target.value))}
@@ -159,12 +167,18 @@ export const CustomVideoControls = memo(function CustomVideoControls({
 
         <TimeDisplay binder={playbackTimeBinder} />
 
-        <div className="gear-wrapper" ref={gearRef}>
+        <div className="gear-wrapper" ref={gearRef} onKeyDown={event => {
+          if (event.key !== 'Escape' || !gearOpen) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setGearOpen(false);
+          gearRef.current?.querySelector<HTMLButtonElement>('.gear-btn')?.focus();
+        }}>
           {playbackRate !== 1 && (
             <span className="speed-badge">{formatRate(playbackRate)}</span>
           )}
           <Tooltip text="More options" position="top">
-            <button className="icon-btn gear-btn" onClick={() => setGearOpen(o => !o)}>
+            <button className="icon-btn gear-btn" aria-label="Playback options" aria-expanded={gearOpen} aria-controls={gearOpen ? optionsId : undefined} onClick={() => setGearOpen(o => !o)}>
               <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                 <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.02 7.02 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.63 8.48a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.04.7 1.62.94l.36 2.54c.05.24.26.42.49.42h4c.25 0 .46-.18.49-.42l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/>
               </svg>
@@ -172,12 +186,13 @@ export const CustomVideoControls = memo(function CustomVideoControls({
           </Tooltip>
 
           {gearOpen && (
-            <div className="gear-popup">
+            <div className="gear-popup" id={optionsId} role="group" aria-label="Playback options">
               <div className="gear-popup-section">
                 <div className="gear-popup-label">Speed <span className="gear-popup-hint">, slower · . faster</span></div>
                 <div className="speed-carousel">
                   <button
                     className="speed-carousel-btn"
+                    aria-label="Decrease playback speed"
                     disabled={playbackRate <= SPEEDS[0]!}
                     onClick={() => playback.setPlaybackRate(stepSpeed(playbackRate, -1))}
                   >
@@ -186,6 +201,7 @@ export const CustomVideoControls = memo(function CustomVideoControls({
                   <span className="speed-carousel-value">{formatRate(playbackRate)}</span>
                   <button
                     className="speed-carousel-btn"
+                    aria-label="Increase playback speed"
                     disabled={playbackRate >= SPEEDS[SPEEDS.length - 1]!}
                     onClick={() => playback.setPlaybackRate(stepSpeed(playbackRate, 1))}
                   >
@@ -197,11 +213,11 @@ export const CustomVideoControls = memo(function CustomVideoControls({
                 <div className="gear-popup-label">Navigate</div>
                 {NAV_ROWS.map(({ label, shortcut, prev, next }) => (
                   <div key={label} className="nav-row">
-                    <button className="nav-step-btn" onClick={playback[prev]}>
+                    <button className="nav-step-btn" aria-label={`Previous ${label.toLowerCase()}`} onClick={playback[prev]}>
                       <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                     </button>
                     <span className="nav-row-label">{label}</span>
-                    <button className="nav-step-btn" onClick={playback[next]}>
+                    <button className="nav-step-btn" aria-label={`Next ${label.toLowerCase()}`} onClick={playback[next]}>
                       <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
                     </button>
                     <span className="nav-shortcut">{shortcut}</span>
@@ -216,6 +232,8 @@ export const CustomVideoControls = memo(function CustomVideoControls({
                   </div>
                   <button
                     className={`layout-guide-toggle${showLayoutGuide ? ' layout-guide-toggle--active' : ''}`}
+                    aria-label="Layout guide"
+                    aria-pressed={showLayoutGuide}
                     onClick={() => onLayoutGuideChange(!showLayoutGuide)}
                   >
                     {showLayoutGuide ? 'On' : 'Off'}

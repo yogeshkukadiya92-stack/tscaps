@@ -148,3 +148,64 @@ async def render(request: Request, project_id: UUID, output_format: str = 'mp4')
         raise HTTPException(503, 'Server export failed. Retry or use device export.') from error
     finally:
         app.state.render_busy = False
+
+
+@app.post('/ai-edit')
+async def ai_edit(request: Request):
+    from ai_edit import EditRequest, credit_rpc, generate_plan
+    from pydantic import ValidationError
+    import json
+    user = await authorize(request)
+    body = bytearray()
+    try:
+        async with asyncio.timeout(15):
+            async for chunk in request.stream():
+                if len(body) + len(chunk) > 100000:
+                    raise HTTPException(413, 'AI editing request is too large.')
+                body.extend(chunk)
+        payload = EditRequest.model_validate(json.loads(body))
+        if not payload.prompt.strip():
+            raise ValueError('Empty prompt')
+    except (ValueError, ValidationError):
+        raise HTTPException(400, 'Enter an instruction of 3–2000 characters and a video up to 30 minutes.')
+    except TimeoutError:
+        raise HTTPException(408, 'Request upload timed out.')
+    from ai_source import quote_source
+    quote = await quote_source(app.state.http, user['id'], payload.project_id, request.headers['authorization'], payload.quality)
+    if quote['source_hash'] != payload.source_hash or quote['credits'] > payload.max_credits:
+        raise HTTPException(409, 'The video or price changed. Review a new quote before continuing.')
+    payload = payload.model_copy(update={'duration': quote['duration']})
+    params = {'owner_id': user['id'], 'video_id': payload.project_id, 'attempt_id': payload.request_id}
+    reservation = await credit_rpc(app.state.http, 'reelstudio_ai_reserve', {**params, 'source_hash': quote['source_hash'], 'credit_cost': quote['credits']})
+    if not isinstance(reservation, dict):
+        raise HTTPException(503, 'Could not confirm AI credits.')
+    if 'cached' in reservation:
+        return reservation['cached']
+    if reservation.get('error'):
+        reason = reservation['error']
+        raise HTTPException(402 if reason == 'credits' else 409,
+            'Buy AI credits to edit this video.' if reason == 'credits' else 'Save this project first, or wait for its current AI edit to finish.')
+    finish = {**params, 'version': reservation['version']}
+    try:
+        plan = await generate_plan(app.state.http, payload, user['id'])
+        completed = await credit_rpc(app.state.http, 'reelstudio_ai_finish', {**finish, 'result': plan})
+        if completed is not True:
+            raise HTTPException(409, 'This edit expired. Retry to recover your credit.')
+        return plan
+    except BaseException:
+        # Failures release a first-use credit. Expired reservations also recover on retry.
+        try:
+            await asyncio.shield(credit_rpc(app.state.http, 'reelstudio_ai_finish', {**finish, 'result': None}))
+        except Exception:
+            pass
+        raise
+
+
+@app.get('/ai-edit/quote')
+async def ai_edit_quote(request: Request, project_id: UUID, quality: str = 'standard'):
+    from ai_source import quote_source
+    user = await authorize(request)
+    from ai_edit import credit_rpc
+    quote = await quote_source(app.state.http, user['id'], str(project_id), request.headers['authorization'], quality)
+    unlocked = await credit_rpc(app.state.http, 'reelstudio_ai_unlocked', {'owner_id': user['id'], 'video_id': str(project_id), 'source_hash': quote['source_hash']})
+    return {**quote, 'charge': 0 if unlocked is True else quote['credits']}

@@ -5,3 +5,6 @@ verify_jwt = false
 [functions.razorpay-webhook]
 verify_jwt = false
 # Provider requests use the raw-body HMAC signature instead of a Supabase JWT.
+
+[functions.reelstudio-credits]
+verify_jwt = false

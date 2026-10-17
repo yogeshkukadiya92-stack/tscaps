@@ -12,9 +12,9 @@ export function accessMilliseconds(status: BillingStatus): number {
   if (status.is_admin) return Infinity;
   return Math.max(0, Math.max(Date.parse(status.trial_ends_at), status.paid_until ? Date.parse(status.paid_until) : 0) - Date.parse(status.server_now));
 }
-interface CheckoutResult { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string }
+interface CheckoutResult { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_order_id?: string; razorpay_signature: string }
 interface CheckoutOptions {
-  key: string; subscription_id: string; name: string; description: string;
+  key: string; subscription_id?: string; order_id?: string; amount?: number; currency?: string; name: string; description: string;
   prefill: { email: string }; theme: { color: string };
   handler: (response: CheckoutResult) => void; modal: { ondismiss: () => void };
 }

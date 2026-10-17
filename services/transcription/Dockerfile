@@ -1,9 +1,10 @@
 FROM python:3.11-slim
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 COPY services/transcription/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY services/transcription/*.py ./
-RUN useradd -m worker && mkdir /models && chown worker /models
+RUN useradd -m worker && mkdir /models /budget && chown worker /models /budget
 USER worker
 ENV WHISPER_DEVICE=cpu WHISPER_COMPUTE_TYPE=int8 WHISPER_CPU_THREADS=4
 EXPOSE 8000

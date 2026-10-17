@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { PreviewProxy } from '@core/preview/domain/PreviewProxy';
 import type { PreviewProxyGenerator } from '@core/preview/domain/PreviewProxyGenerator';
 import type { PreviewProxyRepository } from '@core/preview/domain/PreviewProxyRepository';
@@ -85,6 +85,23 @@ function resolverFor(
 const TOO_MANY_PIXELS = { videoWidthPx: 3840, videoHeightPx: 2160 };
 
 describe('PreviewProxyResolver generation policy', () => {
+  it('keeps the original playable when the optional preview metadata probe fails', async () => {
+    const cause = new DOMException('Decoder resources unavailable', 'NotSupportedError');
+    const report = vi.fn();
+    const generate = vi.fn();
+    const resolver = new PreviewProxyResolver(
+      new MapPreviewProxyRepository(), { generate },
+      { probe: async () => { throw cause; } },
+      new PreviewProxyGenerationPolicy(true), new PreviewProxyGenerationBudget(),
+      { report } as unknown as NonBlockingFailureReporter, true,
+    );
+    const source = new Blob(['source']);
+    await expect(resolver.fromSource(source)).resolves.toEqual({
+      preview: { kind: 'original', file: source, reason: 'generation-failed' }, freshProxy: null,
+    });
+    expect(generate).not.toHaveBeenCalled();
+    expect(report.mock.calls[0]?.[0]).toMatchObject({ name: 'PreviewProxyGenerationFailedError', cause });
+  });
   it('generates for a source the policy accepts', async () => {
     const proxyBlob = new Blob(['proxy']);
     const resolver = resolverFor(metadata({}), new FixedPreviewProxyGenerator(proxyOf(proxyBlob)));

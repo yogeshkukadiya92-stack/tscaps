@@ -18,7 +18,7 @@ import { AdvancedSection } from '@ui/pages/editor/features/preprocessing/compone
 import { SubtitleFileField } from '@ui/pages/editor/features/preprocessing/components/SubtitleFileField';
 import type { SubtitleFile } from '@core/transcription/domain/SubtitleFile';
 
-const DEFAULT_DESCRIPTION = 'Pick a language. Transcription runs in your browser.';
+const DEFAULT_DESCRIPTION = 'Choose the language spoken in your video. We will turn the speech into captions.';
 const SUBTITLE_FILE_DESCRIPTION = 'Your captions come from the file. Nothing is transcribed.';
 
 // Far above any subtitle file; what it stops is a video picked by mistake
@@ -185,7 +185,7 @@ export function StartDialog({
       closeOnOutsideClick={false}
       size="md"
       title={title}
-      description={fromSubtitleFile ? SUBTITLE_FILE_DESCRIPTION : description ?? DEFAULT_DESCRIPTION}
+      description={fromSubtitleFile ? SUBTITLE_FILE_DESCRIPTION : description ?? (serverProcessing ? 'Choose the language spoken in your video. Only the audio is sent to create captions.' : DEFAULT_DESCRIPTION)}
     >
       {inBrowserTranscription && (
         <input
@@ -202,14 +202,20 @@ export function StartDialog({
         <SubtitleFileField file={subtitleFile} onChange={pickSubtitleFile} />
       ) : (
         <>
-          {inBrowserTranscription && serverProcessing && <p className="text-xs text-fg-secondary m-0">Server transcription · only the audio is sent to your configured server. Your server handles the multilingual speech model. Video upload and preview preparation can run alongside transcription. Local model controls below apply when server processing is disabled.</p>}
-          {inBrowserTranscription && <div className="flex flex-col gap-2">
+          {inBrowserTranscription && serverProcessing && <p className="text-xs text-fg-secondary m-0">We create captions from your speech. You can correct words and choose a style next. No speech model needs to be downloaded to this device.</p>}
+          {inBrowserTranscription && !serverProcessing && <div className="flex flex-col gap-2">
+            {isMobileDevice && <>
+              <button type="button" className={preference.model === 'base' && preference.backend === 'auto' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
+                aria-pressed={preference.model === 'base' && preference.backend === 'auto'}
+                onClick={() => updatePreference.execute({ ...preference, model: 'base', backend: 'auto' })}>Mobile-friendly · Base</button>
+              <p className="text-xs text-fg-muted m-0">Uses a smaller model on this phone. If Medium or Large fails, select this and start again. Your language and script stay selected.</p>
+            </>}
             <button type="button" className={preference.model === 'small' && preference.backend === 'auto' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
               aria-pressed={preference.model === 'small' && preference.backend === 'auto'}
               onClick={() => updatePreference.execute({ ...preference, model: 'small', backend: 'auto' })}>
               Fast · Small
             </button>
-            <p className="text-xs text-fg-muted m-0">Smaller model with automatic GPU acceleration and CPU fallback. Keeps your language and script. Faster processing can trade off caption accuracy; review the result.</p>
+            <p className="text-xs text-fg-muted m-0">Faster captions with a smaller download. Review the words after processing.</p>
             <button type="button" className={preference.model === 'large-v3-turbo' && preference.backend === 'wasm' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
               aria-pressed={preference.model === 'large-v3-turbo' && preference.backend === 'wasm'}
               onClick={() => updatePreference.execute({ ...preference, model: 'large-v3-turbo', backend: 'wasm' })}>
@@ -238,13 +244,13 @@ export function StartDialog({
           {romanHinglish ? <div className="flex flex-col gap-2">
             <p className="text-xs text-fg-secondary m-0">Hindi + English speech → Roman captions. Example: “aaj hum video edit karenge”. English words stay in English.</p>
             <p className="text-xs text-fg-muted m-0">Hindi words are romanized after transcription. Review names and spellings in the Transcript editor.</p>
-            <div className="flex flex-wrap gap-2">
+            {!serverProcessing && <div className="flex flex-wrap gap-2">
               <button type="button" className={preference.model === 'small' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'small'}
                 onClick={() => updatePreference.execute({ ...preference, model: 'small' })}>Balanced · Small</button>
               <button type="button" className={preference.model === 'medium' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'medium'}
                 onClick={() => updatePreference.execute({ ...preference, model: 'medium' })}>Accuracy · Medium</button>
-            </div>
-            <p className="text-2xs text-fg-muted m-0">{preference.model === 'medium' ? 'Medium has a larger first download and needs more memory and processing time.' : preference.model === 'large-v3-turbo' ? 'Large v3 Turbo is selected for accuracy. Failed regions get one recovery pass using shorter audio slices.' : 'Small uses less memory and runs faster; select Best accuracy above for the large multilingual model.'}</p>
+            </div>}
+            {!serverProcessing && <p className="text-2xs text-fg-muted m-0">{preference.model === 'base' ? 'Base is selected: a smaller download that uses less memory on your phone. Review the captions for accuracy.' : preference.model === 'tiny' ? 'Tiny is selected: the smallest download, with lower accuracy. Review the captions carefully.' : preference.model === 'medium' ? 'Medium has a larger first download and needs more memory and processing time.' : preference.model === 'large-v3-turbo' ? 'Large v3 Turbo is selected for accuracy. Failed regions get one recovery pass using shorter audio slices.' : 'Small uses less memory and runs faster; select Best accuracy above for the large multilingual model.'}</p>}
           </div> : <LanguagePicker
             id="td-language"
             label="Language"
@@ -266,7 +272,7 @@ export function StartDialog({
         <p className="text-xs text-danger m-0" role="alert">{subtitleFileError}</p>
       )}
 
-      {inBrowserTranscription && !fromSubtitleFile && (
+      {inBrowserTranscription && !serverProcessing && !fromSubtitleFile && (
         <AdvancedSection
           open={advancedOpen}
           onToggle={() => setAdvancedOpen((v) => !v)}
@@ -275,7 +281,7 @@ export function StartDialog({
         />
       )}
 
-      {inBrowserTranscription && !fromSubtitleFile && isMobileDevice && (
+      {inBrowserTranscription && !serverProcessing && !fromSubtitleFile && isMobileDevice && (
         <p className="text-2xs text-fg-faint m-0 leading-snug">
           In-browser transcription runs on your device — on mobile it can be slow or fail.
         </p>

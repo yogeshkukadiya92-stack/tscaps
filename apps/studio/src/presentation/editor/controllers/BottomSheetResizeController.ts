@@ -53,14 +53,24 @@ export class BottomSheetResizeController extends EventTarget {
     return this._isDragging;
   }
 
+  get minPct(): number { return this.minPctFloor; }
+  get maxPct(): number { return MAX_PCT; }
+
+  resizeTo(pct: number): void {
+    const next = Math.max(this.minPctFloor, Math.min(MAX_PCT, pct));
+    if (next === this._pct) return;
+    this._pct = next;
+    this.notify();
+  }
+
   setMinPctFloor(floor: number): void {
     const nextFloor = Math.min(MAX_PCT, Math.max(ABSOLUTE_MIN_PCT, floor));
     if (nextFloor === this.minPctFloor) return;
     this.minPctFloor = nextFloor;
     if (this._pct < nextFloor) {
       this._pct = nextFloor;
-      this.notify();
     }
+    this.notify();
   }
 
   startHandleDrag(clientY: number, containerHeightPx: number): void {

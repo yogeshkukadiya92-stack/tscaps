@@ -40,6 +40,10 @@
   outline: none;
   -webkit-appearance: none;
 }
+.timeline-slider:focus-visible {
+  outline: 2px solid rgb(var(--color-accent));
+  outline-offset: 4px;
+}
 
 .timeline-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -79,6 +83,7 @@
 }
 
 .time-display {
+  white-space: nowrap;
   font-size: 0.8125rem; /* text-xs */
   color: rgb(var(--color-fg-secondary));
   font-variant-numeric: tabular-nums;
@@ -297,4 +302,16 @@
   background: rgb(var(--color-accent) / 0.18);
   border-color: rgb(var(--color-accent) / 0.6);
   color: rgb(var(--color-fg-primary));
+}
+
+@media (max-width: 640px) {
+  .custom-video-controls-actions {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .custom-video-controls .icon-btn { min-width: 32px; min-height: 32px; }
+  .volume-control { margin-left: 0; }
+  .volume-slider { width: 100%; min-width: 0; }
+  .time-display { grid-column: 1 / -1; grid-row: 2; text-align: center; font-size: 12px; }
 }

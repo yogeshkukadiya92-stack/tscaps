@@ -289,9 +289,36 @@ export function EditorPage({
           canSave={canSave && !draftPreviewActive}
           onSave={onSave}
         />
-        <nav role="tablist" aria-label="Editor workspace" className="flex gap-2 w-full shrink-0 pb-3">
-          {workspaceModes.map(mode => <button key={mode.id} role="tab" aria-selected={activeMode === mode.id} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium ${activeMode === mode.id ? 'bg-accent text-white' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}{mode.label}</button>)}
+        <details className="w-full shrink-0 mb-2 rounded-md border border-edge-subtle bg-surface-1 text-xs text-fg-secondary">
+          <summary className="cursor-pointer px-3 py-2 font-medium text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+            How to make your reel · <span lang="gu">રીલ કેવી રીતે બનાવવી?</span>
+          </summary>
+          <div className="max-h-[25dvh] overflow-y-auto px-3 pb-3 leading-relaxed">
+            <ol className="list-decimal pl-4 space-y-2 m-0">
+              <li><strong>Captions:</strong> correct the words and choose a design. <span lang="gu">શબ્દો સુધારો અને લખાણની ડિઝાઇન પસંદ કરો.</span></li>
+              <li><strong>Creative:</strong> add music, images or effects, then press Save creative changes. <span lang="gu">સંગીત, ફોટો કે ઇફેક્ટ ઉમેરો. ફેરફાર રાખવા Save creative changes દબાવો.</span></li>
+              <li><strong>Play:</strong> watch your reel and check the words. <span lang="gu">વિડિયો ચલાવીને જુઓ અને શબ્દો તપાસો. ભૂલ થાય તો Undo દબાવો.</span></li>
+              <li><strong>Export:</strong> download the finished video. <span lang="gu">તૈયાર વિડિયો ફોનમાં લેવા Export દબાવો. Save માત્ર પ્રોજેક્ટના ફેરફાર સાચવે છે.</span></li>
+            </ol>
+            <p className="mt-2 mb-0">Timeline is optional — use it to adjust when captions appear. <span lang="gu">લખાણ ક્યારે દેખાય તે બદલવા Timeline વાપરો.</span></p>
+          </div>
+        </details>
+        <nav role="tablist" aria-label="Editor workspace" className="flex gap-2 w-full min-w-0 shrink-0 pb-3"
+          onKeyDown={event => {
+            const index = workspaceModes.findIndex(mode => mode.id === activeMode);
+            const next = event.key === 'ArrowRight' ? (index + 1) % workspaceModes.length
+              : event.key === 'ArrowLeft' ? (index + workspaceModes.length - 1) % workspaceModes.length
+              : event.key === 'Home' ? 0 : event.key === 'End' ? workspaceModes.length - 1 : null;
+            if (next === null) return;
+            event.preventDefault();
+            event.stopPropagation();
+            playback.pause();
+            workspace.setActiveMode(workspaceModes[next]!.id);
+            event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+          }}>
+          {workspaceModes.map(mode => <button key={mode.id} id={`workspace-tab-${mode.id}`} role="tab" aria-selected={activeMode === mode.id} aria-controls="editor-workspace-panel" tabIndex={activeMode === mode.id ? 0 : -1} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex flex-1 sm:flex-none min-w-0 items-center justify-center gap-1 sm:gap-2 rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'bg-accent text-fg-on-accent' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}{mode.label}</button>)}
         </nav>
+        <div id="editor-workspace-panel" role="tabpanel" aria-labelledby={`workspace-tab-${activeMode}`} className="flex flex-col w-full flex-1 min-h-0 min-w-0">
         {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} />}
         <div className={activeMode === 'creative' ? 'hidden' : 'flex flex-col w-full flex-1 min-h-0'}>
         {isMobile ? (
@@ -308,6 +335,7 @@ export function EditorPage({
             sidebar={sidebar}
           />
         )}
+        </div>
         </div>
         </div>
       )}

@@ -8,9 +8,11 @@ import type { PreviewProxyRepository } from '@core/preview/domain/PreviewProxyRe
 import type { OriginalPreviewReason, VideoPreview } from '@core/preview/domain/VideoPreview';
 import type { NonBlockingFailureReporter } from '@core/errors/services/NonBlockingFailureReporter';
 import type { VideoMetadataProbe } from '@core/videos/domain/VideoMetadataProbe';
+import type { VideoSourceMetadata } from '@core/videos/domain/VideoSourceMetadata';
 import type { PreviewProxyGenerationPolicy } from '@core/preview/services/PreviewProxyGenerationPolicy';
 import type { PreviewProxyGenerationBudget } from '@core/preview/services/PreviewProxyGenerationBudget';
 import { PreviewProxyGenerationWatchdog } from '@core/preview/services/PreviewProxyGenerationWatchdog';
+import { PreviewProxyGenerationFailedError } from '@core/preview/domain/errors/PreviewProxyGenerationFailedError';
 
 /**
  * Outcome of a source-based proxy resolution.
@@ -84,7 +86,15 @@ export class PreviewProxyResolver {
     onProgress?: PreviewProxyProgressCallback,
   ): Promise<PreviewProxyResolution> {
     if (!this.enabled) return this.playingOriginal(source, 'pipeline-disabled');
-    const metadata = await this.metadataProbe.probe(source);
+    let metadata: VideoSourceMetadata;
+    try {
+      metadata = await this.metadataProbe.probe(source);
+    } catch (cause) {
+      // Probing an optional preview is no more essential than encoding it.
+      // In particular, mobile decoders can refuse a second read of a source.
+      this.fallbackReporter.report(new PreviewProxyGenerationFailedError({ cause }), { source_size_mb: this.sizeInMb(source) });
+      return this.playingOriginal(source, 'generation-failed');
+    }
     if (!this.generationPolicy.shouldGenerate(metadata)) {
       return this.playingOriginal(source, 'policy-skipped');
     }

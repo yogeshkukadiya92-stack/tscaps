@@ -13,6 +13,8 @@ import type { VideoCompatibilityChecker } from '@core/videos/domain/VideoCompati
 import { UnsupportedVideoCodecError } from '@core/videos/domain/errors/UnsupportedVideoCodecError';
 import { UnsupportedAudioCodecError } from '@core/videos/domain/errors/UnsupportedAudioCodecError';
 import { VideoTrackMissingError } from '@core/videos/domain/errors/VideoTrackMissingError';
+import { AppError } from '@core/errors/domain/AppError';
+import { PreviewLoadFailedError } from '@core/preview/domain/errors/PreviewLoadFailedError';
 
 /**
  * mediabunny-backed implementation of {@link VideoCompatibilityChecker}.
@@ -28,6 +30,9 @@ export class MediaBunnyVideoCompatibilityChecker implements VideoCompatibilityCh
     try {
       await this.checkVideoDecodable(input);
       await this.checkAudioCarriable(input);
+    } catch (cause) {
+      if (cause instanceof AppError) throw cause;
+      throw new PreviewLoadFailedError({ cause });
     } finally {
       input.dispose();
     }

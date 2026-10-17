@@ -65,7 +65,7 @@ export function AdminPanel() {
           <nav aria-label="User pages" className="flex items-center justify-between gap-3"><button className={BTN_SECONDARY_SM} disabled={page === 0} onClick={() => setPage(value => value - 1)}>Previous</button><span className="text-sm text-fg-secondary">Page {page + 1}</span><button className={BTN_SECONDARY_SM} disabled={(page + 1) * 25 >= Number(users[0]?.total_count ?? 0)} onClick={() => setPage(value => value + 1)}>Next</button></nav>
         </>}
         {editing && <section className="border border-edge-subtle bg-surface-1 rounded-xl p-5 space-y-4" aria-label="Edit user">
-          <h2 className="text-lg font-semibold">Edit {editing.email}</h2>
+          <h2 className="text-lg font-semibold [overflow-wrap:anywhere]">Edit {editing.email}</h2>
           <form className="space-y-4" onSubmit={event => { event.preventDefault(); void save(); }}>
             <label className="block">Display name<input autoFocus maxLength={100} value={editing.display_name} disabled={saving} onChange={event => setEditing({ ...editing, display_name: event.target.value })} className="block mt-2 w-full bg-surface-0 border border-edge-subtle rounded-lg p-3" /></label>
             <label className="flex items-center gap-3"><input type="checkbox" checked={editing.is_admin} disabled={saving} onChange={event => setEditing({ ...editing, is_admin: event.target.checked })} />Administrator access</label>

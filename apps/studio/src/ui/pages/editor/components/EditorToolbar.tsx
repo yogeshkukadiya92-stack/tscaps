@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { Undo2, Redo2, ArrowLeft } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
 import { ThemeToggle } from '@ui/_shared/components/ThemeToggle/ThemeToggle';
@@ -165,6 +165,7 @@ interface NameInputProps {
  * `value` changes from the outside while the input is not focused.
  */
 function NameInput({ value, disabled, maxLength, onCommit }: NameInputProps) {
+  const cancelCommit = useRef(false);
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
   const [lastValue, setLastValue] = useState(value);
@@ -186,10 +187,12 @@ function NameInput({ value, disabled, maxLength, onCommit }: NameInputProps) {
       maxLength={maxLength}
       onChange={(e) => setDraft(e.target.value)}
       onFocus={() => setFocused(true)}
-      onBlur={() => { setFocused(false); commit(); }}
+      onBlur={() => { setFocused(false); if (!cancelCommit.current) commit(); cancelCommit.current = false; }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
         if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelCommit.current = true;
           setDraft(value);
           (e.target as HTMLInputElement).blur();
         }

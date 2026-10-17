@@ -51,7 +51,10 @@
 .workspace-projects--list .workspace-project-card { flex-direction: row; align-items: center; }
 .workspace-projects--list .workspace-project-thumbnail { width: 150px; flex-shrink: 0; }
 .workspace-projects--list .workspace-project-details { flex: 1; }
-.workspace-no-results { grid-column: 1 / -1; padding: 35px 0; color: rgb(var(--color-fg-muted)); font-size: 13px; }
+.workspace-page-actions { flex-wrap: wrap; }
+.workspace-start-copy { min-width: 0; }
+.workspace-projects > * { min-width: 0; }
+.workspace-no-results { grid-column: 1 / -1; padding: 35px 0; color: rgb(var(--color-fg-muted)); font-size: 13px; overflow-wrap: anywhere; }
 .projects-workspace :is(button, a, select):focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 3px; }
 @media (min-width: 1500px) { .workspace-projects:not(.workspace-projects--list) { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); } }
 @media (max-width: 1023px) { .workspace-sidebar { display: none; } .projects-workspace > div { padding: 24px; } }

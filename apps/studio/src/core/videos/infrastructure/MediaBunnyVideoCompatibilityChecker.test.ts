@@ -84,7 +84,7 @@ async function pageWithChecker(): Promise<Page> {
 }
 
 /** Runs `check` on the fixture inside the page; resolves to `'passed'` or the thrown error's name. */
-async function runCheck(page: Page, options: { withoutWebCodecsAudio: boolean }): Promise<string> {
+async function runCheck(page: Page, options: { withoutWebCodecsAudio: boolean; invalidSource?: boolean }): Promise<string> {
   return page.evaluate<string, { base64: string; withoutWebCodecsAudio: boolean }>(
     async ({ base64, withoutWebCodecsAudio }) => {
       if (withoutWebCodecsAudio) {
@@ -100,11 +100,19 @@ async function runCheck(page: Page, options: { withoutWebCodecsAudio: boolean })
         return err instanceof Error ? err.name : 'unknown';
       }
     },
-    { base64: fixtureBase64, withoutWebCodecsAudio: options.withoutWebCodecsAudio },
+    { base64: options.invalidSource ? Buffer.from('not a media container').toString('base64') : fixtureBase64, withoutWebCodecsAudio: options.withoutWebCodecsAudio },
   );
 }
 
 describe('MediaBunnyVideoCompatibilityChecker', () => {
+  it('reports an unreadable container as a video preparation failure instead of an unknown error', async () => {
+    const page = await pageWithChecker();
+    try {
+      await expect(runCheck(page, { withoutWebCodecsAudio: false, invalidSource: true })).resolves.toBe('PreviewLoadFailedError');
+    } finally {
+      await page.close();
+    }
+  });
   it('accepts an H.264 + AAC video on a browser with full WebCodecs', async () => {
     const page = await pageWithChecker();
     try {

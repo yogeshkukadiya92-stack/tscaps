@@ -106,3 +106,47 @@ test('weekly selection sends the weekly plan and shows INR 399 recurring checkou
   await page.getByRole('radio', { name: /Monthly/ }).check();
   await expect(page.getByRole('button', { name: 'Subscribe · ₹799/month', exact: true })).toBeVisible();
 });
+
+test('payment pages show credit balance and verify purchases without changing subscription', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await setup(page, () => access(true));
+  let balance = 4;
+  const actions: string[] = [];
+  await page.route('**/functions/v1/reelstudio-credits', route => {
+    const body = route.request().postDataJSON();
+    actions.push(body.action);
+    if (body.action === 'create') return route.fulfill({ json: { keyId: 'rzp_test', orderId: 'order_test', amount: 1000, credits: 10 } });
+    if (body.action === 'verify') {
+      expect(body.orderId).toBe('order_test');
+      balance = 14;
+      return route.fulfill({ json: { credited: true } });
+    }
+    return route.fulfill({ json: { balance, pack: { credits: 10, amount: 1000 } } });
+  });
+  await page.route('https://checkout.razorpay.com/v1/checkout.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: "window.Razorpay=class {constructor(options){this.options=options}open(){this.options.handler({razorpay_payment_id:'pay_test',razorpay_signature:'test-signature'})}};"
+  }));
+  await page.getByRole('button', { name: 'Subscription', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Manage subscription' });
+  await dialog.getByRole('button', { name: 'Check credits' }).click();
+  await expect(dialog.getByText('Available: 4 credits')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Buy 10 credits · ₹10.00' }).click();
+  await expect(dialog.getByText('Available: 14 credits')).toBeVisible();
+  expect(actions).toEqual(['status', 'create', 'verify', 'status']);
+  await dialog.getByRole('button', { name: 'Back to editing' }).click();
+  await expect(page.getByText(/5-day free trial/)).toBeVisible();
+  await page.goto('/pricing');
+  await page.getByRole('button', { name: 'Check credits' }).click();
+  await expect(page.getByText('Available: 14 credits')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('unconfigured credit price never offers a purchase', async ({ page }) => {
+  await setup(page, () => access(true));
+  await page.route('**/functions/v1/reelstudio-credits', route => route.fulfill({ json: { balance: 0, pack: null } }));
+  await page.getByRole('button', { name: 'Subscription', exact: true }).click();
+  await page.getByRole('button', { name: 'Check credits' }).click();
+  await expect(page.getByText('Credit pricing will be available soon.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Buy .* credits/ })).toHaveCount(0);
+});

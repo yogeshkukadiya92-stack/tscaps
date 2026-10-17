@@ -28,6 +28,7 @@ export function ProjectsHost() {
   const homeHref = useHref(routes.projectsList());
   const [mine, setMine] = useState<ProjectMetadata[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
+  const [loading, setLoading] = useState(true);
   const isMobile = useIsMobileViewport();
   const [migrating, setMigrating] = useState(false);
   const [migrationNotice, setMigrationNotice] = useState('');
@@ -37,11 +38,15 @@ export function ProjectsHost() {
   const [audioError, setAudioError] = useState('');
 
   const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const all = await projects.actions.list.execute();
       setMine(all);
     } catch (cause) {
       setError(new ProjectListLoadFailedError({ cause }));
+    } finally {
+      setLoading(false);
     }
   }, [projects]);
 
@@ -59,6 +64,8 @@ export function ProjectsHost() {
       if (active) setMine(all);
     }).catch(cause => {
       if (active) setError(new ProjectListLoadFailedError({ cause }));
+    }).finally(() => {
+      if (active) setLoading(false);
     });
     return () => { active = false; };
   }, [projects]);
@@ -151,14 +158,15 @@ export function ProjectsHost() {
     <>
     <ProjectsListPage
       projects={mine}
-      isLoading={mine === null}
+      isLoading={loading}
+      {...(error instanceof ProjectListLoadFailedError ? { onRetry: () => void refresh() } : {})}
       error={error}
       isMobileDevice={isMobile}
       homeHref={homeHref}
       title={projects.cloudEnabled ? 'Your projects' : 'Local projects'}
       subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · Upload video with New project`}
       emptyTitle="Make your first project."
-      emptyBody="Upload video, transcribe it, choose a caption design, then download SRT or styled ASS subtitles."
+      emptyBody="Add your video, choose its language, correct the captions and pick a design. Press Export to download your finished reel."
       headerNote={projects.cloudEnabled ? <div className="flex flex-col gap-2">
         <p className="text-xs text-fg-muted m-0">Cloud videos are automatically removed 48 hours after upload. Download your finished reel before then. Caption edits remain saved; keep your original video to relink later.</p>
         <div className="flex gap-2 flex-wrap">
