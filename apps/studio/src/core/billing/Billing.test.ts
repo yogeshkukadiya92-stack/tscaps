@@ -12,6 +12,12 @@ describe('five-day access', () => {
     expect(accessMilliseconds({ ...status, server_now: status.trial_ends_at })).toBe(0);
     expect(accessMilliseconds({ ...status, server_now: '2027-01-01T00:00:00Z' })).toBe(0);
   });
+  it('supports timed and permanent complimentary access without changing paid dates', () => {
+    expect(accessMilliseconds({ ...status, server_now: status.trial_ends_at, complimentary_until: '2026-10-22T10:00:00Z' })).toBe(2 * 86400000);
+    expect(accessMilliseconds({ ...status, complimentary_unlimited: true })).toBe(Infinity);
+    expect(accessMilliseconds({ ...status, access_blocked: true, complimentary_unlimited: true })).toBe(0);
+    expect(accessMilliseconds({ ...status, server_now: '2026-10-23T10:00:00Z', complimentary_until: '2026-10-22T10:00:00Z' })).toBe(0);
+  });
   it('keeps a paid period after trial expiry and exempts administrators', () => {
     expect(accessMilliseconds({ ...status, server_now: status.trial_ends_at, paid_until: '2026-10-21T10:00:00Z' })).toBe(86400000);
     expect(accessMilliseconds({ ...status, is_admin: true })).toBe(Infinity);

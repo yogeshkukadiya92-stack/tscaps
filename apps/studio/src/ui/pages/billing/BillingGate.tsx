@@ -26,7 +26,7 @@ export function BillingGate({ children }: { children: ReactNode }) {
     if (cause || !data) throw new Error('Could not check your subscription. Please retry.');
     const next = data as BillingStatus;
     const remaining = accessMilliseconds(next);
-    if (!Number.isFinite(remaining) && !next.is_admin) throw new Error('Invalid subscription response. Please retry.');
+    if (!Number.isFinite(remaining) && !next.is_admin && !next.complimentary_unlimited) throw new Error('Invalid subscription response. Please retry.');
     if (!mounted.current) return;
     deadline.current = performance.now() + remaining;
     setStatus(next); setError('');
@@ -96,8 +96,8 @@ export function BillingGate({ children }: { children: ReactNode }) {
   const trial = status && Date.parse(status.trial_ends_at) > Date.parse(status.server_now);
   const subscription = status?.subscription;
   const panel = <section aria-label="ReelStudio subscription" className="w-full max-w-lg my-auto shrink-0 p-5 sm:p-7 rounded-lg border border-edge-medium bg-surface-1 text-fg-primary space-y-5">
-    <div><p className="text-sm text-accent mb-2">REELSTUDIO PRO</p><h1 className="text-2xl font-semibold">{!status ? 'Checking your access' : unlocked ? 'Your subscription' : 'Your free trial has ended'}</h1></div>
-    <p className="text-fg-secondary">{!status ? 'Please wait while we check your account.' : unlocked ? 'Create, caption and export your reels with ReelStudio.' : 'Choose a weekly or monthly subscription to continue editing and exporting. Your saved projects are kept in your account.'}</p>
+    <div><p className="text-sm text-accent mb-2">REELSTUDIO PRO</p><h1 className="text-2xl font-semibold">{!status ? 'Checking your access' : status.access_blocked ? 'Your cloud access is paused' : unlocked ? 'Your subscription' : 'Your free trial has ended'}</h1></div>
+    <p className="text-fg-secondary">{!status ? 'Please wait while we check your account.' : status.access_blocked ? 'Contact the administrator to restore cloud access. Your saved projects are kept in your account.' : unlocked ? 'Create, caption and export your reels with ReelStudio.' : 'Choose a weekly or monthly subscription to continue editing and exporting. Your saved projects are kept in your account.'}</p>
     {paid ? <div className="rounded-md border border-edge-subtle p-4"><strong className="text-3xl">{SUBSCRIPTION_PLANS[subscription?.billing_cycle ?? 'monthly'].price}</strong><span className="text-fg-muted"> / {SUBSCRIPTION_PLANS[subscription?.billing_cycle ?? 'monthly'].unit}</span></div>
       : <fieldset className="grid grid-cols-2 gap-3" disabled={busy}><legend className="text-sm text-fg-secondary mb-3">Choose your plan</legend>
         {(Object.keys(SUBSCRIPTION_PLANS) as Array<keyof typeof SUBSCRIPTION_PLANS>).map(cycle => <label key={cycle} className={`cursor-pointer rounded-md border p-3 ${plan === cycle ? 'border-accent bg-accent/5' : 'border-edge-subtle'}`}>
@@ -112,7 +112,7 @@ export function BillingGate({ children }: { children: ReactNode }) {
     {message && <p role="status" className="text-sm text-fg-secondary">{message}</p>}
     {error && <p role="alert" className="text-sm text-danger">{error}</p>}
     <div className="flex gap-3 flex-wrap">
-      {status && !status.allowed && <button className={BTN_PRIMARY} disabled={busy} onClick={() => void subscribe()}>{busy ? 'Please wait…' : `Subscribe · ${selectedPlan.price}/${selectedPlan.unit}`}</button>}
+      {status && !status.allowed && !status.access_blocked && <button className={BTN_PRIMARY} disabled={busy} onClick={() => void subscribe()}>{busy ? 'Please wait…' : `Subscribe · ${selectedPlan.price}/${selectedPlan.unit}`}</button>}
       <button className={BTN_SECONDARY} disabled={busy} onClick={() => void (subscription ? updateSubscription(false) : refresh().catch((cause: Error) => setError(cause.message)))}>Refresh status</button>
       {unlocked && <button className={BTN_SECONDARY} onClick={() => setManage(false)}>Back to editing</button>}
     </div>
@@ -124,7 +124,7 @@ export function BillingGate({ children }: { children: ReactNode }) {
   </section>;
   return <>
     {unlocked && <div className="shrink-0 px-5 py-2 border-b border-edge-subtle flex items-center justify-between gap-3 text-xs text-fg-secondary bg-surface-1">
-      <span>{status.is_admin ? 'Administrator access' : paid ? `Subscribed · access until ${date(status.paid_until!)}` : `5-day free trial · ends ${date(status.trial_ends_at)}`}</span>
+      <span>{status.is_admin ? 'Administrator access' : status.complimentary_unlimited ? 'Complimentary access · no expiry' : status.complimentary_until ? `Complimentary access · until ${date(status.complimentary_until)}` : paid ? `Subscribed · access until ${date(status.paid_until!)}` : `5-day free trial · ends ${date(status.trial_ends_at)}`}</span>
       <button className={BTN_SECONDARY} onClick={() => setManage(true)}>Subscription</button>
     </div>}
     {unlocked ? children : <main className="flex-1 overflow-y-auto flex flex-col items-center p-4 bg-surface-0">{panel}</main>}

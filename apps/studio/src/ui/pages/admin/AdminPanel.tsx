@@ -4,14 +4,16 @@ import { useCloudAuth } from '@bootstrap/CloudAuthContext';
 import { useAppRoutes } from '@ui/_shared/hooks/useAppRoutes';
 import { BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
 
+type Subscription = { id: string; status: string; billing_cycle: string; paid_until: string | null; current_end: string | null; cancel_at_cycle_end: boolean; checked_at: string };
 type Account = {
   id: string; email: string; display_name: string; created_at: string; last_sign_in_at: string | null; is_admin: boolean;
   projects: number; deleted_projects: number; captioned_projects: number; video_seconds: number;
   stored_videos: number; storage_bytes: number; exports: number; export_failures: number; processed_videos: number; transcriptions: number;
   last_active_at: string | null; cloud_enabled: boolean; project_limit: number | null; storage_limit_bytes: number | null;
+  access?: { mode: 'subscription' | 'complimentary' | 'blocked'; expires_at: string | null }; subscriptions?: Subscription[];
   credit_balance: number | null; billing: { trial_ends_at: string; paid_until: string | null; subscription_status: string | null } | null;
 };
-type Audit = { created_at: string; actor: string; target: string; details: { reason: string; credit_delta: number; after: { cloud_enabled: boolean; project_limit: number | null; storage_limit_bytes: number | null } } };
+type Audit = { created_at: string; actor: string; target: string; details: { action?: string; subscription_id?: string; reason: string; credit_delta?: number; after?: { mode?: string; expires_at?: string | null; cloud_enabled?: boolean; project_limit?: number | null; storage_limit_bytes?: number | null } } };
 type Report = { users: Account[]; total_count: number; summary: { users: number; projects: number; storage_bytes: number; active_users: number; exports: number }; credits_available: boolean; billing_available: boolean; server_now: string; audit: Audit[] };
 const date = (value: string | null) => value ? new Date(value).toLocaleString() : 'No activity';
 const bytes = (value: number) => value >= 1073741824 ? `${(value / 1073741824).toFixed(2)} GB` : `${(value / 1048576).toFixed(1)} MB`;
@@ -20,6 +22,8 @@ const box = 'border border-edge-subtle bg-surface-1 rounded-xl p-5';
 const message = (cause: unknown) => typeof cause === 'object' && cause !== null && 'message' in cause ? String(cause.message) : 'Could not load administration. Please retry.';
 function subscription(user: Account, now: string) {
   if (user.is_admin) return 'Administrator';
+  if (user.access?.mode === 'blocked') return 'Cloud access paused';
+  if (user.access?.mode === 'complimentary' && (!user.access.expires_at || Date.parse(user.access.expires_at) > Date.parse(now))) return 'Complimentary';
   if (!user.billing) return 'Not configured';
   if (user.billing.paid_until && Date.parse(user.billing.paid_until) > Date.parse(now)) return 'Paid';
   return Date.parse(user.billing.trial_ends_at) > Date.parse(now) ? 'Free trial' : 'Expired';
@@ -44,6 +48,11 @@ export function AdminPanel() {
   const [limits, setLimits] = useState({ cloud: true, projects: '', storage: '', credits: '0', reason: '' });
   const [confirm, setConfirm] = useState(false);
   const [settingsError, setSettingsError] = useState('');
+  const [access, setAccess] = useState({ mode: 'subscription', until: '', permanent: false, reason: '' });
+  const [reviewAccess, setReviewAccess] = useState(false);
+  const [providerAction, setProviderAction] = useState<{ subscription: Subscription; action: 'admin_refresh' | 'admin_cancel' } | null>(null);
+  const [providerReason, setProviderReason] = useState('');
+  const [accessError, setAccessError] = useState('');
   useEffect(() => {
     let active = true;
     if (!client || !session) return;
@@ -62,6 +71,8 @@ export function AdminPanel() {
   const current = users.find(user => user.id === selected);
   function select(user: Account) {
     setSelected(user.id); setConfirm(false); setSettingsError(''); setNotice('');
+    setReviewAccess(false); setProviderAction(null); setProviderReason(''); setAccessError('');
+    setAccess({ mode: user.access?.mode ?? 'subscription', until: user.access?.expires_at ? new Date(Date.parse(user.access.expires_at) - new Date(user.access.expires_at).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '', permanent: user.access?.mode === 'complimentary' && !user.access.expires_at, reason: '' });
     setLimits({ cloud: user.cloud_enabled, projects: user.project_limit?.toString() ?? '', storage: user.storage_limit_bytes === null ? '' : String(user.storage_limit_bytes / 1048576), credits: '0', reason: '' });
   }
   async function saveRole() {
@@ -90,6 +101,32 @@ export function AdminPanel() {
     } catch (cause) { setSettingsError(message(cause)); setConfirm(false); }
     finally { setSaving(false); }
   }
+  async function saveAccess() {
+    if (!current || !client || saving) return;
+    setSaving(true); setAccessError('');
+    try {
+      const until = access.mode === 'complimentary' && !access.permanent ? new Date(access.until).toISOString() : null;
+      const { error: cause } = await client.rpc('reelstudio_admin_set_access', { target_id: current.id, access_mode: access.mode, access_until: until, reason: access.reason.trim() });
+      if (cause) throw cause;
+      setNotice('Access updated. The change is recorded in admin history.'); setReviewAccess(false); setSelected(null); setRefresh(value => value + 1);
+    } catch (cause) { setAccessError(message(cause)); setReviewAccess(false); }
+    finally { setSaving(false); }
+  }
+  async function manageSubscription() {
+    if (!providerAction || !current || !client || saving) return;
+    setSaving(true); setAccessError('');
+    try {
+      const { data, error: cause } = await client.functions.invoke('reelstudio-billing', { body: { action: providerAction.action, targetId: current.id, subscriptionId: providerAction.subscription.id, reason: providerReason.trim() } });
+      if (cause || data?.error) {
+        let detail = data?.error;
+        if (!detail && cause && 'context' in cause && cause.context instanceof Response) detail = (await cause.context.json().catch(() => null))?.error;
+        throw new Error(typeof detail === 'string' ? detail : 'Could not confirm the provider result. Refresh this subscription before retrying cancellation.');
+      }
+      setNotice(providerAction.action === 'admin_cancel' ? 'Renewal cancellation confirmed. Already-paid access is preserved.' : 'Subscription status refreshed from the provider.');
+      setProviderAction(null); setRefresh(value => value + 1);
+    } catch (cause) { setAccessError(message(cause)); }
+    finally { setSaving(false); }
+  }
   return <main className="min-h-full bg-surface-0 text-fg-primary p-4 sm:p-5 lg:p-10">
     <div className="max-w-7xl mx-auto space-y-6 min-w-0">
       <Link className="text-sm text-accent" to={routes.projectsList()}>← Back to projects</Link>
@@ -116,7 +153,33 @@ export function AdminPanel() {
           {current && <section aria-label="Account usage and limits" className={`${box} space-y-5`}>
             <div className="flex gap-3 justify-between"><div className="min-w-0"><h2 className="text-xl font-semibold [overflow-wrap:anywhere]">{current.email}</h2><p className="text-sm text-fg-secondary mt-2">Joined {date(current.created_at)} · Last sign in {date(current.last_sign_in_at)}</p></div><button className={BTN_SECONDARY_SM} onClick={() => setSelected(null)}>Close</button></div>
             <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">{[['Captioned projects', current.captioned_projects], ['Recently deleted projects', current.deleted_projects], ['Stored videos', current.stored_videos], ['Processed videos', current.processed_videos], ['Transcriptions', current.transcriptions], ['Reported exports', current.exports], ['Failed exports', current.export_failures], ['AI credits remaining', report.credits_available ? current.credit_balance ?? 0 : 'Not configured']].map(([label, value]) => <div key={label}><dt className="text-fg-secondary">{label}</dt><dd className="font-semibold mt-1">{value}</dd></div>)}</dl>
-            <div className="text-sm"><h3 className="font-medium">Subscription</h3><p className="text-fg-secondary mt-1">{subscription(current, report.server_now)}{current.billing && ` · Trial ends ${date(current.billing.trial_ends_at)} · Paid until ${date(current.billing.paid_until)} · Provider status: ${current.billing.subscription_status ?? 'No subscription'}`}</p><p className="text-xs text-fg-secondary mt-1">Subscription payments and cancellations remain in the payment provider. Cloud limits below do not change or cancel a subscription.</p></div>
+            <div className="text-sm"><h3 className="font-medium">Subscription</h3><p className="text-fg-secondary mt-1">{subscription(current, report.server_now)}{current.billing && ` · Trial ends ${date(current.billing.trial_ends_at)} · Paid until ${date(current.billing.paid_until)} · Provider status: ${current.billing.subscription_status ?? 'No subscription'}`}</p><p className="text-xs text-fg-secondary mt-1">Complimentary access does not collect payment or cancel an existing renewal. Use Cancel renewal separately when needed. The account must sign up before access can be granted.</p></div>
+            <section aria-label="Manage subscriptions" className="space-y-3">
+              <h3 className="font-semibold">Manage subscriptions</h3>
+              {!current.subscriptions?.length ? <p className="text-sm text-fg-secondary">No provider subscription is linked to this account. You can grant complimentary access below without starting a paid subscription.</p> : <ul className="space-y-3">{current.subscriptions.map(item => <li key={item.id} className="border border-edge-subtle p-4 rounded-lg space-y-2 text-sm">
+                <p className="font-medium">{item.billing_cycle === 'weekly' ? 'Weekly' : 'Monthly'} · {item.status}</p><p className="text-fg-secondary [overflow-wrap:anywhere]">{item.id}</p>
+                <p>Paid until {item.paid_until ? date(item.paid_until) : 'No paid period'} · Current period ends {item.current_end ? date(item.current_end) : 'Not provided'}</p><p className="text-fg-secondary">{item.cancel_at_cycle_end ? 'Renewal cancelled' : 'Renewal not marked cancelled'} · Last checked {date(item.checked_at)}</p>
+                <div className="flex flex-wrap gap-2"><button className={BTN_SECONDARY_SM} disabled={saving} onClick={() => { setProviderAction({ subscription: item, action: 'admin_refresh' }); setProviderReason(''); setAccessError(''); }}>Refresh subscription</button>{!item.cancel_at_cycle_end && ['active','authenticated','pending','halted','created'].includes(item.status) && <button className={BTN_SECONDARY_SM} disabled={saving} onClick={() => { setProviderAction({ subscription: item, action: 'admin_cancel' }); setProviderReason(''); setAccessError(''); }}>Cancel renewal</button>}</div>
+              </li>)}</ul>}
+              {providerAction && <form aria-label="Review subscription action" className="border border-edge-medium rounded-lg p-4 space-y-3" onSubmit={event => { event.preventDefault(); void manageSubscription(); }}>
+                <p className="[overflow-wrap:anywhere]">{providerAction.action === 'admin_cancel' ? 'Cancel the next renewal' : 'Refresh provider status'} for <strong>{current.email}</strong> ({providerAction.subscription.id})?</p>
+                {providerAction.action === 'admin_cancel' && <p className="text-sm text-fg-secondary">This stops future renewal at the end of the current period. It does not refund a payment or remove already-paid access. Complimentary access is managed separately below.</p>}
+                <label className="block text-sm">Reason for subscription action<textarea required minLength={3} maxLength={500} disabled={saving} className={field} value={providerReason} onChange={event => setProviderReason(event.target.value)} /></label>
+                <div className="flex flex-wrap gap-2"><button className={BTN_SECONDARY_SM} disabled={saving}>{saving ? 'Please wait…' : providerAction.action === 'admin_cancel' ? 'Confirm cancellation' : 'Confirm refresh'}</button><button type="button" className={BTN_SECONDARY_SM} disabled={saving} onClick={() => setProviderAction(null)}>Cancel</button></div>
+              </form>}
+            </section>
+            {accessError && <p className="text-danger" role="alert">{accessError}</p>}
+            {current.id !== session.user.id && !current.is_admin && <form aria-label="Manage account access" className="space-y-4 border-t border-edge-subtle pt-5" onSubmit={event => { event.preventDefault(); setReviewAccess(true); }}>
+              <h3 className="font-semibold">Grant or revoke access</h3>
+              <p className="text-sm text-fg-secondary">Current override: {current.access?.mode ?? 'subscription'}{current.access?.expires_at ? ` · until ${date(current.access.expires_at)}` : current.access?.mode === 'complimentary' ? ' · no expiry' : ''}. This does not grant administrator rights.</p>
+              <fieldset className="space-y-4" disabled={saving || reviewAccess}>
+                <label className="block text-sm">Access policy<select aria-label="Access policy" value={access.mode} className={field} onChange={event => setAccess({ ...access, mode: event.target.value })}><option value="subscription">Follow normal subscription / trial</option><option value="complimentary">Complimentary access</option><option value="blocked">Block cloud writes</option></select></label>
+                {access.mode === 'complimentary' && <><label className="flex gap-3 items-center text-sm"><input type="checkbox" checked={access.permanent} onChange={event => setAccess({ ...access, permanent: event.target.checked })} />No expiry (permanent complimentary access)</label>{!access.permanent && <label className="block text-sm">Access expires at (your local time)<input type="datetime-local" required min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)} className={field} value={access.until} onChange={event => setAccess({ ...access, until: event.target.value })} /></label>}</>}
+                <label className="block text-sm">Reason for access change<textarea required minLength={3} maxLength={500} className={field} value={access.reason} onChange={event => setAccess({ ...access, reason: event.target.value })} /></label>
+              </fieldset>
+              <p className="text-xs text-fg-secondary">Complimentary access bypasses the subscription requirement but keeps project, storage and credit limits. After it expires, normal subscription or trial rules apply. Block cloud writes prevents cloud saves/uploads while keeping existing files; it does not cancel billing or prevent sign-in/local editing.</p>
+              {reviewAccess ? <div role="group" aria-label="Confirm access change" className="border border-edge-medium rounded-lg p-4 space-y-3"><p className="[overflow-wrap:anywhere]">Apply <strong>{access.mode}</strong> to <strong>{current.email}</strong>{access.mode === 'complimentary' ? access.permanent ? ' with no expiry' : ` until ${date(new Date(access.until).toISOString())}` : ''}? No payment will be collected.</p><div className="flex flex-wrap gap-2"><button type="button" className={BTN_SECONDARY_SM} disabled={saving} onClick={() => void saveAccess()}>{saving ? 'Saving…' : 'Confirm access change'}</button><button type="button" className={BTN_SECONDARY_SM} disabled={saving} onClick={() => setReviewAccess(false)}>Go back</button></div></div> : <button className={BTN_SECONDARY_SM}>Review access change</button>}
+            </form>}
             {current.id === session.user.id ? <p className="text-sm text-fg-secondary">Your account is protected from self-editing. Another administrator must change its limits.</p> : <form className="space-y-4" onSubmit={event => { event.preventDefault(); setConfirm(true); }}>
               <h3 className="font-semibold">Account controls</h3><p className="text-sm text-fg-secondary">Limits apply to future cloud uploads and project creation. Pausing cloud saving blocks new uploads and saves; it keeps reading, downloads and deletion available. It does not block local editing or sign-in.</p>
               <fieldset disabled={saving || confirm} className="space-y-4">
@@ -129,7 +192,7 @@ export function AdminPanel() {
               {confirm ? <div className="border border-edge-medium rounded-lg p-4 space-y-3" role="group" aria-label="Confirm account changes"><p>Apply to <strong className="[overflow-wrap:anywhere]">{current.email}</strong>: cloud saving {limits.cloud ? 'enabled' : 'paused'}, {limits.projects || 'unlimited'} projects, {limits.storage === '' ? 'unlimited storage' : `${limits.storage} MB storage`}, credit adjustment {limits.credits}. This will be recorded in admin history.</p><button type="button" className={BTN_SECONDARY_SM} disabled={saving} onClick={() => void saveLimits()}>{saving ? 'Saving…' : 'Confirm changes'}</button><button type="button" className={BTN_SECONDARY_SM} disabled={saving} onClick={() => setConfirm(false)}>Go back</button></div> : <button className={BTN_SECONDARY_SM}>Review changes</button>}
             </form>}
           </section>}
-          <details className={box}><summary className="cursor-pointer font-medium">Recent admin changes</summary><p className="text-xs text-fg-secondary mt-3">Most recent 20 cloud-limit and credit changes.</p>{report.audit.length === 0 ? <p className="text-sm text-fg-secondary mt-3">No changes recorded yet.</p> : <ul className="divide-y divide-edge-subtle">{report.audit.map((item, index) => <li key={index} className="py-4 text-sm [overflow-wrap:anywhere]"><p>{item.target} · {date(item.created_at)}</p><p className="text-fg-secondary mt-1">By {item.actor} · {item.details.reason}</p><p className="text-fg-secondary">Cloud {item.details.after.cloud_enabled ? 'enabled' : 'paused'} · Project limit {item.details.after.project_limit ?? 'unlimited'} · Storage {item.details.after.storage_limit_bytes === null ? 'unlimited' : bytes(item.details.after.storage_limit_bytes)} · Credits {item.details.credit_delta > 0 ? '+' : ''}{item.details.credit_delta}</p></li>)}</ul>}</details>
+          <details className={box}><summary className="cursor-pointer font-medium">Recent admin changes</summary><p className="text-xs text-fg-secondary mt-3">Most recent 20 access, subscription, cloud-limit and credit changes.</p>{report.audit.length === 0 ? <p className="text-sm text-fg-secondary mt-3">No changes recorded yet.</p> : <ul className="divide-y divide-edge-subtle">{report.audit.map((item, index) => <li key={index} className="py-4 text-sm [overflow-wrap:anywhere]"><p>{item.target} · {date(item.created_at)}</p><p className="text-fg-secondary mt-1">By {item.actor} · {item.details.reason}</p>{item.details.action ? <p className="text-fg-secondary">{item.details.action.replaceAll('_', ' ')}{item.details.subscription_id && ` · ${item.details.subscription_id}`}{item.details.after?.mode && ` · ${item.details.after.mode}`}{item.details.after?.expires_at && ` · until ${date(item.details.after.expires_at)}`}</p> : <p className="text-fg-secondary">Cloud {item.details.after?.cloud_enabled ? 'enabled' : 'paused'} · Project limit {item.details.after?.project_limit ?? 'unlimited'} · Storage {item.details.after?.storage_limit_bytes == null ? 'unlimited' : bytes(item.details.after.storage_limit_bytes)} · Credits {(item.details.credit_delta ?? 0) > 0 ? '+' : ''}{item.details.credit_delta ?? 0}</p>}</li>)}</ul>}</details>
         </>}
         {editing && <section className={`${box} space-y-4`} aria-label="Edit user">
           <h2 className="text-lg font-semibold [overflow-wrap:anywhere]">Edit {editing.email}</h2>

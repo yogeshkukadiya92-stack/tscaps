@@ -1,6 +1,8 @@
 import { env, service, razorpay, syncSubscription, cors, userClient, ProviderRequestError } from '../_shared/runtime.ts';
 import { BILLING_PLANS, billingCycle, validatePlan, validSignature } from '../_shared/billing.ts';
 
+import { manageAdminSubscription } from '../_shared/adminBilling.ts';
+
 Deno.serve(async request => {
   const headers = cors(request.headers.get('Origin'));
   if (request.method === 'OPTIONS') return new Response(null, { headers });
@@ -8,13 +10,33 @@ Deno.serve(async request => {
   try {
     if (request.headers.get('Origin') && request.headers.get('Origin') !== env('APP_ORIGIN')) throw new Error('Origin not allowed.');
     const { client, user } = await userClient(request);
-    const { action, subscriptionId, paymentId, signature, plan } = await request.json();
+    const { action, subscriptionId, paymentId, signature, plan, targetId, reason } = await request.json();
     const db = service();
     const status = async () => {
       const { data, error } = await client.rpc('reelstudio_billing_status');
       if (error || !data) throw new Error('Billing is not configured. Please contact support.');
       return data;
     };
+    if (action === 'admin_refresh' || action === 'admin_cancel') {
+      await manageAdminSubscription({ action, targetId, subscriptionId, reason }, user.id, {
+        async isAdmin() {
+          const { data, error } = await client.rpc('reelstudio_is_admin');
+          return !error && data === true;
+        },
+        async findSubscription(id, target) {
+          const { data, error } = await db.from('reelstudio_subscriptions').select('status,cancel_at_cycle_end').eq('id', id).eq('user_id', target).maybeSingle();
+          if (error) throw error;
+          return data;
+        },
+        async audit(actor, target, id, operation, reason) {
+          const { error } = await db.rpc('reelstudio_log_subscription_action', { actor, target, subscription_id: id, operation, reason });
+          if (error) throw new Error('Could not record the subscription operation. Check admin history before retrying.');
+        },
+        async cancelAtPeriodEnd(id) { await razorpay(`subscriptions/${id}/cancel`, { cancel_at_cycle_end: 1 }); },
+        sync: syncSubscription,
+      });
+      return Response.json({ ok: true }, { headers });
+    }
     if (action === 'status') return Response.json(await status(), { headers });
     if (action === 'create') {
       const cycle = billingCycle(plan);

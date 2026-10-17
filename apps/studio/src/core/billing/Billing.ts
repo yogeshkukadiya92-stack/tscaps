@@ -1,4 +1,5 @@
 export interface BillingStatus {
+  access_blocked?: boolean; complimentary_unlimited?: boolean; complimentary_until?: string | null; billing_configured?: boolean;
   allowed: boolean; server_now: string; trial_ends_at: string; paid_until: string | null; is_admin: boolean;
   subscription: { id: string; status: string; current_end: string | null; cancel_at_cycle_end: boolean; billing_cycle?: 'weekly' | 'monthly' } | null;
 }
@@ -9,8 +10,9 @@ export const SUBSCRIPTION_PLANS = {
 export const billingEnabled = () => window.__REELSTUDIO_CONFIG__?.billingEnabled
   ?? import.meta.env.VITE_BILLING_ENABLED === 'true';
 export function accessMilliseconds(status: BillingStatus): number {
-  if (status.is_admin) return Infinity;
-  return Math.max(0, Math.max(Date.parse(status.trial_ends_at), status.paid_until ? Date.parse(status.paid_until) : 0) - Date.parse(status.server_now));
+  if (status.access_blocked) return 0;
+  if (status.is_admin || status.complimentary_unlimited) return Infinity;
+  return Math.max(0, Math.max(Date.parse(status.trial_ends_at), status.paid_until ? Date.parse(status.paid_until) : 0, status.complimentary_until ? Date.parse(status.complimentary_until) : 0) - Date.parse(status.server_now));
 }
 interface CheckoutResult { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_order_id?: string; razorpay_signature: string }
 interface CheckoutOptions {

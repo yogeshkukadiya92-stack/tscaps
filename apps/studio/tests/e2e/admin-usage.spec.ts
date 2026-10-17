@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const owner = 'c3fe7a2e-b7a4-4cc2-bec2-245c5dcf5161';
-const account = { id: 'e37a0000-0000-4000-8000-000000000001', email: 'member@example.test', display_name: 'Member', created_at: '2026-10-01T00:00:00Z', last_sign_in_at: null, is_admin: false, projects: 3, deleted_projects: 1, captioned_projects: 2, video_seconds: 180, stored_videos: 2, storage_bytes: 104857600, exports: 4, export_failures: 1, processed_videos: 3, transcriptions: 2, last_active_at: '2026-10-17T00:00:00Z', cloud_enabled: true, project_limit: null, storage_limit_bytes: null, credit_balance: 9, billing: null };
+const account = { access: { mode: 'subscription', expires_at: null }, subscriptions: [{ id: 'sub_test123', status: 'active', billing_cycle: 'monthly', paid_until: '2026-11-01T00:00:00Z', current_end: '2026-11-01T00:00:00Z', cancel_at_cycle_end: false, checked_at: '2026-10-17T00:00:00Z' }], id: 'e37a0000-0000-4000-8000-000000000001', email: 'member@example.test', display_name: 'Member', created_at: '2026-10-01T00:00:00Z', last_sign_in_at: null, is_admin: false, projects: 3, deleted_projects: 1, captioned_projects: 2, video_seconds: 180, stored_videos: 2, storage_bytes: 104857600, exports: 4, export_failures: 1, processed_videos: 3, transcriptions: 2, last_active_at: '2026-10-17T00:00:00Z', cloud_enabled: true, project_limit: null, storage_limit_bytes: null, credit_balance: 9, billing: null };
 const report = { users: [account], total_count: 1, summary: { users: 1, projects: 3, storage_bytes: 104857600, active_users: 1, exports: 4 }, credits_available: true, billing_available: false, server_now: '2026-10-17T00:00:00Z', audit: [] };
 
 test('administrator can inspect usage, filter, and review an audited limit change', async ({ page }) => {
@@ -19,6 +19,8 @@ test('administrator can inspect usage, filter, and review an audited limit chang
       const body = route.request().postDataJSON(); requests.push(body);
       return route.fulfill({ json: { ...report, ...(body.search === 'missing' ? { users: [], total_count: 0 } : {}) } });
     }
+    if (url.includes('rpc/reelstudio_admin_set_access')) { requests.push(route.request().postDataJSON()); return route.fulfill({ json: null }); }
+    if (url.includes('/functions/v1/reelstudio-billing')) { requests.push(route.request().postDataJSON()); return route.fulfill({ json: { ok: true } }); }
     if (url.includes('rpc/reelstudio_admin_save_limits')) { requests.push(route.request().postDataJSON()); return route.fulfill({ json: null }); }
     if (url.includes('/reelstudio_projects')) return route.fulfill({ json: [] });
     return route.fulfill({ json: {} });
@@ -43,6 +45,26 @@ test('administrator can inspect usage, filter, and review an audited limit chang
   await page.getByRole('button', { name: 'Confirm changes' }).click();
   await expect(page.getByRole('status')).toContainText('Limits and credits updated');
   expect(requests.find(request => 'target_id' in request)).toMatchObject({ target_id: account.id, project_limit: 5, storage_limit_bytes: 209715200, credit_delta: 10, reason: 'Support allowance' });
+  await page.getByRole('button', { name: 'Usage & limits' }).click();
+  await page.getByLabel('Access policy').selectOption('complimentary');
+  await page.getByLabel('No expiry (permanent complimentary access)').check();
+  await page.getByLabel('Reason for access change').fill('Complimentary support account');
+  await page.setViewportSize({ width: 1280, height: 1100 });
+  await page.getByRole('form', { name: 'Manage account access' }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/reelstudio-subscription-controls-preview.png' });
+  await page.getByRole('button', { name: 'Review access change', exact: true }).click();
+  expect(requests.some(request => 'access_mode' in request)).toBe(false);
+  await expect(page.getByRole('group', { name: 'Confirm access change', exact: true })).toContainText('no expiry');
+  await page.getByRole('button', { name: 'Confirm access change', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Access updated');
+  expect(requests.find(request => 'access_mode' in request)).toMatchObject({ target_id: account.id, access_mode: 'complimentary', access_until: null });
+  await page.getByRole('button', { name: 'Usage & limits' }).click();
+  await page.getByRole('button', { name: 'Cancel renewal', exact: true }).click();
+  await page.getByLabel('Reason for subscription action').fill('Customer asked to stop renewal');
+  expect(requests.some(request => request.action === 'admin_cancel')).toBe(false);
+  await page.getByRole('button', { name: 'Confirm cancellation', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Renewal cancellation confirmed');
+  expect(requests.find(request => request.action === 'admin_cancel')).toMatchObject({ targetId: account.id, subscriptionId: 'sub_test123' });
   await page.getByLabel('Sort accounts').selectOption('storage');
   await expect.poll(() => requests.some(request => request.sort_by === 'storage')).toBe(true);
   await page.getByLabel('Search users by name or email').fill('missing');
