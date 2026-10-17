@@ -16,6 +16,7 @@ import { useAppRoutes } from '@ui/_shared/hooks/useAppRoutes';
 import { EditorShellHost } from '@ui/pages/editor/EditorShellHost';
 import { VideoRecoveryPrompt } from '@ui/pages/editor/components/VideoRecoveryPrompt';
 import { ProjectLoadingIndicator } from '@ui/pages/editor/components/ProjectLoadingIndicator';
+import { BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 import { Toast } from '@ui/_shared/components/Toast/Toast';
 import { UnsupportedTemplateDialog } from '@ui/pages/editor/components/dialogs/UnsupportedTemplateDialog';
 import { ProjectBlockedDialog } from '@ui/pages/editor/components/dialogs/ProjectBlockedDialog';
@@ -204,8 +205,10 @@ export function ProjectRoute() {
 
   if (status.kind !== 'loaded') {
     return (
-      <div className="min-h-full flex items-center justify-center bg-surface-0">
+      <div className="min-h-full flex flex-col gap-5 items-center justify-center bg-surface-0 p-5 text-center">
         <ProjectLoadingIndicator downloadStatus={downloadStatus} proxyDownloadStatus={proxyDownloadStatus} />
+        <p className="text-sm text-fg-muted">Large videos can take a little longer. Keep this tab open while your video loads.</p>
+        <button className={BTN_SECONDARY} onClick={onLeaveUnopenable}>Back to projects</button>
       </div>
     );
   }

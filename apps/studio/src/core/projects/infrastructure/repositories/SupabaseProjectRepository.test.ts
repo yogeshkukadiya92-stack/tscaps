@@ -39,7 +39,7 @@ describe('Cloud project failure and account boundaries', () => {
 describe('Cloud video reuse', () => {
   function setup() {
     const session = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'owner' } } } });
-    const row = { updated_at: '2026-10-14T00:00:00.000Z', payload: {}, thumbnail_data: null };
+    const row = { updated_at: '2026-10-14T00:00:00.000Z', payload: { video: { size: 5 } }, thumbnail_data: null };
     const chain = { select: vi.fn(), eq: vi.fn(), is: vi.fn(), maybeSingle: vi.fn().mockResolvedValue({ data: row }) };
     chain.select.mockReturnValue(chain); chain.eq.mockReturnValue(chain); chain.is.mockReturnValue(chain);
     const signed = vi.fn().mockResolvedValue({ data: { signedUrl: 'https://storage.example/video' } });
@@ -77,11 +77,42 @@ describe('Cloud video reuse', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('video', { headers: { 'content-type': 'video/mp4' } }));
     vi.stubGlobal('fetch', fetchMock);
     try {
-      const result = await repository.loadVideoBlob('project');
+      const progress = vi.fn();
+      const result = await repository.loadVideoBlob('project', progress);
+      expect(progress).toHaveBeenCalledWith(0);
+      expect(progress).toHaveBeenCalledWith(1);
       expect(result.outcome).toBe('found');
       expect(cache.store).toHaveBeenCalledWith('cloud/owner/project/2026-10-14T00:00:00.000Z', expect.any(Blob));
       expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally { vi.unstubAllGlobals(); }
+  });
+  it('falls back to cloud when a device cache read never settles', async () => {
+    vi.useFakeTimers();
+    const { repository, cache } = setup();
+    await repository.load('project');
+    cache.load.mockImplementation(() => new Promise(() => {}));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('video')));
+    try {
+      const loading = repository.loadVideoBlob('project');
+      await vi.advanceTimersByTimeAsync(10001);
+      expect((await loading).outcome).toBe('found');
+    } finally { vi.useRealTimers(); vi.unstubAllGlobals(); }
+  });
+  it('aborts a stalled video response rather than leaving the project loading forever', async () => {
+    vi.useFakeTimers();
+    const { repository } = setup();
+    let downloadSignal: AbortSignal | undefined;
+    vi.stubGlobal('fetch', vi.fn((_url, options) => {
+      downloadSignal = options.signal;
+      return new Promise(() => {});
+    }));
+    try {
+      const loading = repository.loadVideoBlob('project');
+      const rejected = expect(loading).rejects.toThrow('Video loading timed out');
+      await vi.advanceTimersByTimeAsync(45001);
+      await rejected;
+      expect(downloadSignal?.aborted).toBe(true);
+    } finally { vi.useRealTimers(); vi.unstubAllGlobals(); }
   });
   it('does not start a download for an aborted project open', async () => {
     const { repository, signed } = setup();

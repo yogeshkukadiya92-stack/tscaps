@@ -199,7 +199,11 @@ export class LoadProjectAction {
     signal: AbortSignal | undefined,
   ): Promise<Project | null> {
     this.editorStore.patch({ projectId: loaded.id });
-    const proxy = await this.fetchProxy(loaded.id);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const proxy = await Promise.race([
+      this.fetchProxy(loaded.id),
+      new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), 10000); }),
+    ]).catch(() => null).finally(() => clearTimeout(timer));
     signal?.throwIfAborted();
     if (!proxy) return null;
     this.editorStore.patchVideo({ preview: { kind: 'proxy', file: proxy.blob } });

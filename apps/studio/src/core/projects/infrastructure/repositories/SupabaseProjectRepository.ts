@@ -7,6 +7,16 @@ import type { VideoBlobLookup } from '@core/videos/domain/VideoBlobLookup';
 import type { VideoBlobCache } from '@core/videos/domain/VideoBlobCache';
 import type { CloudVideoUploadManager } from '@core/projects/services/CloudVideoUploadManager';
 
+// Optional device storage must never indefinitely block a cloud project.
+async function bounded<T>(work: Promise<T>, milliseconds: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([work, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Video loading timed out. Check your connection and try opening the project again.')), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
 const TABLE = 'reelstudio_projects';
 const BUCKET = 'reelstudio-videos';
 interface CloudProjectRow {
@@ -33,6 +43,7 @@ function decodeThumbnail(value: string | null): Blob | null {
 export class SupabaseProjectRepository implements ProjectRepository {
   private readonly pendingVideos = new Map<string, Blob>();
   private readonly videoVersions = new Map<string, string>();
+  private readonly videoSizes = new Map<string, number>();
   constructor(private readonly client: SupabaseClient, private readonly serializer: ProjectSerializer,
     private readonly videoCache?: VideoBlobCache, private readonly uploads?: CloudVideoUploadManager) {}
 
@@ -98,6 +109,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
     if (!data) return null;
     const row = data as CloudProjectRow;
     this.videoVersions.set(this.path(owner, id), new Date(row.updated_at).toISOString());
+    this.videoSizes.set(this.path(owner, id), row.payload.video?.size ?? 0);
     return this.serializer.deserialize(row.payload, decodeThumbnail(row.thumbnail_data));
   }
   async has(id: string): Promise<boolean> {
@@ -203,14 +215,14 @@ export class SupabaseProjectRepository implements ProjectRepository {
   async loadVideoBlob(projectId: string, onProgress?: LoadVideoBlobProgressCallback, signal?: AbortSignal): Promise<VideoBlobLookup> {
     const owner = await this.owner();
     signal?.throwIfAborted();
-    await this.restorePending(owner);
+    await bounded(this.restorePending(owner), 10000).catch(() => {});
     signal?.throwIfAborted();
     const pendingSource = this.uploads?.source(owner, projectId);
     if (pendingSource) { onProgress?.(1); return { outcome: 'found', blob: pendingSource, source: 'device' }; }
     const version = this.videoVersions.get(this.path(owner, projectId));
     const cacheKey = version ? `cloud/${owner}/${projectId}/${version}` : null;
     if (cacheKey && this.videoCache) {
-      const cached = await this.videoCache.load(cacheKey).catch(() => null);
+      const cached = await bounded(this.videoCache.load(cacheKey), 10000).catch(() => null);
       signal?.throwIfAborted();
       await this.assertOwner(owner);
       if (cached?.outcome === 'found') {
@@ -219,33 +231,42 @@ export class SupabaseProjectRepository implements ProjectRepository {
       }
     }
     onProgress?.(null);
-    const { data, error } = await this.client.storage.from(BUCKET).createSignedUrl(this.path(owner, projectId), 300);
+    const { data, error } = await bounded(this.client.storage.from(BUCKET).createSignedUrl(this.path(owner, projectId), 300), 30000);
     if (error) {
       if (Number(error.statusCode) === 404 || error.message.toLowerCase().includes('not found')) return { outcome: 'missing', reason: 'remote-provider-absent' };
       throw error;
     }
-    const response = await fetch(data.signedUrl, { ...(signal ? { signal } : {}) });
-    if (!response.ok) throw new Error(`Video download failed (${response.status}). Try again.`);
-    const length = Number(response.headers.get('content-length') ?? 0);
-    onProgress?.(length ? 0 : null);
-    const reader = response.body?.getReader();
-    const chunks: Uint8Array<ArrayBuffer>[] = [];
-    let received = 0;
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(new Uint8Array(value)); received += value.byteLength;
-        onProgress?.(length ? Math.min(1, received / length) : null);
-      }
-    } else chunks.push(new Uint8Array(await response.arrayBuffer()));
-    await this.assertOwner(owner);
-    onProgress?.(1);
     signal?.throwIfAborted();
-    const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'application/octet-stream' });
-    // Cache failure must not prevent opening a valid cloud video. Versioned,
-    // owner-scoped keys prevent reuse after a remote edit or account change.
-    if (cacheKey && this.videoCache) void this.videoCache.store(cacheKey, blob).catch(() => {});
-    return { outcome: 'found', blob, source: 'server' };
+    const controller = new AbortController();
+    const abort = () => controller.abort(signal?.reason);
+    signal?.addEventListener('abort', abort, { once: true });
+    try {
+      const response = await bounded(fetch(data.signedUrl, { signal: controller.signal }), 45000);
+      if (!response.ok) throw new Error(`Video download failed (${response.status}). Try again.`);
+      const length = Number(response.headers.get('content-length') ?? 0) || this.videoSizes.get(this.path(owner, projectId)) || 0;
+      onProgress?.(length ? 0 : null);
+      const reader = response.body?.getReader();
+      const chunks: Uint8Array<ArrayBuffer>[] = [];
+      let received = 0;
+      if (reader) {
+        while (true) {
+          const { done, value } = await bounded(reader.read(), 45000);
+          if (done) break;
+          chunks.push(new Uint8Array(value)); received += value.byteLength;
+          onProgress?.(length ? Math.min(1, received / length) : null);
+        }
+      } else chunks.push(new Uint8Array(await bounded(response.arrayBuffer(), 45000)));
+      await this.assertOwner(owner);
+      onProgress?.(1);
+      signal?.throwIfAborted();
+      const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'application/octet-stream' });
+      // Cache failure must not prevent opening a valid cloud video. Versioned,
+      // owner-scoped keys prevent reuse after a remote edit or account change.
+      if (cacheKey && this.videoCache) void this.videoCache.store(cacheKey, blob).catch(() => {});
+      return { outcome: 'found', blob, source: 'server' };
+    } finally {
+      controller.abort();
+      signal?.removeEventListener('abort', abort);
+    }
   }
 }
