@@ -1,3 +1,4 @@
+import { EDITING_SKILLS, type EditingSkill } from '@core/creative/EditingSkills';
 import { AiCredits } from '@ui/pages/billing/AiCredits';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
 import { getAiEditServerUrl, requestAiEdit, requestAiQuote, type AiEditQuote, type AiEditPlan } from '@core/creative/AiEditClient';
@@ -54,7 +55,7 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not estimate credits.'); }
     finally { setQuoting(false); }
   }
-  async function analyze(applyImmediately = false, fromPrompt = false) {
+  async function analyze(applyImmediately = false, fromPrompt = false, skill?: EditingSkill) {
     if (abortRef.current) return;
     const base = editor.store.snapshot();
     if (!base.creative) return;
@@ -62,7 +63,8 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
     const abort = new AbortController(); abortRef.current = abort;
     const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
     try {
-      let selectedStyle = style, selectedOptions = options, selectedPreset = preset;
+      let selectedStyle = skill?.style ?? style, selectedOptions = skill?.options ?? options, selectedPreset = skill ? skill.preset : preset;
+      if (skill) { setStyle(skill.style); setOptions({ ...skill.options }); setPreset(skill.preset); }
       let plan: AiEditPlan | null = null;
       if (fromPrompt) {
         const endpoint = getAiEditServerUrl();
@@ -98,6 +100,16 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
   const currentDraft = draft && isCurrent(draft.base) ? draft : null;
   return <section id="creative-Auto" aria-label="Auto Edit" className="rounded-lg border border-accent/40 bg-surface-1 p-4 flex flex-col gap-3 scroll-mt-2">
     <div className="flex items-center gap-2"><Sparkles size={20} className="text-accent" /><h3 className="font-semibold m-0">Auto Edit</h3></div>
+    <fieldset disabled={locked || working || quoting} className="border-0 p-0 m-0 flex flex-col gap-2">
+      <legend className="text-sm font-semibold mb-2">Ready editing skills · તૈયાર એડિટિંગ</legend>
+      <p className="text-xs text-fg-muted m-0">No prompt needed. Choose a skill to prepare a preview, then apply it. No AI credits used. <span lang="gu">પસંદ કરો → પ્રિવ્યૂ જુઓ → લાગુ કરો.</span></p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {EDITING_SKILLS.map(skill => <button key={skill.id} type="button" aria-label={`Preview ${skill.name}`} onClick={() => void analyze(false, false, skill)} className="rounded-lg border border-edge-medium bg-surface-2 p-3 text-left hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+          <strong className="block text-sm">{skill.name}</strong><span className="block text-xs text-fg-muted mt-1">{skill.description}</span>
+        </button>)}
+      </div>
+      <p className="text-xs text-fg-muted m-0">Uses your existing footage and captions. Cuts protect transcribed speech; custom edits are preserved. Each preview replaces unchanged earlier auto edits. Music and B-roll can be added below.</p>
+    </fieldset>
     <div className="rounded-md border border-edge-medium bg-surface-2 p-3 flex flex-col gap-2">
       <h4 className="text-sm font-semibold m-0">AI prompt editing · Credits</h4>
       <label className="text-sm" htmlFor="ai-edit-prompt">Tell AI how to edit · <span lang="gu">કેવી રીલ બનાવવી છે?</span></label>

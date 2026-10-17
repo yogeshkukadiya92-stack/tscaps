@@ -111,3 +111,24 @@ test('credit checkout waits for verified payment before showing balance', async 
   await expect(page.getByText('Available: 10 credits', { exact: true })).toBeVisible();
   expect(verified).toBe(true);
 });
+
+test('ready editing skills prepare and apply without a prompt or paid AI calls', async ({ page }) => {
+  await setup(page, () => ({ json: { words: [] } }));
+  let paidCalls = 0;
+  await page.route('**/ai-edit**', route => { paidCalls++; return route.abort(); });
+  await expect(page.getByLabel('Tell AI how to edit', { exact: false })).toHaveValue('');
+  await page.getByRole('button', { name: 'Preview Cinematic', exact: true }).click();
+  const draft = page.getByLabel('Auto Edit plan', { exact: true });
+  await expect(draft).toBeVisible();
+  await expect(draft).toContainText('2 lighting / elements');
+  await page.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Auto Edit', exact: true })).toContainText('Template: Cinema Diary');
+  await page.getByRole('button', { name: 'Preview Gentle zooms', exact: true }).click();
+  await expect(draft).toContainText('0 lighting / elements');
+  await expect(draft).toContainText('0 pause cuts');
+  await page.getByRole('button', { name: 'Discard draft', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Auto Edit', exact: true })).toContainText('Template: Cinema Diary');
+  expect(paidCalls).toBe(0);
+  await page.getByRole('group', { name: 'Ready editing skills' }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: test.info().outputPath('ready-skills-mobile.png'), animations: 'disabled' });
+});
