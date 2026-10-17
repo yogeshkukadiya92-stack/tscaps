@@ -31,9 +31,8 @@ export interface TemplateCategoryDefinition {
  * The families the gallery ships, in the order it lists them. Key order
  * is the display order, so moving a section is moving its entry.
  *
- * The two shown as clips lead, together: a family's preview is a whole
- * different object on the page, and a list that alternates between the
- * two kinds reads as several galleries stacked.
+ * Modern uses live caption tiles, including language samples and hover
+ * motion. Only Key moments keeps footage to demonstrate video compositing.
  *
  * `key-moments` is the one a template does not choose on looks: it holds
  * the ones composed against the whole frame — blended, cut behind the
@@ -45,7 +44,7 @@ export interface TemplateCategoryDefinition {
  */
 export const TEMPLATE_CATEGORIES: Readonly<Record<TemplateCategory, TemplateCategoryDefinition>> = {
   'premium-captions': { label: 'Premium captions', preview: 'tile', previewRows: 3 },
-  modern: { label: 'Modern', preview: 'clip', previewRows: 3 },
+  modern: { label: 'Modern', preview: 'tile', previewRows: 3 },
   'key-moments': { label: 'Key moments', preview: 'clip', previewRows: 1 },
   viral: { label: 'Viral', preview: 'tile', previewRows: 2 },
   classic: { label: 'Classic', preview: 'tile', previewRows: 2 },
