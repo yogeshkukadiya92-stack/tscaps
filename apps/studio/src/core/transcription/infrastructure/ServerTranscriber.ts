@@ -39,7 +39,7 @@ export class ServerTranscriber implements ConfigurableTranscriber {
           : body?.detail === 'Invalid GPU transcription response' ? 'invalid-response' : 'unavailable';
         throw new ServerTranscriptionFailedError(new Error(`Transcription server returned ${response.status}`), reason, response.status);
       }
-      const data = await response.json().catch(() => null) as { words?: unknown } | null;
+      const data = await response.json().catch(() => null) as { words?: unknown; language?: unknown } | null;
       if (!data || !Array.isArray(data.words) || data.words.length > 100000) throw new ServerTranscriptionFailedError(new Error('Invalid transcription response'), 'invalid-response');
       const duration = pcm.length / 16000;
       let previousStart = 0;
@@ -58,7 +58,8 @@ export class ServerTranscriber implements ConfigurableTranscriber {
       });
       if (!words.length) throw new ServerTranscriptionFailedError(new Error('No speech was recognized'), 'no-speech');
       this.progress.setInferringProgress(1);
-      return new Document({ sections: [new Section({ kind: '', segments: [new Segment({ lines: [new Line({ words })] })] })] });
+      const language = options?.language ?? (typeof data.language === 'string' && /^[a-z]{2,3}$/.test(data.language) ? data.language : null);
+      return new Document({ language, sections: [new Section({ kind: '', segments: [new Segment({ lines: [new Line({ words })] })] })] });
     } catch (cause) {
       if (cause instanceof ServerTranscriptionFailedError) throw cause;
       throw new ServerTranscriptionFailedError(cause,

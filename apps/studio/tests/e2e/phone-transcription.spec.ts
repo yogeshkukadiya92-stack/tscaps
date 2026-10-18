@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { bootEditor, setVideoBytes } from './support/editorBoot';
 
-async function phoneSetup(page: Page, respond: () => { status?: number; json: unknown }) {
+async function phoneSetup(page: Page, respond: () => { status?: number; json: unknown }, language = 'hi') {
   const user = 'c3fe7a2e-b7a4-4cc2-bec2-245c5dcf5161';
   const encode = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
   const token = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: user, aud: 'authenticated', role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.test`;
@@ -16,7 +16,7 @@ async function phoneSetup(page: Page, respond: () => { status?: number; json: un
   let requests = 0;
   await page.route('https://processing.example.test/transcribe**', route => {
     requests++;
-    expect(new URL(route.request().url()).searchParams.get('language')).toBe('hi');
+    expect(new URL(route.request().url()).searchParams.get('language')).toBe(language);
     expect(route.request().headers()['content-type']).toBe('audio/wav');
     return route.fulfill(respond());
   });
@@ -49,6 +49,19 @@ test('phone server transcription avoids local model controls and opens Roman Hin
   await dialog.getByTestId('start-flow-primary').click();
   await expect(page.getByRole('tablist', { name: 'Editor workspace', exact: true })).toBeVisible({ timeout: 30000 });
   expect(await page.evaluate(() => window.__tscapsE2E!.documentWords().map(w => w.text))).toEqual(['aaj', 'video']);
+  expect(server.requests()).toBe(1);
+});
+
+test('Gujarati shortcut overrides saved Hinglish and sends Gujarati to server', async ({ page }) => {
+  const server = await phoneSetup(page, () => ({ json: { language: 'gu', words: [
+    { text: 'ગુજરાતી', start: 0, end: 0.4 }, { text: 'video', start: 0.4, end: 0.8 },
+  ] } }), 'gu');
+  const dialog = page.getByRole('dialog', { name: 'Start your video' });
+  await dialog.getByRole('button', { name: 'ગુજરાતી · Gujarati captions', exact: true }).click();
+  await expect(dialog.getByLabel('Caption language & script', { exact: true })).toHaveValue('original');
+  await dialog.getByTestId('start-flow-primary').click();
+  await expect(page.getByRole('tablist', { name: 'Editor workspace', exact: true })).toBeVisible({ timeout: 30000 });
+  expect(await page.evaluate(() => window.__tscapsE2E!.documentWords().map(w => w.text))).toEqual(['ગુજરાતી', 'video']);
   expect(server.requests()).toBe(1);
 });
 

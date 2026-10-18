@@ -14,6 +14,15 @@ describe('audio-only server transcription', () => {
       { decode: async () => new Float32Array(16000) }, new PreprocessingProgressStore(), async () => 'token');
     expect((await transcriber.transcribe(new Blob(), { language: 'gu' })).getWords()[0]?.text).toBe('ગુજરાતી');
   });
+  it('preserves Gujarati language metadata and mixed English words', async () => {
+    const { transcriber, request } = setup({ language: 'hi', words: [
+      { text: 'ગુજરાતી', start: 0, end: 0.4 }, { text: 'video', start: 0.4, end: 0.8 },
+    ] });
+    const document = await transcriber.transcribe(new Blob(), { language: 'gu' });
+    expect(request.mock.calls[0]![0].searchParams.get('language')).toBe('gu');
+    expect(document.language).toBe('gu');
+    expect(document.getWords().map(word => word.text)).toEqual(['ગુજરાતી', 'video']);
+  });
   it('encodes mono PCM16 with bounded samples and a WAV header', async () => {
     const view = new DataView(await encodeTranscriptionAudio(new Float32Array([-2, 0, 2, NaN])).arrayBuffer());
     expect(view.byteLength).toBe(52);

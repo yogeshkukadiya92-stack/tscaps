@@ -87,7 +87,7 @@ function PendingNoticeDialog({ notice, onClose }: { notice: UntranscribedRegions
       <p className={BODY}>
         {notice.model === 'large-v3-turbo'
           ? 'Check the selected speech language and try cleaner audio with less background music. Unclear speech can still be missed by this model.'
-          : <>Try <span className={EMPHASIS}>ગુજરાતી · High accuracy</span> for Gujarati, or choose Large v3 Turbo in <span className={EMPHASIS}>Advanced settings</span>. Larger models need more memory and processing time.</>}
+          : <>Try <span className={EMPHASIS}>ગુજરાતી · Gujarati captions</span> for Gujarati, or choose Large v3 Turbo in <span className={EMPHASIS}>Advanced settings</span>. Larger models need more memory and processing time.</>}
       </p>
 
 

@@ -222,12 +222,17 @@ export function StartDialog({
               Best accuracy · Large v3 Turbo
             </button>
             <p className="text-xs text-fg-muted m-0">Uses the large multilingual model on CPU. Keeps your selected speech language and script. About 0.9 GB first download; needs more memory and time. Select the language actually spoken for reliable results.</p>
-            <button type="button" className={BTN_SECONDARY_SM} onClick={() => {
-              updatePreference.execute({ ...preference, model: 'large-v3-turbo', captionStyle: 'original' });
-              handleLanguageChange('gu');
-              setAdvancedOpen(true);
-            }}>ગુજરાતી · High accuracy</button>
-            <p className="text-xs text-fg-muted m-0">Gujarati speech → ગુજરાતી captions with Whisper Large v3 Turbo. Large download; needs more memory and time. Review names and unclear speech.</p>
+          </div>}
+          {inBrowserTranscription && languages.some(item => item.code === 'gu') && <div className="flex flex-col gap-2">
+            <button type="button" className={language === 'gu' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
+              aria-pressed={language === 'gu'} onClick={() => {
+                updatePreference.execute({ ...preference, captionStyle: 'original',
+                  ...(!serverProcessing ? { model: 'large-v3-turbo', backend: 'wasm' } as const : {}) });
+                handleLanguageChange('gu');
+              }}>ગુજરાતી · Gujarati captions</button>
+            <p className="text-xs text-fg-muted m-0">{serverProcessing
+              ? 'Gujarati speech → ગુજરાતી captions. Sends Gujarati as the speech language; English words may stay in English.'
+              : 'Gujarati speech → ગુજરાતી captions with Large v3 Turbo on CPU. About 0.9 GB first download; needs more memory and time.'}</p>
           </div>}
           {inBrowserTranscription && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary">
             Caption language & script

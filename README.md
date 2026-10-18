@@ -75,7 +75,7 @@ Split or add a clip before adding Zoom-through Cut; it targets a real compositio
 
 ### Gujarati transcription
 
-Choose **ગુજરાતી · High accuracy** in the transcription or retranscription dialog to select Gujarati (`gu`), original script and **Whisper Large v3 Turbo** with word timestamps. The same model is available under **Advanced → Model** for other languages. It runs on-device without an API key. CPU downloads roughly 0.9 GB; GPU uses a larger full-precision encoder download and needs several GB of memory. Downloads are cached when browser storage permits. Accuracy depends on recording quality, dialect and background music; review the result, especially names and unclear speech. Existing projects can use **Change language / Retranscribe** and Undo a caption replacement.
+Choose **ગુજરાતી · Gujarati captions** in the transcription or retranscription dialog to select Gujarati (`gu`) and original script, including when server processing is enabled. Local processing selects **Whisper Large v3 Turbo on CPU** with word timestamps (roughly 0.9 GB initial download, cached when storage permits). Groq server processing uses the full **Whisper Large v3** for explicit Gujarati even when its general default is Turbo, reserving usage at the full model's rate under the existing budget cap. Other server providers keep their configured model. Accuracy depends on recording quality, dialect and background music; review names and unclear speech. These configuration checks are not a measured Gujarati accuracy benchmark. Existing projects need **Change language / Retranscribe** to replace old captions; Undo restores the previous transcript.
 
 ### Audio to subtitles
 

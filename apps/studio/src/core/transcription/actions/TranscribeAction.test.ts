@@ -38,6 +38,18 @@ describe('Hinglish transcription configuration', () => {
     expect(document.getWords()[0]?.text).toBe(words[0]?.text);
     expect(document.language).toBe(language);
   });
+  it('forwards Gujarati project language when inference options omit it', async () => {
+    const { action, transcriber } = setup();
+    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, {}, 'gu');
+    expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'gu' });
+    expect(document.language).toBe('gu');
+  });
+  it('keeps explicit speech language ahead of stale project metadata', async () => {
+    const { action, transcriber } = setup();
+    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'gu' }, 'hi');
+    expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'gu' });
+    expect(document.language).toBe('gu');
+  });
   it('rejects a placeholder-only result instead of replacing the existing transcript', async () => {
     const { action, transcriber } = setup();
     transcriber.transcribe.mockImplementation(async () => {

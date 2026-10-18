@@ -62,12 +62,14 @@ export class TranscribeAction {
       const selectedLanguage = options?.language ?? languageCode;
       const hinglish = preference.captionStyle === 'roman-hinglish'
         && (!selectedLanguage || selectedLanguage === 'hi');
-      const transcribed = await this.transcriber.transcribe(videoFile, hinglish ? { ...options, language: 'hi' } : options);
+      const speechLanguage = hinglish ? 'hi' : selectedLanguage;
+      const transcribed = await this.transcriber.transcribe(videoFile,
+        speechLanguage ? { ...options, language: speechLanguage } : options);
       if (transcribed.getWords().length === 0 && regions.length > 0) {
         throw new LocalTranscriptionFailedError({ cause: new Error('Whisper recovered no words. Select the spoken language and retry with a larger multilingual model.') });
       }
       const words = hinglish ? new HinglishRomanizer().words(transcribed.getWords()) : transcribed.getWords();
-      const document = this.assemble(words, regions, hinglish ? 'hi-Latn' : languageCode ?? null);
+      const document = this.assemble(words, regions, hinglish ? 'hi-Latn' : selectedLanguage ?? transcribed.language ?? null);
       if (regions.length > 0) {
         this.untranscribedRegionsStore.publish(regions, preference.model);
         this.telemetry.capture('transcription_gaps_detected', {
