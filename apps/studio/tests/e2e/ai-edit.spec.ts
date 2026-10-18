@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { setDocumentJson } from './support/editorBoot';
+import { bootEditorWithCaptions, setDocumentJson } from './support/editorBoot';
 async function setup(page: Page, respond: () => { status?: number; json: unknown }) {
   const user = 'c3fe7a2e-b7a4-4cc2-bec2-245c5dcf5161';
   const encode = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
@@ -33,6 +33,7 @@ async function setup(page: Page, respond: () => { status?: number; json: unknown
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await page.getByText('AI custom instructions · Credits', { exact: true }).click();
   return { requests: () => requests };
 }
 
@@ -131,4 +132,61 @@ test('ready editing skills prepare and apply without a prompt or paid AI calls',
   expect(paidCalls).toBe(0);
   await page.getByRole('group', { name: 'Ready editing skills' }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: test.info().outputPath('ready-skills-mobile.png'), animations: 'disabled' });
+});
+
+ test('professional studio has working tool panels and responsive timeline', async ({ page }) => {
+  await setup(page, () => ({ json: { words: [] } }));
+  await page.getByText('AI custom instructions · Credits', { exact: true }).click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const tools = page.getByRole('navigation', { name: 'Creative tools' });
+  await tools.getByRole('button', { name: 'Clips', exact: true }).click();
+  await expect(page.getByLabel('Clip 1 start', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Split', exact: true }).click();
+  await expect(page.getByTestId('creative-clip')).toHaveCount(2);
+  await expect(page.getByRole('region', { name: 'Creative timeline' })).toContainText('2 video segments');
+  await tools.getByRole('button', { name: 'Audio', exact: true }).click();
+  await page.getByLabel('Normalize voice level', { exact: true }).check();
+  await expect(page.getByLabel('Normalize voice level', { exact: true })).toBeChecked();
+  await tools.getByRole('button', { name: 'Auto Edit', exact: true }).click();
+  await page.getByRole('searchbox', { name: 'Search editing skills' }).fill('cinematic');
+  await expect(page.getByRole('button', { name: 'Preview Cinematic', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Preview Complete reel', exact: true })).toHaveCount(0);
+  await page.getByRole('searchbox', { name: 'Search editing skills' }).fill('');
+  await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+  await page.screenshot({ path: test.info().outputPath('professional-desktop.png') });
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(page.getByRole('region', { name: 'Creative Studio', exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.getByRole('region', { name: 'Creative Studio', exact: true }).evaluate(el => { el.scrollTop = 0; });
+    await page.screenshot({ path: test.info().outputPath(`professional-mobile-${width}.png`) });
+  }
+});
+
+test('professional studio renders a downloadable reel after switching tools', async ({ page }) => {
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
+  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
+  await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Look', exact: true }).click();
+  await studio.getByRole('button', { name: 'Noir', exact: true }).click();
+  await studio.getByText('Render & download', { exact: true }).click();
+  await studio.getByLabel('Export format', { exact: true }).selectOption('webm');
+  await studio.getByRole('button', { name: 'Render edited reel', exact: true }).click();
+  await expect(studio.getByRole('button', { name: 'Download reel', exact: true })).toBeVisible({ timeout: 60000 });
+  const downloadEvent = page.waitForEvent('download');
+  await studio.getByRole('button', { name: 'Download reel', exact: true }).click();
+  const download = await downloadEvent;
+  expect(download.suggestedFilename()).toMatch(/reelstudio\.webm$/);
+  const output = await readFile((await download.path())!);
+  expect(output.length).toBeGreaterThan(1000);
+  const duration = await page.evaluate(async data => {
+    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'video/webm' }));
+    const video = document.createElement('video');
+    try { return await new Promise<number>((resolve, reject) => { video.onloadedmetadata = () => resolve(video.duration); video.onerror = () => reject(new Error('Export cannot decode')); video.src = url; }); }
+    finally { URL.revokeObjectURL(url); }
+  }, [...output]);
+  expect(duration).toBeGreaterThan(0);
 });

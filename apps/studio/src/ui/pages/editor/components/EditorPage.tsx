@@ -269,7 +269,7 @@ export function EditorPage({
   );
 
   return (
-    <main className="editor-studio flex flex-col items-center justify-center h-full overflow-hidden px-3 py-2 lg:px-3 lg:py-3">
+    <main data-professional={activeMode === 'creative' || undefined} className="editor-studio flex flex-col items-center justify-center h-full overflow-hidden px-3 py-2 lg:px-3 lg:py-3">
       {!state.video.url && !state.video.preview ? (
         <VideoDropzone onFile={(file) => videos.actions.load.execute(file)} />
       ) : (

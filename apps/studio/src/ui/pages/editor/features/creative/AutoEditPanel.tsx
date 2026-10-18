@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { EDITING_SKILLS, type EditingSkill } from '@core/creative/EditingSkills';
 import { AiCredits } from '@ui/pages/billing/AiCredits';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
@@ -14,6 +15,7 @@ import { useEditor } from '@ui/_shared/contexts/modules/EditorContext';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 
 interface Props {
+  libraryHost?: HTMLElement | null;
   file: File;
   state: EditorState;
   locked: boolean;
@@ -22,7 +24,9 @@ interface Props {
   onApply: (draft: AutoEditDraft) => void;
   onPreview: (draft: AutoEditDraft | null) => void;
 }
-export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, onPreview }: Props) {
+export function AutoEditPanel({ libraryHost, file, state, locked, onStart, onBusy, onApply, onPreview }: Props) {
+  const [search, setSearch] = useState('');
+  const [selectedSkill, setSelectedSkill] = useState<EditingSkill>(EDITING_SKILLS[0]!);
   const editor = useEditor();
   const { client } = useCloudAuth();
   const [quality, setQuality] = useState<'standard' | 'high'>('standard');
@@ -98,18 +102,31 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
   }
   const applied = state.creative?.autoEdit;
   const currentDraft = draft && isCurrent(draft.base) ? draft : null;
-  return <section id="creative-Auto" aria-label="Auto Edit" className="rounded-lg border border-accent/40 bg-surface-1 p-4 flex flex-col gap-3 scroll-mt-2">
-    <div className="flex items-center gap-2"><Sparkles size={20} className="text-accent" /><h3 className="font-semibold m-0">Auto Edit</h3></div>
+  const skillLibrary = (
     <fieldset disabled={locked || working || quoting} className="border-0 p-0 m-0 flex flex-col gap-2">
       <legend className="text-sm font-semibold mb-2">Ready editing skills · તૈયાર એડિટિંગ</legend>
-      <p className="text-xs text-fg-muted m-0">No prompt needed. Choose a skill to prepare a preview, then apply it. No AI credits used. <span lang="gu">પસંદ કરો → પ્રિવ્યૂ જુઓ → લાગુ કરો.</span></p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {EDITING_SKILLS.map(skill => <button key={skill.id} type="button" aria-label={`Preview ${skill.name}`} onClick={() => void analyze(false, false, skill)} className="rounded-lg border border-edge-medium bg-surface-2 p-3 text-left hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+      <p className="text-xs text-fg-muted m-0">Choose a style. Preview. Make it yours. <span lang="gu">Prompt વગર તૈયાર એડિટિંગ.</span></p>
+      <input type="search" aria-label="Search editing skills" placeholder="Search editing styles…" value={search} onChange={e => setSearch(e.target.value)} className="studio-skill-search" />
+      <div className="studio-skill-list">
+        {EDITING_SKILLS.filter(skill => `${skill.name} ${skill.description}`.toLowerCase().includes(search.toLowerCase())).map(skill => <button key={skill.id} type="button" aria-label={`Preview ${skill.name}`} aria-pressed={selectedSkill.id === skill.id} onClick={() => { setSelectedSkill(skill); void analyze(false, false, skill); }} className="rounded-lg border border-edge-medium bg-surface-2 p-3 text-left hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
           <strong className="block text-sm">{skill.name}</strong><span className="block text-xs text-fg-muted mt-1">{skill.description}</span>
         </button>)}
       </div>
       <p className="text-xs text-fg-muted m-0">Uses your existing footage and captions. Cuts protect transcribed speech; custom edits are preserved. Each preview replaces unchanged earlier auto edits. Music and B-roll can be added below.</p>
+      {!EDITING_SKILLS.some(skill => `${skill.name} ${skill.description}`.toLowerCase().includes(search.toLowerCase())) && <p role="status">No matching skills.</p>}
     </fieldset>
+  );
+  return <section id="creative-Auto" aria-label="Auto Edit" className="studio-auto-inspector flex flex-col gap-3">
+    <div className="flex items-center gap-2"><Sparkles size={20} className="text-accent" /><h3 className="font-semibold m-0">Auto Edit</h3></div>
+    {libraryHost ? createPortal(skillLibrary, libraryHost) : skillLibrary}
+    <div className="studio-recipe-intro">
+      <span className="studio-eyebrow">Edit inspector</span>
+      <h3>{selectedSkill.name}</h3><p>{selectedSkill.description}</p>
+      <span className="studio-local-badge">Built-in skill · No AI credits</span>
+      <div className="studio-included"><strong>Included in this edit</strong>{([['pauses', 'Quiet pause cuts', 'Protect transcribed speech'], ['zooms', 'Digital zooms', 'Emphasis matched to this style'], ['polish', 'Lighting & voice polish', 'Editable effects and audio cleanup'], ['captions', 'Caption styling', 'Preserve custom formatting']] as const).filter(([key]) => selectedSkill.options[key]).map(([key, label, detail]) => <div key={key}><span aria-hidden="true">✓</span><p>{label}<small>{detail}</small></p></div>)}</div>
+      <button className={BTN_PRIMARY} disabled={locked || working || quoting} onClick={() => void analyze(false, false, selectedSkill)}>Prepare preview</button>
+    </div>
+    <details className="studio-disclosure"><summary>AI custom instructions · Credits</summary>
     <div className="rounded-md border border-edge-medium bg-surface-2 p-3 flex flex-col gap-2">
       <h4 className="text-sm font-semibold m-0">AI prompt editing · Credits</h4>
       <label className="text-sm" htmlFor="ai-edit-prompt">Tell AI how to edit · <span lang="gu">કેવી રીલ બનાવવી છે?</span></label>
@@ -126,11 +143,13 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
       <AiCredits />
       {aiPlan && <div role="status" className="text-sm"><p className="m-0">{aiPlan.summary}</p>{aiPlan.limitations.map((note, i) => <p key={i} className="text-xs mt-2 mb-0">{note}</p>)}</div>}
     </div>
+    </details>
     {applied ? <>
       <p role="status" className="text-sm m-0">{AUTO_EDIT_STYLES.find(s => s.id === applied.style)?.name} auto edit applied. Everything is editable below.{applied.preset && ` Template: ${REEL_PRESETS.find(p => p.id === applied.preset)?.name}.`}</p>
       <p className="text-xs text-fg-muted m-0">Try another style below. Unchanged auto edits are replaced; manual changes are preserved. Undo restores the previous version after applying.</p>
     </> : null}
     <>
+      <details className="studio-disclosure"><summary>Templates & advanced settings</summary>
       <p className="text-xs text-fg-muted m-0">Pick a template, then Auto edit reel. Captions, quiet-pause cuts, zooms and voice settings stay editable. You can also review a draft before applying.</p>
       <fieldset disabled={locked || working} className="border-0 p-0 m-0 flex flex-col gap-3">
         <legend className="sr-only">Auto Edit style and options</legend>
@@ -146,6 +165,7 @@ export function AutoEditPanel({ file, state, locked, onStart, onBusy, onApply, o
         <button className={BTN_PRIMARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze(true)}><Sparkles size={16} />Auto edit reel</button>
         <button className={BTN_SECONDARY} disabled={!Object.values(options).some(Boolean)} onClick={() => void analyze()}><Sparkles size={16} />Analyze auto edit</button>
       </fieldset>
+      </details>
       {working && <div><p role="status" className="text-xs">{phase} {progress > 0 && `${progress.toFixed(0)}%`}</p><button className={BTN_SECONDARY} onClick={() => { abortRef.current?.abort(); abortRef.current = null; setWorking(false); onBusy(false); }}>Cancel analysis</button></div>}
       {draft && !currentDraft && <p role="status" className="text-xs text-fg-muted">Your project changed. Analyze again to refresh the preview.</p>}
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}

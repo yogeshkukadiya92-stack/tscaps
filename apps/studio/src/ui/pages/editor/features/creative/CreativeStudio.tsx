@@ -1,9 +1,11 @@
+import './CreativeStudio.css';
+import { StudioTimeline } from './StudioTimeline';
 import { AutoEditPanel } from '@ui/pages/editor/features/creative/AutoEditPanel';
 import { sameAutoEditInputs, type AutoEditDraft } from '@core/creative/AutoEdit';
 import { MotionEffectsGallery } from '@ui/pages/editor/features/creative/MotionEffectsGallery';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ALL_FORMATS, BlobSource, Input } from 'mediabunny';
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard, Sparkles, Film, Layers, Music2, Palette, Timer, Wand2 } from 'lucide-react';
 import { CutRegistry } from '@core/cuts/domain/CutRegistry';
 import type { EditorState } from '@core/editor/domain/EditorState';
 import { CreativeAssetRepository } from '@core/creative/CreativeAssetRepository';
@@ -73,6 +75,8 @@ function NumberField({ label, value, min = 0, max, step = 0.1, change }: {
 
 function StudioSession({ file, state, project, onDraftPreviewChange }: { file: File; state: EditorState; project: CreativeProject; onDraftPreviewChange: (active: boolean) => void }) {
   const editor = useEditor(), projects = useProjects(), exporter = useExport();
+  const [activeTool, setActiveTool] = useState('Auto');
+  const [libraryHost, setLibraryHost] = useState<HTMLDivElement | null>(null);
   const [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false), [saving, setSaving] = useState(false);
@@ -148,7 +152,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
         await prepared.paint(position);
         if (!active || token !== generation.current) return;
         session.current = prepared;
-        prepared.canvas.className = 'block w-full max-h-[52vh] object-contain rounded-lg bg-black';
+        prepared.canvas.className = 'studio-preview-canvas';
         prepared.canvas.setAttribute('aria-label', 'Full reel preview');
         previewHost.current?.replaceChildren(prepared.canvas);
         timeRef.current = position; setTime(position); setPlaying(false); setReady(true);
@@ -288,16 +292,21 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
     onDraftPreviewChange(!!validComparison);
     return () => onDraftPreviewChange(false);
   }, [validComparison, onDraftPreviewChange]);
-  return <section aria-label="Creative Studio" className="flex flex-col flex-1 min-h-0 w-full gap-3 overflow-y-auto lg:overflow-hidden">
-    <div className="flex items-center gap-3 shrink-0"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Creative Studio</h2><p className="text-xs text-fg-muted m-0">Clips, effects, audio and captions. One finished reel.</p></div></div>
-    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,1fr)] gap-5 min-h-0 lg:flex-1">
-      <div className="flex flex-col gap-3 min-w-0 lg:overflow-y-auto lg:pr-2">
+  return <section aria-label="Creative Studio" className="professional-studio">
+    <div className="studio-title"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Creative Studio</h2><p className="text-xs text-fg-muted m-0">Clips, effects, audio and captions. One finished reel.</p></div></div>
+    <div className="studio-workbench">
+      <nav aria-label="Creative tools" className="studio-tool-rail">
+        {([{ id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span>{label}</span></button>)}
+      </nav>
+      <div className="studio-library" onClickCapture={() => setActiveTool('Auto')} ref={setLibraryHost} aria-label="Editing skill library" />
+      <div className="studio-monitor">
+        <div className="studio-monitor-heading"><span>Program monitor</span><span>{viewProject.settings.portrait ? '9:16 portrait' : 'Original ratio'} · 30 fps</span></div>
         {validComparison && <div ref={comparisonHost} className="rounded-lg border border-accent/40 bg-surface-1 p-3 flex flex-col gap-2" aria-label="Before and after preview">
           <div className="flex gap-2" role="group" aria-label="Preview version">{(['before', 'after'] as const).map(side => <button key={side} className={comparisonSide === side ? BTN_PRIMARY : BTN_SECONDARY} aria-pressed={comparisonSide === side} disabled={locked} onClick={() => { if (side !== comparisonSide) { stop(); setReady(false); setComparisonSide(side); } }}>{side === 'before' ? 'Before' : 'After'}</button>)}</div>
           <p className="text-xs text-fg-muted m-0">{comparisonSide === 'before' ? 'Before · Your saved/current edit' : 'After · Proposed auto edit'} · Draft only. Apply to save or export.</p>
           <button className={BTN_SECONDARY} disabled={locked} onClick={() => compare(null)}>Close comparison</button>
         </div>}
-        <div ref={previewHost} className="bg-black rounded-lg min-h-40 shrink-0" />
+        <div ref={previewHost} className="studio-preview-stage" />
         {!ready && !busy && <p className="text-xs text-fg-muted">Preparing full reel preview…</p>}
         <input aria-label="Reel playhead" type="range" min="0" max={Math.max(0, duration - 0.001)} step="0.033333" value={time}
           disabled={!ready || locked} onChange={event => void seek(Number(event.target.value))} />
@@ -313,24 +322,24 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
         {error && <p role="alert" className="text-sm text-danger break-words">{error}</p>}
         {notice && <p role="status" className="text-xs text-fg-secondary">{notice}</p>}
         {uploading && <p role="status" className="text-xs">Preparing and saving media…</p>}
+        <details className="studio-disclosure studio-export"><summary>Render & download</summary>
         <label className="text-xs">Export format<select aria-label="Export format" className={INPUT} value={format} disabled={locked} onChange={event => { setFormat(event.target.value as 'mp4' | 'webm'); setResult(null); }}><option value="mp4">MP4 · H.264 / AAC</option><option value="webm">WebM · VP9 / Opus</option></select></label>
         {busy ? <><p role="status">{serverRendering ? 'Rendering on server…' : `Rendering ${progress.toFixed(0)}%`}</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}>Cancel export</button></>
           : <><button className={BTN_PRIMARY} disabled={editingLocked || duration < 0.1} onClick={() => void render()}>Render edited reel</button>
             {projects.cloudEnabled && exporter.serverReelExporter.enabled && !new URLSearchParams(window.location.search).has('serverRender') && <button className={BTN_SECONDARY} disabled={editingLocked || duration < 0.1} onClick={() => void render(true)}>Render on server</button>}</>}
         {result && !validComparison && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
+        </details>
       </div>
-      <div className="flex flex-col min-h-0 min-w-0 gap-3">
-      <nav aria-label="Creative tools" className="flex flex-wrap gap-2 shrink-0">
-        {['Auto', 'Effects', 'Clips', 'B-roll', 'Audio', 'Look', 'Timing'].map(label => <button key={label} className={BTN_SECONDARY} onClick={() => document.getElementById(`creative-${label}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>{label === 'Auto' ? 'Auto Edit' : label}</button>)}
-      </nav>
-      <div className="flex flex-col gap-5 min-w-0 lg:overflow-y-auto lg:pr-2">
-      <AutoEditPanel file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
+      <div className="studio-inspector" data-active-tool={activeTool}>
+      <div hidden={activeTool !== 'Auto'}>
+      <AutoEditPanel libraryHost={libraryHost} file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
+      </div>
       <fieldset disabled={editingLocked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
-        <div id="creative-Effects" className="rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2">
+        <div hidden={activeTool !== 'Effects'} id="creative-Effects" className="rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2">
         <MotionEffectsGallery effects={project.effects ?? []} duration={duration} time={time} boundaries={spans.slice(1).map(s => s.outputStart)} ready={ready}
           onSeek={value => void seek(value)} onChange={effects => change({ ...project, effects })} /></div>
 
-        <section id="creative-Clips" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Clips</h3>
+        <section hidden={activeTool !== 'Clips'} id="creative-Clips" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Clips</h3>
           <label className="text-xs">Add clips<input aria-label="Add clips" type="file" accept="video/*" multiple className="block w-full mt-1 text-xs" onChange={event => { void upload(event.target.files, 'clip'); event.target.value = ''; }} /></label>
           {project.clips.map((clip, index) => <div key={clip.id} className="rounded border border-edge-medium p-3 flex flex-col gap-2" data-testid="creative-clip">
             <span className="text-sm break-words">{index + 1}. {clip.asset?.name ?? 'Original video · captions'}</span>
@@ -342,7 +351,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
           </div>)}
           <button className={BTN_SECONDARY} onClick={() => change({ ...project, clips: [...project.clips, { id: crypto.randomUUID(), asset: null, start: settings.start, end: settings.end, volume: 1 }] })}>Add original clip</button>
         </section>
-        <section id="creative-B-roll" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">B-roll / picture-in-picture</h3>
+        <section hidden={activeTool !== 'B-roll'} id="creative-B-roll" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">B-roll / picture-in-picture</h3>
           <label className="text-xs">Add B-roll<input aria-label="Add B-roll" type="file" accept="video/*" multiple className="block w-full text-xs" disabled={duration < 0.1} onChange={event => { void upload(event.target.files, 'overlay'); event.target.value = ''; }} /></label>
           {project.overlays.map((overlay, index) => <div key={overlay.id} className="rounded border border-edge-medium p-3 flex flex-col gap-2" data-testid="creative-overlay">
             <span className="text-sm break-words">{overlay.asset.name}</span>
@@ -354,7 +363,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
             <label className="text-xs">Replace B-roll<input aria-label={`Replace B-roll ${index + 1}`} type="file" accept="video/*" onChange={event => void upload(event.target.files, 'overlay', overlay.id)} /></label>
           </div>)}
         </section>
-        <section id="creative-Audio" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Voice & music</h3>
+        <section hidden={activeTool !== 'Audio'} id="creative-Audio" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Voice & music</h3>
           <label className="text-xs">Upload music<input aria-label="Upload music" type="file" accept="audio/*" className="block w-full text-xs" onChange={event => { void upload(event.target.files, 'music'); event.target.value = ''; }} /></label>
           {project.music && <><span className="text-xs break-words">{project.music.name}</span><button className={BTN_SECONDARY} onClick={() => change({ ...project, music: null })}>Remove music</button><NumberField label="Music start offset" value={project.musicOffset} max={project.music.duration} change={musicOffset => change({ ...project, musicOffset })} /></>}
           <Slider label="Original audio" value={settings.sourceVolume} min={0} max={1} step={0.05} onChange={sourceVolume => patch({ sourceVolume })} />
@@ -363,7 +372,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
           <label className="text-sm"><input type="checkbox" checked={settings.cleanup} onChange={event => patch({ cleanup: event.target.checked })} /> Voice cleanup · rumble filter & noise gate</label>
           <label className="text-sm"><input type="checkbox" checked={settings.normalize} onChange={event => patch({ normalize: event.target.checked })} /> Normalize voice level</label>
         </section>
-        <section id="creative-Look" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Look & motion</h3>
+        <section hidden={activeTool !== 'Look'} id="creative-Look" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Look & motion</h3>
           <label className="text-sm"><input type="checkbox" checked={settings.portrait} onChange={event => patch({ portrait: event.target.checked })} /> Portrait canvas · 1080 × 1920</label>
           <div className="flex flex-wrap gap-2">{LOOKS.map(look => <button key={look.id} aria-pressed={settings.look === look.id} className={settings.look === look.id ? BTN_PRIMARY : BTN_SECONDARY} onClick={() => patch({ look: look.id })}>{look.name}</button>)}</div>
           <Slider label="Brightness" value={settings.brightness} min={0.5} max={1.5} step={0.05} onChange={brightness => patch({ brightness })} />
@@ -377,7 +386,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
           <Slider label="Text size" value={settings.textSize} min={2} max={15} step={0.5} onChange={textSize => patch({ textSize })} />
           <Slider label="Text position" value={settings.textY} min={10} max={90} step={1} onChange={textY => patch({ textY })} />
         </section>
-        <section id="creative-Timing" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Timing</h3>
+        <section hidden={activeTool !== 'Timing'} id="creative-Timing" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0">Timing</h3>
           <Slider label="Start" value={settings.start} min={0} max={Math.max(0, settings.end - 0.1)} step={0.1} onChange={start => patch({ start })} />
           <Slider label="End" value={settings.end} min={settings.start + 0.1} max={Math.max(settings.end, state.video.duration)} step={0.1} onChange={end => patch({ end })} />
           <Slider label="Speed" value={settings.speed} min={0.5} max={2} step={0.1} onChange={speed => patch({ speed })} />
@@ -395,7 +404,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
         </section>
       </fieldset>
       </div>
-      </div>
+    <StudioTimeline spans={spans} project={viewProject} document={state.document} time={time} duration={duration} disabled={!ready || locked} onSeek={value => void seek(value)} />
     </div>
   </section>;
 }
