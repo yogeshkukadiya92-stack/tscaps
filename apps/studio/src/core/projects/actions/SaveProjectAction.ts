@@ -30,6 +30,7 @@ import { ProjectSaveFailedError } from '@core/projects/domain/errors/ProjectSave
  */
 export class SaveProjectAction {
   private lastWrittenSignature: string | null = null;
+  private pendingSave: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly store: EditorStore,
@@ -42,10 +43,18 @@ export class SaveProjectAction {
     const projectAtStart = this.projectBuilder.build(this.store.snapshot());
     if (!projectAtStart) return;
     const signatureAtStart = this.signatureOf(projectAtStart);
+    // Toolbar, creative edits and sign-out can save concurrently. Keep
+    // invocation order so a slow older write cannot replace newer edits.
+    const save = this.pendingSave.then(() => this.persist(projectAtStart, signatureAtStart));
+    this.pendingSave = save.catch(() => {});
+    await save;
+  }
+
+  private async persist(projectAtStart: Project, signatureAtStart: string): Promise<void> {
     if (signatureAtStart === this.lastWrittenSignature) {
       // Storage already holds this exact content, so the state is as
       // saved as a write would leave it.
-      this.store.markClean();
+      if (this.currentStateMatches(signatureAtStart)) this.store.markClean();
       return;
     }
     try {

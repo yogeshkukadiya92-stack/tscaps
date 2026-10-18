@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+// eslint-disable-next-line no-restricted-syntax -- Server-owned billing code is outside the studio's path aliases.
 import { manageAdminSubscription, type AdminSubscriptionPorts } from '../../../../../supabase/functions/_shared/adminBilling';
 const input = { action: 'admin_cancel', targetId: '10000000-0000-4000-8000-000000000002', subscriptionId: 'sub_123', reason: 'Customer request' };
 function ports(): AdminSubscriptionPorts {

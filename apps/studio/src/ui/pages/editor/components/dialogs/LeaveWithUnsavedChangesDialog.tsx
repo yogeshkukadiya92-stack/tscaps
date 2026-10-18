@@ -4,6 +4,7 @@ import { BTN_PRIMARY_SM, BTN_DANGER_SM } from '@ui/_shared/styles/buttons';
 interface LeaveWithUnsavedChangesDialogProps {
   open: boolean;
   saving: boolean;
+  error?: string | null;
   onCancel: () => void;
   onLeaveWithoutSaving: () => void;
   onSaveAndLeave: () => void;
@@ -20,6 +21,7 @@ interface LeaveWithUnsavedChangesDialogProps {
 export function LeaveWithUnsavedChangesDialog({
   open,
   saving,
+  error,
   onCancel,
   onLeaveWithoutSaving,
   onSaveAndLeave,
@@ -34,7 +36,8 @@ export function LeaveWithUnsavedChangesDialog({
       description="You have edits that have not been saved. If you leave now, they will be lost."
       showCloseButton
     >
-      <div className="flex items-center justify-between gap-2 pt-1">
+      {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
+      <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
         <button
           type="button"
           className={`${BTN_DANGER_SM}`}

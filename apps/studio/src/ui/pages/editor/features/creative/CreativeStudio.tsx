@@ -82,7 +82,13 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
   const [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false), [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false), [playing, setPlaying] = useState(false), [progress, setProgress] = useState(0);
   const [time, setTime] = useState(() => { const saved = previewPositions.get(editor.store); return saved?.projectId === state.projectId ? saved.time : 0; }), [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
-  const [result, setResult] = useState<Blob | null>(null);
+  const [result, setResult] = useState<{ blob: Blob; state: EditorState; format: 'mp4' | 'webm' } | null>(null);
+  const renderedResult = result && sameAutoEditInputs(result.state, state) ? result : null;
+  // Reflow creates fresh document/segment identities even when layout is unchanged.
+  // Rebuilding the painter for those identities reloads fonts and starts another
+  // reflow, which can repeatedly cancel audio preparation.
+  const previewDocumentLayout = useMemo(() => JSON.stringify(state.document, (_key, value) =>
+    value instanceof Set ? [...value] : value && (Array.isArray(value.lines) || Array.isArray(value.words)) ? { ...value, id: undefined } : value), [state.document]);
   const previewSource = state.video.preview?.kind === 'proxy' ? state.video.preview.file : undefined;
   const [serverRendering, setServerRendering] = useState(false);
   const timeRef = useRef(time);
@@ -94,6 +100,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
   const viewSheets = validComparison && comparisonSide === 'after' ? validComparison.draft.sheets : state.sheets;
   const previewHost = useRef<HTMLDivElement>(null), session = useRef<CreativeSession | null>(null);
   const playingRef = useRef(false), audioContext = useRef<AudioContext | null>(null), audioNode = useRef<AudioBufferSourceNode | null>(null);
+  const playRequested = useRef(false), playbackRequest = useRef(0);
   const exportAbort = useRef<AbortController | null>(null), generation = useRef(0);
   const saveChain = useRef(Promise.resolve());
   const projectId = state.projectId!;
@@ -105,6 +112,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
   const [previewRevision, setPreviewRevision] = useState(0);
 
   function stop() {
+    playRequested.current = false; playbackRequest.current++;
     playingRef.current = false; setPlaying(false);
     try { audioNode.current?.stop(); } catch { /* already stopped */ }
     audioNode.current = null;
@@ -137,6 +145,34 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
       decorationOverrides: current.decorationOverrides, cuts: CutRegistry.empty(), behindActorOverrides: current.behindActorOverrides,
       projectId: current.projectId, videoLayout: current.video.layout });
   }
+  async function preview() {
+    stop(); setError('');
+    playRequested.current = true;
+    const current = session.current;
+    if (!current) return;
+    const request = playbackRequest.current;
+    try {
+      const context = audioContext.current ??= new AudioContext();
+      await context.resume();
+      const pcm = await current.prepareAudio();
+      if (session.current !== current || request !== playbackRequest.current || !playRequested.current) return;
+      const node = context.createBufferSource(); node.buffer = toAudioBuffer(pcm); node.connect(context.destination);
+      const start = timeRef.current >= duration - 0.04 ? 0 : timeRef.current;
+      const origin = context.currentTime - start;
+      audioNode.current = node; node.start(0, start); playingRef.current = true; setPlaying(true);
+      const tick = async () => {
+        if (!playingRef.current || session.current !== current || request !== playbackRequest.current) return;
+        const position = Math.min(duration - 0.00001, context.currentTime - origin);
+        try { await current.paint(position); }
+        catch (cause) { if (session.current === current && request === playbackRequest.current) { setError(errorText(cause)); stop(); } return; }
+        if (session.current !== current || request !== playbackRequest.current) return;
+        timeRef.current = position; setTime(position);
+        if (position >= duration - 0.04) { stop(); return; }
+        requestAnimationFrame(() => void tick());
+      };
+      await tick();
+    } catch (cause) { if (session.current === current && request === playbackRequest.current) { setError(errorText(cause)); stop(); } }
+  }
   useEffect(() => {
     if (busy) return;
     const token = ++generation.current;
@@ -156,6 +192,9 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         prepared.canvas.setAttribute('aria-label', 'Full reel preview');
         previewHost.current?.replaceChildren(prepared.canvas);
         timeRef.current = position; setTime(position); setPlaying(false); setReady(true);
+        // Font arrival can replace the session while audio is preparing.
+        // Keep the user's play intent, but never revive an explicit stop.
+        if (playRequested.current) void preview();
       })().catch(cause => { if (active && !abort.signal.aborted) setError(errorText(cause)); })
         .finally(() => { if (!active) prepared?.close(); });
     }, 250);
@@ -168,39 +207,11 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     };
     // Rebuild the shared caption plan whenever caption styling or individual overrides change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewProject, viewSheets, cuts, file, busy, previewRevision, previewSource, state.document, state.elementStyles, state.decorationOverrides, state.behindActorOverrides]);
-  useEffect(() => {
-    // A previously rendered download no longer represents the current caption styling.
-    const timer = window.setTimeout(() => setResult(null), 0);
-    return () => window.clearTimeout(timer);
-  }, [state.sheets, state.document, state.elementStyles, state.decorationOverrides, state.behindActorOverrides]);
+  }, [viewProject, viewSheets, cuts, file, busy, previewRevision, previewSource, previewDocumentLayout, state.elementStyles, state.decorationOverrides, state.behindActorOverrides]);
+  // Compare edit content, not derived document identities: font reflow must
+  // not remove a finished download. Actual edits still invalidate the result.
   useEffect(() => () => { exportAbort.current?.abort(); void audioContext.current?.close(); }, []);
 
-  async function preview() {
-    const current = session.current;
-    if (!current) return;
-    stop(); setError('');
-    try {
-      const context = audioContext.current ??= new AudioContext();
-      await context.resume();
-      const pcm = await current.prepareAudio();
-      if (session.current !== current) return;
-      const node = context.createBufferSource(); node.buffer = toAudioBuffer(pcm); node.connect(context.destination);
-      const start = time >= duration - 0.04 ? 0 : time;
-      const origin = context.currentTime - start;
-      audioNode.current = node; node.start(0, start); playingRef.current = true; setPlaying(true);
-      const tick = async () => {
-        if (!playingRef.current || session.current !== current) return;
-        const position = Math.min(duration - 0.00001, context.currentTime - origin);
-        try { await current.paint(position); }
-        catch (cause) { if (session.current === current && playingRef.current) setError(errorText(cause)); stop(); return; }
-        timeRef.current = position; setTime(position);
-        if (position >= duration - 0.04) { stop(); return; }
-        requestAnimationFrame(() => void tick());
-      };
-      await tick();
-    } catch (cause) { if (session.current === current) setError(errorText(cause)); stop(); }
-  }
   async function seek(value: number) {
     stop(); timeRef.current = value; setTime(value);
     try { await session.current?.paint(value); } catch (cause) { setError(errorText(cause)); }
@@ -254,6 +265,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     finally { await context.close(); setUploading(false); }
   }
   async function render(onServer = false) {
+    const renderState = editor.store.snapshot();
     stop(); setBusy(true); setServerRendering(onServer); setResult(null); setProgress(0); setError('');
     const abort = new AbortController(); exportAbort.current = abort;
     try {
@@ -267,14 +279,18 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         blob = await exporter.creativeRenderer.render({ original: file, project, cuts, plan: await plan() },
           { format, signal: abort.signal, onProgress: setProgress });
       }
-      if (!abort.signal.aborted) setResult(blob);
+      if (!abort.signal.aborted && blob) setResult({ blob, state: renderState, format });
     } catch (cause) { if (!abort.signal.aborted) setError(errorText(cause)); }
     finally { setBusy(false); setServerRendering(false); exportAbort.current = null; }
   }
   function download() {
-    if (!result) return;
-    const url = URL.createObjectURL(result), anchor = document.createElement('a');
-    anchor.href = url; anchor.download = `${file.name.replace(/\.[^.]+$/, '')}-reelstudio.${format}`; anchor.click();
+    if (!renderedResult) return;
+    const url = URL.createObjectURL(renderedResult.blob), anchor = document.createElement('a');
+    anchor.href = url; anchor.download = `${file.name.replace(/\.[^.]+$/, '')}-reelstudio.${renderedResult.format}`;
+    anchor.hidden = true;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
   function applyAutoEdit(draft: AutoEditDraft) {
@@ -313,8 +329,8 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         </div>}
         <div ref={previewHost} className="studio-preview-stage" />
         {!ready && !busy && <p className="text-xs text-fg-muted">Preparing full reel preview…</p>}
-        <input aria-label="Reel playhead" type="range" min="0" max={Math.max(0, duration - 0.001)} step="0.033333" value={time}
-          disabled={!ready || locked} onChange={event => void seek(Number(event.target.value))} />
+        <input aria-label="Reel playhead" type="range" min="0" max={Math.max(0, duration - 0.001)} step="any" value={time}
+          disabled={!ready || locked} onChange={event => void seek(Math.min(Math.max(0, duration - 0.001), Math.round(Number(event.target.value) * 30) / 30))} />
         <p className="text-xs text-fg-muted m-0">{time.toFixed(1)} / {duration.toFixed(1)}s · 30 fps · {viewProject.settings.portrait ? '1080 × 1920' : 'Original ratio, up to 1080 on the short side'}</p>
         <div className="flex gap-2 flex-wrap">
           <button className={BTN_SECONDARY} disabled={!ready || locked} onClick={() => playing ? stop() : void preview()}>{playing ? 'Stop preview' : 'Preview'}</button>
@@ -332,7 +348,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         {busy ? <><p role="status">{serverRendering ? 'Rendering on server…' : `Rendering ${progress.toFixed(0)}%`}</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}>Cancel export</button></>
           : <><button className={BTN_PRIMARY} disabled={editingLocked || duration < 0.1} onClick={() => void render()}>Render edited reel</button>
             {projects.cloudEnabled && exporter.serverReelExporter.enabled && !new URLSearchParams(window.location.search).has('serverRender') && <button className={BTN_SECONDARY} disabled={editingLocked || duration < 0.1} onClick={() => void render(true)}>Render on server</button>}</>}
-        {result && !validComparison && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
+        {renderedResult && !validComparison && <button className={BTN_PRIMARY} onClick={download}>Download reel</button>}
         </details>
       </div>
       <div className="studio-inspector" data-active-tool={activeTool}>

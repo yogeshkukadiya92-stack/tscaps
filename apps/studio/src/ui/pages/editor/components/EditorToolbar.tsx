@@ -92,6 +92,7 @@ export const EditorToolbar = memo(function EditorToolbar({
           disabled={!canRename}
           maxLength={projectNameRules.maxLength}
           onCommit={onRenameProject}
+          normalize={(name) => projectNameRules.clamp(name)}
         />
       </div>
       <div className="flex items-center gap-1">
@@ -154,6 +155,7 @@ interface NameInputProps {
   disabled: boolean;
   maxLength: number;
   onCommit: (name: string) => void;
+  normalize: (name: string) => string;
 }
 
 /**
@@ -164,7 +166,7 @@ interface NameInputProps {
  * Stays in sync with prop changes by re-syncing local state when
  * `value` changes from the outside while the input is not focused.
  */
-function NameInput({ value, disabled, maxLength, onCommit }: NameInputProps) {
+function NameInput({ value, disabled, maxLength, onCommit, normalize }: NameInputProps) {
   const cancelCommit = useRef(false);
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
@@ -176,7 +178,9 @@ function NameInput({ value, disabled, maxLength, onCommit }: NameInputProps) {
   }
 
   const commit = () => {
-    if (draft !== value) onCommit(draft);
+    const normalized = normalize(draft);
+    setDraft(normalized);
+    if (normalized !== value) onCommit(normalized);
   };
 
   return (

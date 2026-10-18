@@ -56,7 +56,7 @@ export function VideoRecoveryPrompt({
     >
       <div className="flex flex-col gap-2">
         <p className="text-sm text-fg-secondary leading-normal m-0">{explain(reason)}</p>
-        <p className="text-sm text-fg-secondary leading-normal m-0">
+        <p className="text-sm text-fg-secondary leading-normal m-0 [overflow-wrap:anywhere]">
           Re-select <strong className="text-fg-primary">{videoFileName}</strong> to keep editing — your
           captions and styles are intact.
         </p>

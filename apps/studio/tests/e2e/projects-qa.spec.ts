@@ -38,6 +38,17 @@ test('failed project listing stops loading and can recover without reloading', a
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
+test('missing cloud projects give account recovery advice instead of browser-only guidance', async ({ page }) => {
+  await setup(page, () => ({ json: [] }));
+  await page.goto('/project/00000000-0000-4000-8000-000000000000');
+  const dialog = page.getByRole('dialog', { name: "Couldn't open this project" });
+  await expect(dialog).toContainText("We couldn't find this project in your account.");
+  await expect(dialog).toContainText('Recently deleted');
+  await expect(dialog).not.toContainText('Projects stay in the browser');
+  await dialog.getByRole('button', { name: 'Back to projects' }).click();
+  await expect(page.getByRole('heading', { name: 'Your projects', exact: true })).toBeVisible();
+});
+
 test('project dashboard handles search, sort, list view and narrow screens', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

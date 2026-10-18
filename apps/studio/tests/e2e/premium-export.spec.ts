@@ -67,7 +67,7 @@ for (const id of ids) {
     page.on('pageerror', error => errors.push(error.message));
     const video = await readFile(resolve(output, 'source.mp4'));
     await bootEditorWithCaptions(page, video, document, { width: 720, height: 1280 });
-    await page.getByRole('tab', { name: 'Templates', exact: true }).click();
+    await page.getByRole('tab', { name: 'Choose style', exact: true }).click();
     await page.getByPlaceholder('Search templates').fill(config.name);
     const card = page.getByRole('button', { name: config.name, exact: true }).first();
     await card.click();

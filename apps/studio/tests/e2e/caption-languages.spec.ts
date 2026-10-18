@@ -9,7 +9,7 @@ test('premium styles preview Gujarati and Hindi with narration motion', async ({
   const words = ['તમારા', 'કૅપ્શન', 'સરસ', 'દેખાશે', 'आपके', 'कैप्शन', 'शानदार', 'दिखेंगे'];
   const document = { sections: [{ kind: 'main', segments: [{ lines: [{ words: words.map((text, i) => ({ text, start: i * 0.4, end: (i + 1) * 0.4 })) }] }] }] };
   await bootEditorWithCaptions(page, bytes, document);
-  await page.getByRole('tab', { name: 'Templates', exact: true }).click();
+  await page.getByRole('tab', { name: 'Choose style', exact: true }).click();
   const originalWords = await page.evaluate(() => window.__tscapsE2E!.documentWords().map(word => word.text));
   const languages = page.getByRole('group', { name: 'Caption preview language' });
   await languages.getByRole('button', { name: 'ગુજરાતી Gujarati' }).click();

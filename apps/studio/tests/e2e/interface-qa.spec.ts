@@ -53,6 +53,9 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   await name.fill('Confirmed project name');
   await name.press('Enter');
   await expect(name).toHaveValue('Confirmed project name');
+  await name.fill('  Confirmed project name  ');
+  await name.press('Enter');
+  await expect(name).toHaveValue('Confirmed project name');
   await name.fill('Another cancelled rename');
   await name.press('Escape');
   await expect(name).toHaveValue('Confirmed project name');
@@ -99,12 +102,46 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   await expect(dialog).toHaveCount(0);
 });
 
+test('failed save-and-leave keeps edits available and reports the failure on a small phone', async ({ page }) => {
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc);
+  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await page.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await expect(page.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
+  await page.getByRole('tab', { name: 'Captions', exact: true }).click();
+  const name = page.getByRole('textbox', { name: 'Project name', exact: true });
+  await name.fill('Untitled');
+  await name.press('Enter');
+  await name.fill('   ');
+  await name.press('Enter');
+  await expect(name).toHaveValue('Untitled');
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'projects') throw new DOMException('Test storage full', 'QuotaExceededError');
+      return put.apply(this, args);
+    };
+  });
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.getByRole('button', { name: 'Back to dashboard', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Unsaved changes', exact: true });
+  await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await dialog.getByRole('button', { name: 'Save and leave', exact: true }).click();
+  await expect(dialog.getByRole('alert')).toContainText("Your changes couldn't be saved.");
+  await expect(dialog.getByRole('button', { name: 'Save and leave', exact: true })).toBeEnabled();
+  await page.screenshot({ path: test.info().outputPath('save-failure-mobile.png') });
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(name).toHaveValue('Untitled');
+});
+
 test('caption sections remain reachable on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 844 });
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  for (const label of ['Templates', 'Transcript', 'Typography', 'Style', 'Position', 'Motion', 'Effects', 'Layout', 'Code']) {
+  for (const label of ['Choose style', 'Transcript', 'Typography', 'Colors', 'Position', 'Motion', 'Effects', 'Layout', 'Code']) {
     await page.getByRole('tablist', { name: 'Editor sections' }).getByRole('tab', { name: label, exact: true }).click();
     await expect(page.getByRole('tabpanel', { name: label, exact: true })).toBeVisible();
     await page.screenshot({ animations: 'disabled', path: test.info().outputPath(`section-${label}.png`) });

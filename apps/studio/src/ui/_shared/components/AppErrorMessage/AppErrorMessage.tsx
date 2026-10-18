@@ -9,6 +9,7 @@ import type { UnsupportedAudioCodecError } from '@core/videos/domain/errors/Unsu
 import type { UnsupportedVideoCodecError } from '@core/videos/domain/errors/UnsupportedVideoCodecError';
 import type { ProjectVideoStoreFailedError } from '@core/projects/domain/errors/ProjectVideoStoreFailedError';
 import type { OriginalVideoUnavailableError } from '@core/videos/domain/errors/OriginalVideoUnavailableError';
+import { useCloudAuth } from '@bootstrap/CloudAuthContext';
 
 /** Whether a body's bullets are attempts at a fix or places to look. */
 type SuggestionKind = 'try' | 'check';
@@ -94,7 +95,7 @@ export function useFailureReason(error: AppError): FailureReason {
  * answer. Neither remedy helps with the other.
  */
 function useOriginalVideoComesFromServer(): boolean {
-  return false;
+  return useCloudAuth().client !== null;
 }
 
 /**
@@ -535,6 +536,8 @@ function ProjectDeleteFailedBody(): ReactElement {
  * was never given, the other one the server no longer has.
  */
 function useMissingProjectLead(): string {
+  const { client } = useCloudAuth();
+  if (client) return "We couldn't find this project in your account. Check that you're signed in to the account that created it, or look in Recently deleted on your projects page.";
   return "We didn't find this project in this browser. Projects stay in the browser that created them, so a link to one does not open on another device or in another browser, and clearing site data removes them.";
 }
 

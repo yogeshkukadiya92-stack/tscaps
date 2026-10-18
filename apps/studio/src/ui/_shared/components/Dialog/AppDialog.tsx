@@ -75,7 +75,7 @@ const SIZE_CLASS: Record<AppDialogSize, string> = {
   xl: 'max-w-[880px]',
 };
 
-const TITLE = 'text-md font-semibold tracking-[-0.022em] text-fg-primary m-0';
+const TITLE = 'text-md font-semibold tracking-[-0.022em] text-fg-primary m-0 [overflow-wrap:anywhere]';
 const DESCRIPTION = 'text-sm text-fg-secondary leading-normal m-0 break-words';
 
 /**
@@ -124,7 +124,7 @@ export function AppDialog({
           {titleSrOnly ? (
             <Dialog.Title className="sr-only">{title}</Dialog.Title>
           ) : (
-            <Dialog.Title className={TITLE}>{title}</Dialog.Title>
+            <Dialog.Title className={`${TITLE} ${showCloseButton ? 'pr-7' : ''}`}>{title}</Dialog.Title>
           )}
           {description !== undefined && (
             <Dialog.Description className={DESCRIPTION}>{description}</Dialog.Description>

@@ -414,9 +414,11 @@ export function EditorHost({
   const canSave = state.projectId !== null && hasVideoLoaded;
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
 
   const requestBack = useCallback(() => {
     if (state.dirty) {
+      setLeaveError(null);
       setUnsavedDialogOpen(true);
       return;
     }
@@ -434,6 +436,7 @@ export function EditorHost({
   }, [onBack]);
 
   const saveAndLeave = useCallback(async () => {
+    setLeaveError(null);
     setLeaveBusy(true);
     setSaveStatus('saving');
     try {
@@ -444,6 +447,7 @@ export function EditorHost({
     } catch (err) {
       console.error('Save failed', err);
       setSaveStatus('error');
+      setLeaveError("Your changes couldn't be saved. Try Save and leave again, or close this dialog to keep editing.");
     } finally {
       setLeaveBusy(false);
     }
@@ -486,6 +490,7 @@ export function EditorHost({
             <LeaveWithUnsavedChangesDialog
               open={unsavedDialogOpen}
               saving={leaveBusy}
+              error={leaveError}
               onCancel={dismissUnsavedDialog}
               onLeaveWithoutSaving={leaveWithoutSaving}
               onSaveAndLeave={saveAndLeave}

@@ -47,7 +47,7 @@ test('administrator can inspect usage, filter, and review an audited limit chang
   expect(requests.some(request => 'target_id' in request)).toBe(false);
   await expect(page.getByRole('group', { name: 'Confirm account changes' })).toContainText('200 MB');
   await page.getByRole('button', { name: 'Confirm changes' }).click();
-  await expect(page.getByRole('status')).toContainText('Limits and credits updated');
+  await expect(page.getByRole('status').filter({ hasText: 'Limits and credits updated' })).toBeVisible();
   expect(requests.find(request => 'target_id' in request)).toMatchObject({ target_id: account.id, project_limit: 5, storage_limit_bytes: 209715200, credit_delta: 10, reason: 'Support allowance' });
   await page.getByRole('button', { name: 'Usage & limits' }).click();
   await page.getByLabel('Access policy').selectOption('complimentary');
@@ -60,14 +60,14 @@ test('administrator can inspect usage, filter, and review an audited limit chang
   expect(requests.some(request => 'access_mode' in request)).toBe(false);
   await expect(page.getByRole('group', { name: 'Confirm access change', exact: true })).toContainText('no expiry');
   await page.getByRole('button', { name: 'Confirm access change', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Access updated');
+  await expect(page.getByRole('status').filter({ hasText: 'Access updated' })).toBeVisible();
   expect(requests.find(request => 'access_mode' in request)).toMatchObject({ target_id: account.id, access_mode: 'complimentary', access_until: null });
   await page.getByRole('button', { name: 'Usage & limits' }).click();
   await page.getByRole('button', { name: 'Cancel renewal', exact: true }).click();
   await page.getByLabel('Reason for subscription action').fill('Customer asked to stop renewal');
   expect(requests.some(request => request.action === 'admin_cancel')).toBe(false);
   await page.getByRole('button', { name: 'Confirm cancellation', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Renewal cancellation confirmed');
+  await expect(page.getByRole('status').filter({ hasText: 'Renewal cancellation confirmed' })).toBeVisible();
   expect(requests.find(request => request.action === 'admin_cancel')).toMatchObject({ targetId: account.id, subscriptionId: 'sub_test123' });
   await page.getByLabel('Sort accounts').selectOption('storage');
   await expect.poll(() => requests.some(request => request.sort_by === 'storage')).toBe(true);

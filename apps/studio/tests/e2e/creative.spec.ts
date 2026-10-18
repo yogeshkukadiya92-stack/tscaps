@@ -26,11 +26,20 @@ async function selectEncodableFormat(page: Page, dialog: ReturnType<Page['getByR
   await picker.selectOption(format);
   return format;
 }
+async function openTool(workspace: ReturnType<Page['getByRole']>, name: string) {
+  await workspace.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name, exact: true }).click();
+  if (name === 'Auto Edit') {
+    const advanced = workspace.locator('details').filter({ hasText: 'Templates & advanced settings' });
+    if (await advanced.getAttribute('open') === null) await advanced.locator('summary').click();
+  }
+}
+
 async function openStudio(page: Page) {
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   const dialog = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await expect(page.getByRole('dialog', { name: 'Creative Studio' })).toHaveCount(0);
   await expect(dialog.getByRole('navigation', { name: 'Creative tools' })).toBeVisible();
@@ -71,17 +80,24 @@ test('creative settings, music, clips and B-roll survive a full project reload',
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   const { dialog, bytes } = await openStudio(page);
+  await openTool(dialog, 'Look');
   await dialog.getByRole('button', { name: 'Noir', exact: true }).click();
+  await openTool(dialog, 'Look');
   await dialog.getByRole('textbox', { name: 'Text', exact: true }).fill('Saved creative title');
+  await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'Clips');
   await dialog.getByLabel('Add clips', { exact: true }).setInputFiles({ name: 'extra.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-clip')).toHaveCount(2);
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'B-roll');
   await dialog.getByLabel('Add B-roll', { exact: true }).setInputFiles({ name: 'b-roll.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-overlay')).toHaveCount(1);
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'B-roll');
   await dialog.getByRole('button', { name: 'Picture-in-picture', exact: true }).click();
+  await openTool(dialog, 'Audio');
   await dialog.getByLabel('Voice cleanup · rumble filter & noise gate').check();
   await dialog.getByRole('button', { name: 'Save creative changes' }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
@@ -93,14 +109,19 @@ test('creative settings, music, clips and B-roll survive a full project reload',
   expect(saved.payload.creative.music.key).toContain('/creative/');
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled({ timeout: 30000 });
+  await openTool(dialog, 'Look');
   await expect(dialog.getByRole('textbox', { name: 'Text', exact: true })).toHaveValue('Saved creative title');
+  await openTool(dialog, 'Audio');
   await expect(dialog.getByText('music.wav', { exact: true })).toBeVisible();
   await expect(dialog.getByTestId('creative-clip')).toHaveCount(2);
   await expect(dialog.getByTestId('creative-overlay')).toHaveCount(1);
+  await openTool(dialog, 'Audio');
   await expect(dialog.getByLabel('Voice cleanup · rumble filter & noise gate')).toBeChecked();
   await dialog.getByRole('button', { name: 'Preview', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'Stop preview' })).toBeVisible();
+  await expect.poll(async () => Number(await dialog.getByLabel('Reel playhead', { exact: true }).inputValue())).toBeGreaterThan(0.1);
   await dialog.getByRole('button', { name: 'Stop preview' }).click();
   await page.screenshot({ path: '/tmp/reelstudio-creative-desktop.png' });
   expect(errors).toEqual([]);
@@ -109,20 +130,30 @@ test('creative settings, music, clips and B-roll survive a full project reload',
 test('unified export includes added clips, portrait FHD, captions and audible music', async ({ page }) => {
   test.setTimeout(180000);
   const { dialog, bytes, format } = await openStudio(page);
+  await openTool(dialog, 'Look');
   await dialog.getByLabel('Portrait canvas · 1080 × 1920').check();
+  await openTool(dialog, 'Look');
   await dialog.getByRole('textbox', { name: 'Text', exact: true }).fill('ONE FINAL EXPORT');
+  await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'Clips');
   await dialog.getByLabel('Add clips', { exact: true }).setInputFiles({ name: 'extra.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-clip')).toHaveCount(2);
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'B-roll');
   await dialog.getByLabel('Add B-roll', { exact: true }).setInputFiles({ name: 'b-roll.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-overlay')).toHaveCount(1);
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'B-roll');
   await dialog.getByRole('button', { name: 'Picture-in-picture', exact: true }).click();
+  await openTool(dialog, 'Clips');
   await dialog.getByLabel('Clip 1 end', { exact: true }).fill('0.5');
+  await openTool(dialog, 'Clips');
   await dialog.getByLabel('Clip 2 end', { exact: true }).fill('0.5');
+  await openTool(dialog, 'Audio');
   await dialog.getByRole('textbox', { name: 'Original audio value' }).fill('0');
+  await openTool(dialog, 'Audio');
   await dialog.getByRole('textbox', { name: 'Original audio value' }).press('Enter');
   await dialog.getByRole('button', { name: 'Render edited reel' }).click();
   await expect(dialog.getByRole('button', { name: 'Download reel' })).toBeVisible({ timeout: 120000 });
@@ -173,17 +204,23 @@ test('unsupported AAC explains MP4 failure and WebM still exports audible video'
 test('mobile split, reorder, undo, cancellation and music-only export', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const { dialog } = await openStudio(page);
+  await openTool(dialog, 'Clips');
   await dialog.getByRole('button', { name: 'Split', exact: true }).click();
   await expect(dialog.getByTestId('creative-clip')).toHaveCount(2);
   await dialog.getByTestId('creative-clip').nth(1).getByRole('button', { name: 'Move up' }).click();
   await expect(dialog.getByLabel('Clip 1 start', { exact: true })).toHaveValue('1');
   await dialog.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(dialog.getByLabel('Clip 1 start', { exact: true })).toHaveValue('0');
+  await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await openTool(dialog, 'Audio');
   await dialog.getByRole('textbox', { name: 'Original audio value' }).fill('0');
+  await openTool(dialog, 'Audio');
   await dialog.getByRole('textbox', { name: 'Original audio value' }).press('Enter');
+  await openTool(dialog, 'Timing');
   await dialog.getByRole('textbox', { name: 'Speed value' }).fill('2');
+  await openTool(dialog, 'Timing');
   await dialog.getByRole('textbox', { name: 'Speed value' }).press('Enter');
   await dialog.evaluate(el => { el.scrollTop = 0; });
   expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
@@ -204,6 +241,7 @@ test('mobile split, reorder, undo, cancellation and music-only export', async ({
 
 test('missing local music reports the file and replacement restores the saved project', async ({ page }) => {
   const { dialog } = await openStudio(page);
+  await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
   await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
   const saved = await storedProject(page);
@@ -216,7 +254,9 @@ test('missing local music reports the file and replacement restores the saved pr
   }, saved.payload.creative.music.key);
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(dialog.getByRole('alert')).toContainText('Missing media: music.wav');
+  await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await expect(dialog.getByRole('alert')).not.toBeVisible();
@@ -227,15 +267,15 @@ for (const name of ['Digital Zoom', 'Checklist', 'Phone Mockup', 'Headline Wall'
   test(`motion ${name}: preview matches encoded export and survives save`, async ({ page }) => {
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     const { dialog } = await openStudio(page);
-    if (name === 'Phone Mockup') await dialog.getByLabel('Portrait canvas · 1080 × 1920').check();
-    if (name === 'Zoom-through Cut') await dialog.getByRole('button', { name: 'Split', exact: true }).click();
+    if (name === 'Phone Mockup') { await openTool(dialog, 'Look'); await dialog.getByLabel('Portrait canvas · 1080 × 1920').check(); }
+    if (name === 'Zoom-through Cut') { await openTool(dialog, 'Clips'); await dialog.getByRole('button', { name: 'Split', exact: true }).click(); }
+    await openTool(dialog, 'Effects');
     await dialog.getByRole('button', { name: `Add ${name}`, exact: true }).click();
     await expect(dialog.getByTestId('motion-effect')).toHaveCount(1);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     const sampleTime = name === 'Zoom-through Cut' ? 0.9 : 0.7;
     const playhead = dialog.getByLabel('Reel playhead', { exact: true });
-    await playhead.press('Home');
-    for (let frame = 0; frame < Math.round(sampleTime * 30); frame++) await playhead.press('ArrowRight');
+    await playhead.fill(String(sampleTime));
     // Wait for asynchronous frame decoding and capture a full normalized pixel reference.
     await page.waitForTimeout(400);
     const previewPixels = await dialog.locator('canvas').evaluate((canvas: HTMLCanvasElement) => ({ width: canvas.width, height: canvas.height, pixels: Array.from(canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data) }));
@@ -259,19 +299,24 @@ for (const name of ['Digital Zoom', 'Checklist', 'Phone Mockup', 'Headline Wall'
     const saved = await storedProject(page);
     await page.goto(`/project/${saved.id}?e2e=1`);
     await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(dialog.getByTestId('motion-effect')).toHaveCount(1);
     await expect(dialog.getByTestId('motion-effect')).toContainText(name);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     if (name === 'Checklist') {
+      await openTool(dialog, 'Effects');
       await dialog.getByRole('button', { name: 'Preview effect', exact: true }).click();
       await page.waitForTimeout(300);
+      await openTool(dialog, 'Effects');
       await dialog.getByRole('heading', { name: 'Motion Effects', exact: true }).scrollIntoViewIfNeeded();
       await page.screenshot({ path: '/tmp/reelstudio-motion-effects-desktop.png', timeout: 10000 });
       await page.setViewportSize({ width: 390, height: 844 });
       // The editor remounts its panel when crossing the mobile breakpoint.
       await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+      await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
       await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
       expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      await openTool(dialog, 'Effects');
       await dialog.getByRole('heading', { name: 'Motion Effects', exact: true }).scrollIntoViewIfNeeded();
       await page.screenshot({ path: '/tmp/reelstudio-motion-effects-mobile.png', timeout: 10000 });
     }
@@ -286,37 +331,54 @@ for (const style of ['Clean', 'Energetic', 'Professional']) {
     const { dialog } = await openStudio(page);
     const panel = dialog.getByRole('region', { name: 'Auto Edit', exact: true });
     const wordsBefore = await page.evaluate(() => window.__tscapsE2E!.documentWords());
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('group', { name: 'Auto Edit style', exact: true }).getByRole('button', { name: new RegExp(`^${style}`) }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('button', { name: 'Apply auto edit', exact: true })).toBeEnabled();
     await expect(dialog.getByTestId('motion-effect')).toHaveCount(0);
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText(`${style} auto edit applied`);
     await expect(dialog.getByTestId('motion-effect')).toHaveCount(1);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     expect(await page.evaluate(() => window.__tscapsE2E!.documentWords())).toEqual(wordsBefore);
 
     await dialog.getByRole('button', { name: 'Undo', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('button', { name: 'Analyze auto edit', exact: true })).toBeVisible();
     await expect(dialog.getByTestId('motion-effect')).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Redo', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText(`${style} auto edit applied`);
 
+    await openTool(dialog, 'Effects');
     await dialog.getByLabel('Effect 1 start', { exact: true }).fill('0.3');
+    await openTool(dialog, 'Look');
     await dialog.getByRole('button', { name: 'Noir', exact: true }).click();
+    await openTool(dialog, 'Clips');
     await dialog.getByLabel('Clip 1 end', { exact: true }).fill('1.5');
     await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
     await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
     const saved = await storedProject(page);
     await page.goto(`/project/${saved.id}?e2e=1`);
     await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText(`${style} auto edit applied`);
+    await openTool(dialog, 'Effects');
     await expect(dialog.getByLabel('Effect 1 start', { exact: true })).toHaveValue('0.3');
+    await openTool(dialog, 'Clips');
     await expect(dialog.getByLabel('Clip 1 end', { exact: true })).toHaveValue('1.5');
+    await openTool(dialog, 'Look');
     await expect(dialog.getByRole('button', { name: 'Noir', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('button', { name: 'Analyze auto edit', exact: true })).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     if (style === 'Energetic') {
+      await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
       await panel.scrollIntoViewIfNeeded();
       await page.screenshot({ path: '/tmp/reelstudio-auto-edit-desktop.png' });
     }
@@ -332,23 +394,30 @@ test('Auto Edit detects real quiet audio and each generated pause cut can be adj
   ] }] }] }] };
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   const workspace = page.getByRole('region', { name: 'Creative Studio', exact: true });
   const panel = workspace.getByRole('region', { name: 'Auto Edit', exact: true });
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(panel.getByLabel('Auto Edit plan')).toContainText('1 pause cuts');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await expect(workspace.getByTestId('pause-cut')).toHaveCount(1);
   const start = workspace.getByLabel('Pause cut 1 start', { exact: true });
   const end = workspace.getByLabel('Pause cut 1 end', { exact: true });
   expect(Number(await start.inputValue())).toBeGreaterThan(0.8);
   expect(Number(await end.inputValue())).toBeLessThan(3.2);
+  await openTool(workspace, 'Timing');
   await start.fill('1.4');
   await workspace.getByRole('button', { name: 'Save creative changes', exact: true }).click();
   await expect(workspace.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   const saved = await storedProject(page);
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(start).toHaveValue('1.4');
+  await openTool(workspace, 'Timing');
   await workspace.getByRole('button', { name: 'Restore pause cut 1', exact: true }).click();
   await expect(workspace.getByTestId('pause-cut')).toHaveCount(0);
   await workspace.getByRole('button', { name: 'Undo', exact: true }).click();
@@ -368,13 +437,20 @@ for (const recipe of [
     if (recipe.id === 'business') await page.setViewportSize({ width: 390, height: 844 });
     const { dialog } = await openStudio(page);
     const panel = dialog.getByRole('region', { name: 'Auto Edit', exact: true });
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('searchbox', { name: 'Search reel templates' }).fill(recipe.name);
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: `Use ${recipe.name} template`, exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('group', { name: 'Auto Edit style', exact: true }).getByRole('button', { name: new RegExp(`^${recipe.style}`) })).toHaveAttribute('aria-pressed', 'true');
     if (recipe.id === 'bold-talk') await page.screenshot({ path: '/tmp/reelstudio-reel-templates.png' });
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByLabel('Auto Edit plan')).toContainText('1 caption styles');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText(`Template: ${recipe.name}`);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
@@ -384,6 +460,8 @@ for (const recipe of [
     expect(saved.payload.creative.autoEdit?.preset).toBe(recipe.id);
     await page.goto(`/project/${saved.id}?e2e=1`);
     await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText(`Template: ${recipe.name}`);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     if (recipe.id === 'quick-tips') {
@@ -403,8 +481,11 @@ for (const recipe of [
 
 async function chooseAutoStyle(workspace: ReturnType<Page['getByRole']>, name: string) {
   const panel = workspace.getByRole('region', { name: 'Auto Edit', exact: true });
+  await openTool(workspace, 'Auto Edit');
   await panel.getByRole('group', { name: 'Auto Edit style', exact: true }).getByRole('button', { name: new RegExp(`^${name}`) }).click();
+  await openTool(workspace, 'Auto Edit');
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+  await openTool(workspace, 'Auto Edit');
   await expect(panel.getByRole('button', { name: 'Apply auto edit', exact: true })).toBeEnabled();
   return panel;
 }
@@ -412,31 +493,44 @@ async function chooseAutoStyle(workspace: ReturnType<Page['getByRole']>, name: s
 test('saved Auto Edit styles can be replaced after reload while manual edits survive', async ({ page }) => {
   const { dialog } = await openStudio(page);
   let panel = await chooseAutoStyle(dialog, 'Clean');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   const saved = await storedProject(page);
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   panel = await chooseAutoStyle(dialog, 'Energetic');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await expect(dialog.getByTestId('motion-effect')).toHaveCount(1);
   await expect(dialog.getByLabel('Effect 1 intensity', { exact: true })).toHaveValue('0.3');
+  await openTool(dialog, 'Effects');
   await dialog.getByLabel('Effect 1 start', { exact: true }).fill('0.3');
+  await openTool(dialog, 'Look');
   await dialog.getByRole('button', { name: 'Noir', exact: true }).click();
+  await openTool(dialog, 'Clips');
   await dialog.getByLabel('Clip 1 end', { exact: true }).fill('1.5');
   await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   panel = await chooseAutoStyle(dialog, 'Professional');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
+  await openTool(dialog, 'Effects');
   await expect(dialog.getByLabel('Effect 1 start', { exact: true })).toHaveValue('0.3');
   await expect(dialog.getByLabel('Effect 1 intensity', { exact: true })).toHaveValue('0.3');
+  await openTool(dialog, 'Clips');
   await expect(dialog.getByLabel('Clip 1 end', { exact: true })).toHaveValue('1.5');
+  await openTool(dialog, 'Look');
   await expect(dialog.getByRole('button', { name: 'Noir', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(panel.getByRole('status')).toContainText('Professional auto edit applied');
   await dialog.getByRole('button', { name: 'Undo', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(panel.getByRole('status')).toContainText('Energetic auto edit applied');
 });
 
@@ -448,13 +542,13 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
     await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
     const savedBefore = await storedProject(page);
     const panel = await chooseAutoStyle(dialog, 'Energetic');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Preview before / after', exact: true }).click();
     const version = dialog.getByRole('group', { name: 'Preview version', exact: true });
     await expect(version.getByRole('button', { name: 'After', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     const playhead = dialog.getByLabel('Reel playhead', { exact: true });
-    await playhead.press('Home');
-    for (let i = 0; i < 30; i++) await playhead.press('ArrowRight');
+    await playhead.fill('1');
     const getPixels = () => dialog.locator('canvas').evaluate((canvas: HTMLCanvasElement) => Array.from(canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data));
     // Toggle once to wait for the canvas to paint the retained playhead during session preparation.
     await version.getByRole('button', { name: 'Before', exact: true }).click();
@@ -468,6 +562,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
     expect((await storedProject(page)).payload).toEqual(savedBefore.payload);
     await expect(page.getByRole('button', { name: 'Export', exact: true })).toBeDisabled();
     await expect(dialog.getByRole('button', { name: 'Render edited reel', exact: true })).toBeDisabled();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Discard draft', exact: true }).click();
     await expect(version).toHaveCount(0);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
@@ -479,19 +574,22 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
 test('preview retains its playhead after edits and clamps it when the reel is shortened', async ({ page }) => {
   const { dialog } = await openStudio(page);
   const playhead = dialog.getByLabel('Reel playhead', { exact: true });
-  await playhead.press('Home');
-  for (let i = 0; i < 36; i++) await playhead.press('ArrowRight');
+  await playhead.fill('1.2');
   const before = Number(await playhead.inputValue());
+  await openTool(dialog, 'Look');
   await dialog.getByRole('button', { name: 'Noir', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   expect(Math.abs(Number(await playhead.inputValue()) - before)).toBeLessThan(0.04);
   await page.getByRole('tab', { name: 'Captions', exact: true }).click();
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   expect(Math.abs(Number(await playhead.inputValue()) - before)).toBeLessThan(0.04);
+  await openTool(dialog, 'Effects');
   await dialog.getByRole('button', { name: 'Add Digital Zoom', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   expect(Math.abs(Number(await playhead.inputValue()) - before)).toBeLessThan(0.04);
+  await openTool(dialog, 'Clips');
   await dialog.getByLabel('Clip 1 end', { exact: true }).fill('0.8');
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   const clamped = Number(await playhead.inputValue());
@@ -501,9 +599,13 @@ test('preview retains its playhead after edits and clamps it when the reel is sh
 test('a different reel template can be previewed and applied after saving and reloading', async ({ page }) => {
   const { dialog } = await openStudio(page);
   const panel = dialog.getByRole('region', { name: 'Auto Edit', exact: true });
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('searchbox', { name: 'Search reel templates' }).fill('Bold Talking Head');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Use Bold Talking Head template', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
@@ -511,15 +613,22 @@ test('a different reel template can be previewed and applied after saving and re
   expect(saved.payload.sheets[0]!.templateId).toBe('scene-boldface');
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('searchbox', { name: 'Search reel templates' }).fill('Quick Tips');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Use Quick Tips template', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(panel.getByLabel('Auto Edit plan')).toContainText('1 caption styles');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Preview before / after', exact: true }).click();
   await expect(dialog.getByRole('group', { name: 'Preview version', exact: true })).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   expect((await storedProject(page)).payload.sheets[0]!.templateId).toBe('scene-boldface');
   await page.screenshot({ path: '/tmp/reelstudio-before-after-preview.png' });
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await expect(dialog.getByRole('group', { name: 'Preview version', exact: true })).toHaveCount(0);
   await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
@@ -544,8 +653,11 @@ for (const mobile of [false, true]) {
     await gallery.getByRole('group', { name: 'Template categories' }).getByRole('button', { name: 'All', exact: true }).click();
     await gallery.getByRole('searchbox').fill('arcade');
     await gallery.getByRole('button', { name: 'Use Arcade Pop template', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await panel.getByRole('button', { name: 'Auto edit reel', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText('Template: Arcade Pop');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByLabel('Auto Edit plan')).toHaveCount(0);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
@@ -555,6 +667,8 @@ for (const mobile of [false, true]) {
     expect(saved.payload.creative.autoEdit?.preset).toBe('arcade');
     await page.goto(`/project/${saved.id}?e2e=1`);
     await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
+    await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText('Template: Arcade Pop');
     expect(errors).toEqual([]);
   });
@@ -569,15 +683,22 @@ test('full editing pack applies lighting, elements, zooms and measured pause cut
   ] }] }] }] };
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   const panel = studio.getByRole('region', { name: 'Auto Edit', exact: true });
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Use Golden Story template', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(panel.getByLabel('Auto Edit plan')).toContainText('1 pause cuts');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await expect(panel.getByLabel('Auto Edit plan')).toContainText('2 lighting / elements');
+  await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await expect(studio.getByTestId('motion-effect')).toHaveCount(3);
   await expect(studio.getByLabel('Effect 3 title', { exact: true })).toHaveValue('Before After');
+  await openTool(studio, 'Effects');
   await studio.getByRole('button', { name: 'Preview effect', exact: true }).nth(1).click();
   await studio.getByRole('button', { name: 'Preview', exact: true }).click();
   await studio.getByRole('button', { name: 'Save creative changes', exact: true }).click();

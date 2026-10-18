@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useId, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
 import { useEditor } from '@ui/_shared/contexts/modules/EditorContext';
@@ -61,6 +61,8 @@ interface UploadListProps {
 
 function UploadList({ store, onCancel, onRetry }: UploadListProps) {
   const routes = useAppRoutes();
+  const [expanded, setExpanded] = useState(false);
+  const listId = useId();
   const statuses = useSyncExternalStore(
     listener => {
       store.addEventListener('change', listener);
@@ -69,11 +71,19 @@ function UploadList({ store, onCancel, onRetry }: UploadListProps) {
     () => store.statuses,
   );
   if (!statuses.length) return null;
+  const attention = statuses.filter(status => status.phase === 'failed' || status.phase === 'cancelled' || status.phase === 'ready').length;
   return <section aria-label="Video uploads" className="shrink-0 max-h-[35dvh] overflow-y-auto border-b border-edge-subtle bg-surface-1 px-3 py-2 lg:px-8">
+    <button type="button" aria-expanded={expanded} aria-controls={listId} onClick={() => setExpanded(value => !value)}
+      className="mx-auto flex w-full max-w-3xl items-center justify-between gap-2 rounded-sm text-left text-xs text-fg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+      <span>Video uploads ({statuses.length}){attention > 0 ? ` · ${attention} need attention` : ' · In progress'}</span>
+      <span className="shrink-0 text-accent">{expanded ? 'Hide' : 'Show'}</span>
+    </button>
+    <div id={listId} hidden={!expanded}>
     {statuses.map(status => <div key={status.key} className="mx-auto max-w-3xl"><VideoUploadCard status={status}
       onCancel={() => onCancel(status.key)} onRetry={() => onRetry(status.projectId)} />
       {status.persisted && <Link className="text-xs text-accent underline" to={routes.project(status.projectId)}>Open project</Link>}
     </div>)}
+    </div>
   </section>;
 }
 

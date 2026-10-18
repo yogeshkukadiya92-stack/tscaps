@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { bootTelemetry } from './telemetry';
-import type { TelemetryDependencies } from './telemetry';
+import { bootTelemetry } from '@bootstrap/wiring/telemetry';
+import type { TelemetryDependencies } from '@bootstrap/wiring/telemetry';
 
 const fixture = vi.hoisted(() => ({ client: null as unknown }));
 vi.mock('@core/auth/infrastructure/SupabaseClient', () => ({ getSupabaseClient: () => fixture.client }));

@@ -1,5 +1,5 @@
-import type { AutoEditOptions, AutoEditStyle } from './AutoEdit';
-import type { ReelPresetId } from './ReelPresets';
+import type { AutoEditOptions, AutoEditStyle } from '@core/creative/AutoEdit';
+import type { ReelPresetId } from '@core/creative/ReelPresets';
 
 /** Built-in recipes execute locally; downloaded agent skills are never executed in the browser. */
 export interface EditingSkill {

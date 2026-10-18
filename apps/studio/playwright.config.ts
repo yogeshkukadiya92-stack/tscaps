@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const port = Number(process.env['E2E_PORT'] ?? 4173);
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -15,7 +16,7 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 15_000 },
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: `http://localhost:${port}`,
     ...(process.env['E2E_BROWSER_CHANNEL'] ? { channel: process.env['E2E_BROWSER_CHANNEL'] } : {}),
     trace: 'on-first-retry',
   },
@@ -24,8 +25,8 @@ export default defineConfig({
   ],
   ...(process.env['E2E_SKIP_WEBSERVER'] === '1' ? {} : {
     webServer: {
-      command: 'pnpm preview --port 4173 --strictPort',
-      url: 'http://localhost:4173/',
+      command: `pnpm preview --port ${port} --strictPort`,
+      url: `http://localhost:${port}/`,
       timeout: 60_000,
       reuseExistingServer: !process.env['CI'],
       cwd: __dirname,
