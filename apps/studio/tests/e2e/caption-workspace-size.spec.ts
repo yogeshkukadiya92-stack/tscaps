@@ -41,4 +41,7 @@ test('portrait preview and caption style selection remain discoverable', async (
   await page.screenshot({ path: test.info().outputPath('caption-style-workspace.png') });
   await page.setViewportSize({ width: 1366, height: 768 });
   await expect(classic).toBeInViewport();
+  const beforeHelp = (await preview.boundingBox())!.height;
+  await page.getByText('How to make your reel', { exact: false }).click();
+  expect((await preview.boundingBox())!.height).toBeCloseTo(beforeHelp, 0);
 });

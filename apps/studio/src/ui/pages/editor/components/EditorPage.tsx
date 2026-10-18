@@ -290,11 +290,11 @@ export function EditorPage({
           canSave={canSave && !draftPreviewActive}
           onSave={onSave}
         />
-        <details className="w-full shrink-0 mb-2 rounded-md border border-edge-subtle bg-surface-1 text-xs text-fg-secondary">
+        <details className="relative w-full shrink-0 mb-2 rounded-md border border-edge-subtle bg-surface-1 text-xs text-fg-secondary">
           <summary className="cursor-pointer px-3 py-2 font-medium text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
             How to make your reel · <span lang="gu">રીલ કેવી રીતે બનાવવી?</span>
           </summary>
-          <div className="max-h-[25dvh] overflow-y-auto px-3 pb-3 leading-relaxed">
+          <div className="absolute left-0 right-0 top-full z-50 max-h-[50dvh] overflow-y-auto rounded-b-md border border-edge-subtle bg-surface-1 px-3 py-3 shadow-lg leading-relaxed">
             <ol className="list-decimal pl-4 space-y-2 m-0">
               <li><strong>Captions:</strong> correct the words and choose a design. <span lang="gu">શબ્દો સુધારો અને લખાણની ડિઝાઇન પસંદ કરો.</span></li>
               <li><strong>Creative:</strong> add music, images or effects, then press Save creative changes. <span lang="gu">સંગીત, ફોટો કે ઇફેક્ટ ઉમેરો. ફેરફાર રાખવા Save creative changes દબાવો.</span></li>
