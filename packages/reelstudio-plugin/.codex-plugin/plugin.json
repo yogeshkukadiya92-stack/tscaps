@@ -1,0 +1,14 @@
+{
+  "name": "reelstudio-desktop",
+  "version": "0.1.0",
+  "description": "Browse templates, Auto Edit reels, open previews and export finished videos.",
+  "skills": "./skills/",
+  "mcpServers": "./codex-mcp.json",
+  "requires_local_executor": true,
+  "interface": {
+    "displayName": "ReelStudio Desktop",
+    "shortDescription": "Auto Edit reels with 31 templates and export MP4",
+    "developerName": "ReelStudio",
+    "category": "Creative Tools"
+  }
+}

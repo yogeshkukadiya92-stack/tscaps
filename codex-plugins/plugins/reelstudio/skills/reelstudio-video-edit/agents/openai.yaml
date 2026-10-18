@@ -1,0 +1,4 @@
+interface:
+  display_name: "ReelStudio Video Edit"
+  short_description: "Edit reels, add captions, and export videos"
+  default_prompt: "Use $reelstudio-video-edit to help with my ReelStudio task."

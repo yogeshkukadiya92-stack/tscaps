@@ -1,0 +1,10 @@
+{
+  "name": "reelstudio-desktop-plugins",
+  "interface": { "displayName": "ReelStudio Desktop" },
+  "plugins": [{
+    "name": "reelstudio-desktop",
+    "source": { "source": "local", "path": "./packages/reelstudio-plugin" },
+    "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+    "category": "Creative Tools"
+  }]
+}

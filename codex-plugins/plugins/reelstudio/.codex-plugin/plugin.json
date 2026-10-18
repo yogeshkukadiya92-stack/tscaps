@@ -1,0 +1,26 @@
+{
+  "name": "reelstudio",
+  "version": "1.0.0",
+  "description": "Develop ReelStudio, design animated caption templates, and edit videos in its browser studio.",
+  "skills": "./skills/",
+  "keywords": [
+    "reelstudio",
+    "video",
+    "captions",
+    "hinglish"
+  ],
+  "interface": {
+    "displayName": "ReelStudio",
+    "shortDescription": "Build ReelStudio and edit reels with animated captions",
+    "developerName": "ReelStudio",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Use ReelStudio to edit my video and add Roman Hinglish captions."
+    ]
+  }
+}

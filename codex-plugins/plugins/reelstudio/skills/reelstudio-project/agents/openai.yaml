@@ -1,0 +1,4 @@
+interface:
+  display_name: "ReelStudio Project"
+  short_description: "Develop and debug the ReelStudio editor"
+  default_prompt: "Use $reelstudio-project to help with my ReelStudio task."

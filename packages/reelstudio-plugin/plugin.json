@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "reelstudio-desktop",
+  "version": "0.1.0",
+  "description": "Browse reel templates, Auto Edit an existing project, open its preview and export a finished video in the ReelStudio desktop browser.",
+  "author": { "name": "ReelStudio" },
+  "keywords": ["reels", "video", "auto-edit", "captions"],
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "ReelStudio Desktop",
+        "shortDescription": "Auto Edit reels with 31 templates and export MP4",
+        "developerName": "ReelStudio",
+        "category": "Creative Tools",
+        "defaultPrompt": ["Show ReelStudio templates and help me Auto Edit my existing reel."]
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "reelstudio-desktop-plugins",
+  "owner": {
+    "name": "ReelStudio"
+  },
+  "plugins": [
+    {
+      "name": "reelstudio-desktop",
+      "source": "./packages/reelstudio-plugin",
+      "description": "31 editable reel recipes, Auto Edit, preview and video export.",
+      "version": "0.1.0"
+    }
+  ],
+  "description": "Editable ReelStudio templates, Auto Edit, preview and video export for desktop assistants."
+}

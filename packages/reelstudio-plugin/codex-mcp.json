@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "reelstudio": {
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/dist/index.mjs"]
+    }
+  }
+}

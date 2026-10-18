@@ -1,0 +1,11 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { pluginConfig, PLAYWRIGHT_VERSION } from '../server/config.mjs';
+const { dataDir } = pluginConfig();
+if (Number(process.versions.node.split('.')[0]) < 22) throw new Error('Install Node.js 22 or newer.');
+await mkdir(dataDir, { recursive: true, mode: 0o700 });
+await writeFile(`${dataDir}/package.json`, JSON.stringify({ name: 'reelstudio-plugin-runtime', private: true, version: '0.1.0' }) + '\n', { mode: 0o600 });
+console.log(`Installing the pinned browser runtime into ${dataDir}. This uses your installed Google Chrome; no Chrome profile is imported.`);
+const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', '--prefix', dataDir, '--ignore-scripts', '--no-audit', '--no-fund', `playwright@${PLAYWRIGHT_VERSION}`], { stdio: 'inherit', shell: false });
+child.on('error', error => { console.error(error.message); process.exitCode = 1; });
+child.on('exit', code => { process.exitCode = code ?? 1; if (code === 0) console.log('Ready. Install the plugin, restart Claude/Codex and call open_project. Sign in only inside its browser.'); });

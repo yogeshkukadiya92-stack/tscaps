@@ -1,0 +1,4 @@
+interface:
+  display_name: "ReelStudio Caption Template"
+  short_description: "Create animated caption looks for ReelStudio"
+  default_prompt: "Use $reelstudio-caption-template to help with my ReelStudio task."

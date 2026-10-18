@@ -22,3 +22,7 @@ templates/*/animations.build.json
 templates/*/fonts.build.json
 templates/_lib/animation/presets.build.json
 
+
+# Local media, QA evidence and browser test output; kept outside source releases.
+/output/
+/apps/studio/.playwright-*/

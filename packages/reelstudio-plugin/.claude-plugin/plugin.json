@@ -1,0 +1,12 @@
+{
+  "name": "reelstudio-desktop",
+  "version": "0.1.0",
+  "description": "Browse 31 reel templates, Auto Edit existing ReelStudio projects, open previews and export MP4 or WebM.",
+  "author": { "name": "ReelStudio" },
+  "mcpServers": {
+    "reelstudio": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/index.mjs"]
+    }
+  }
+}
