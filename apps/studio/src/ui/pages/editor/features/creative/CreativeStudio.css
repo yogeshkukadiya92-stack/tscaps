@@ -74,7 +74,18 @@
 .studio-track-playhead { position: absolute; width: 2px; height: 30px; background: #eef1f7; pointer-events: none; }
 .studio-timeline footer { display: flex; flex-wrap: wrap; gap: 20px; font-size: 9px; color: #949fb2; margin-top: 10px; }
 .studio-timeline footer > :last-child { color: #70c9ae; }
-@media (min-width: 1200px) and (min-height: 850px) { .studio-workbench { min-height: 0; } .studio-library, .studio-inspector { max-height: none; height: 100%; } .studio-monitor { overflow-y: auto; } }
+/* Keep desktop scrolling inside each panel. Scrolling the entire studio to
+   reach the timeline used to move tool and monitor headings out of view. */
+@media (min-width: 1200px) {
+  .professional-studio { overflow: hidden; }
+  .studio-title { flex-shrink: 0; }
+  .studio-workbench { min-height: 0; flex: 1 1 0; grid-template-rows: minmax(0, 1fr); }
+  .studio-tool-rail, .studio-library, .studio-inspector, .studio-monitor {
+    min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior-y: contain;
+  }
+  .studio-preview-stage { position: relative; flex: 1 0 180px; }
+  .studio-preview-canvas { position: absolute; inset: 0; max-height: 100%; }
+}
 @media (max-width: 1199px) { .studio-workbench { grid-template-columns: 60px 210px minmax(220px,1fr); } .studio-inspector { grid-column: 2 / -1; max-height: none; } }
 @media (max-width: 760px) {
   .studio-workbench { display: flex; flex-direction: column; min-height: 0; }
