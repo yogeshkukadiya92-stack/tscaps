@@ -25,8 +25,8 @@ function ResizeHandle({ vertical = false }: { vertical?: boolean }) {
 export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, library, timeline }: DesktopEditorLayoutProps) {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const workspaceHeight = useObservedHeightPx(workspaceRef);
-  // Reserve pixels for the heading, toolbar, ruler and a complete caption row.
-  const timelineMinPercent = workspaceHeight > 0 ? Math.min(70, Math.ceil(220 / Math.max(1, workspaceHeight - 8) * 100)) : 40;
+  // Keep several caption rows readable while the surrounding workspace scrolls.
+  const timelineMinPercent = workspaceHeight > 0 ? Math.min(70, Math.ceil(340 / Math.max(1, workspaceHeight - 8) * 100)) : 40;
   const rowsRef = useRef<ImperativePanelGroupHandle>(null);
   const previousRows = useRef<number[]>([60, 40]);
   const [timelineExpanded, setTimelineExpanded] = useState(false);
@@ -54,9 +54,10 @@ export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, libra
       </Panel>
       <ResizeHandle />
       <Panel defaultSize={70} minSize={55}>
-        <div ref={workspaceRef} className="h-full min-h-0">
-        <PanelGroup ref={rowsRef} direction="vertical" autoSaveId="reelstudio:caption-workspace-v3" onLayout={sizes => setTimelineExpanded(sizes[0] === 0)} className="w-full flex-1 min-h-0">
-          <Panel defaultSize={60} minSize={25} collapsible collapsedSize={0}>
+        <div className="h-full overflow-y-auto pr-1" aria-label="Caption workspace panels">
+        <div ref={workspaceRef} className="h-full min-h-[900px]">
+        <PanelGroup ref={rowsRef} direction="vertical" autoSaveId="reelstudio:caption-workspace-v4" onLayout={sizes => setTimelineExpanded(sizes[0] === 0)} className="w-full flex-1 min-h-0">
+          <Panel defaultSize={60} minSize={50} collapsible collapsedSize={0}>
             <section aria-label="Design settings" className={panelClass}>
               <div className={headingClass}>
                 <h2 className="m-0 flex items-center gap-2 text-xs"><SlidersHorizontal size={15} />Design & captions</h2>
@@ -82,6 +83,7 @@ export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, libra
             </section>
           </Panel>
         </PanelGroup>
+        </div>
         </div>
       </Panel>
     </PanelGroup>

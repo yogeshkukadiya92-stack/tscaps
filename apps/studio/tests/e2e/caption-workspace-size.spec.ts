@@ -56,8 +56,25 @@ test('short laptop screens reserve room for a complete caption timeline row', as
   const timeline = page.getByRole('region', { name: 'Project timeline', exact: true });
   await expect.poll(async () => (await timeline.boundingBox())!.height).toBeGreaterThanOrEqual(218);
   const word = timeline.getByText('from', { exact: true }).first();
+  await word.scrollIntoViewIfNeeded();
   await expect(word).toBeInViewport({ ratio: 1 });
   await page.screenshot({ path: test.info().outputPath('laptop-timeline.png') });
   await page.setViewportSize({ width: 1366, height: 768 });
+  await word.scrollIntoViewIfNeeded();
   await expect(word).toBeInViewport({ ratio: 1 });
+});
+
+
+test('both caption panels keep generous height on a laptop', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc, { width: 1080, height: 1920 });
+  const design = page.getByRole('region', { name: 'Design settings' });
+  const timeline = page.getByRole('region', { name: 'Project timeline', exact: true });
+  expect((await design.boundingBox())!.height).toBeGreaterThan(500);
+  expect((await timeline.boundingBox())!.height).toBeGreaterThan(320);
+  await timeline.scrollIntoViewIfNeeded();
+  await expect(timeline).toBeInViewport({ ratio: 0.99 });
+  await expect(page.getByRole('region', { name: 'Video preview', exact: true })).toBeInViewport();
 });
