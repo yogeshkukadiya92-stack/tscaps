@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Check, Star, Trash2, Pencil } from 'lucide-react';
+import { Star, Trash2, Pencil } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
 import { TemplatePreviewFrame } from '@ui/_shared/components/TemplatePreview/TemplatePreviewFrame';
 import { TemplateNewBadge } from '@ui/pages/editor/components/template/TemplateNewBadge';
@@ -42,11 +42,6 @@ const FRAME_SELECTED = 'border-accent';
 const FRAME_IDLE =
   'border-edge-subtle hover:border-edge-strong focus-visible:border-accent ' +
   'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40';
-const ACTIVE_BADGE =
-  'absolute bottom-1 left-1 inline-flex items-center justify-center w-4 h-4 rounded-full ' +
-  'bg-accent text-fg-on-accent pointer-events-none';
-
-
 export const TemplateCard = memo(function TemplateCard({
   template,
   isSelected,
@@ -85,16 +80,11 @@ export const TemplateCard = memo(function TemplateCard({
           onHoverLost={onHoverLost}
           aspectClass="aspect-[4/2]"
         />
-        <span className="w-full px-2 py-1.5 text-left text-xs text-fg-secondary">{template.metadata.name}</span>
+        <span className="w-full px-2 py-1.5 text-left text-xs text-fg-secondary">{template.metadata.name}<span className="block mt-1 text-accent">{isSelected ? '✓ Applied' : 'Apply style'}</span></span>
       </button>
 
       {isNew && <TemplateNewBadge />}
 
-      {isSelected && (
-        <span className={ACTIVE_BADGE}>
-          <Check size={10} strokeWidth={3} />
-        </span>
-      )}
 
       <button
         type="button"

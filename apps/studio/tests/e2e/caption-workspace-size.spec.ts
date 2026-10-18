@@ -22,3 +22,23 @@ test('caption timeline expands and restores without losing caption content', asy
   await expect.poll(async () => Math.abs((await timeline.boundingBox())!.height - before.height)).toBeLessThan(4);
   expect(await page.evaluate(() => window.__tscapsE2E!.documentWords())).toEqual(wordsBefore);
 });
+
+test('portrait preview and caption style selection remain discoverable', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc, { width: 1080, height: 1920 });
+  await page.getByRole('tab', { name: 'Captions', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Choose caption style' })).toBeVisible();
+  const settings = page.getByRole('region', { name: 'Design settings' });
+  const classic = settings.getByRole('button', { name: 'Classic', exact: true });
+  await expect(classic).toBeInViewport();
+  await classic.click();
+  await expect(classic).toHaveAttribute('aria-pressed', 'true');
+  await expect(settings.getByRole('status')).toContainText('Classic');
+  const preview = page.getByRole('region', { name: 'Video preview', exact: true });
+  expect((await preview.boundingBox())!.height).toBeGreaterThan(450);
+  await page.screenshot({ path: test.info().outputPath('caption-style-workspace.png') });
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await expect(classic).toBeInViewport();
+});

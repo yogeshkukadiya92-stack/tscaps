@@ -43,7 +43,7 @@ interface TemplateSelectorProps {
 // matches the gap between families: the search is a peer of the section
 // headers, not a lid on the first one.
 const HEADER_TO_SEARCH_PADDING = 'pt-2';
-const SEARCH_TO_BODY_GAP = 'gap-6';
+const SEARCH_TO_BODY_GAP = 'gap-2';
 // Families are separated by a hairline rather than by more space: at
 // 24px the gap was already the widest in the panel and still did not
 // read, because a section's header carries the same weight as every

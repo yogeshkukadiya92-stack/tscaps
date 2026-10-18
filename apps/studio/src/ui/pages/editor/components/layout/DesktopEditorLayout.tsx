@@ -21,64 +21,63 @@ function ResizeHandle({ vertical = false }: { vertical?: boolean }) {
   </PanelResizeHandle>;
 }
 
-/** A persistent three-pane workspace above a full-width, resizable timeline. */
+/** Keep the preview visible beside the design controls and caption timeline. */
 export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, library, timeline }: DesktopEditorLayoutProps) {
   const rowsRef = useRef<ImperativePanelGroupHandle>(null);
-  const previousRows = useRef<number[]>([58, 42]);
+  const previousRows = useRef<number[]>([72, 28]);
   const [timelineExpanded, setTimelineExpanded] = useState(false);
   function toggleTimeline() {
     if (timelineExpanded) rowsRef.current?.setLayout(previousRows.current);
     else {
-      previousRows.current = rowsRef.current?.getLayout() ?? [58, 42];
+      previousRows.current = rowsRef.current?.getLayout() ?? [72, 28];
       rowsRef.current?.setLayout([0, 100]);
     }
   }
   const controlsRef = useRef<HTMLDivElement>(null);
   const controlsHeight = useObservedHeightPx(controlsRef);
   return (
-    <PanelGroup ref={rowsRef} direction="vertical" autoSaveId="reelstudio:studio-rows-v2" onLayout={sizes => setTimelineExpanded(sizes[0] === 0)} className="w-full flex-1 min-h-0">
-      <Panel defaultSize={58} minSize={25} collapsible collapsedSize={0}>
-        <PanelGroup direction="horizontal" autoSaveId="reelstudio:studio-columns-v2">
-          <Panel defaultSize={17} minSize={12} maxSize={25}>
-            <section aria-label="Project library" className={panelClass}>
-              <h2 className={headingClass}><FolderOpen size={15} />Project</h2>
-              <div className="flex-1 min-h-0 overflow-y-auto p-3">{library}</div>
-            </section>
-          </Panel>
-          <ResizeHandle />
-          <Panel defaultSize={49} minSize={30}>
-            <section aria-label="Video preview" className={panelClass}>
-              <h2 className={headingClass}><MonitorPlay size={15} />Preview<span className="ml-auto text-fg-muted font-normal">Click video to play</span></h2>
-              <div className="flex-1 min-h-0 p-3">
-                <div className="h-full flex flex-col items-center justify-center min-h-0 gap-3 [container-type:size]" style={{ ['--playback-controls-h' as string]: `${controlsHeight}px` }}>
-                  {videoBox}
-                  <div ref={controlsRef} className="w-full shrink-0">{playbackControls}</div>
-                </div>
-              </div>
-            </section>
-          </Panel>
-          <ResizeHandle />
-          <Panel defaultSize={34} minSize={28} maxSize={50}>
+    <PanelGroup direction="horizontal" autoSaveId="reelstudio:side-preview-v1" className="w-full flex-1 min-h-0">
+      <Panel defaultSize={30} minSize={24} maxSize={45}>
+        <section aria-label="Video preview" className={panelClass}>
+          <h2 className={headingClass}><MonitorPlay size={15} />Preview<span className="ml-auto text-fg-muted font-normal">Click video to play</span></h2>
+          <div className="flex-1 min-h-0 p-3">
+            <div className="h-full flex flex-col items-center justify-center min-h-0 gap-3 [container-type:size]" style={{ ['--playback-controls-h' as string]: `${controlsHeight}px` }}>
+              {videoBox}
+              <div ref={controlsRef} className="w-full shrink-0">{playbackControls}</div>
+            </div>
+          </div>
+        </section>
+      </Panel>
+      <ResizeHandle />
+      <Panel defaultSize={70} minSize={55}>
+        <PanelGroup ref={rowsRef} direction="vertical" autoSaveId="reelstudio:caption-workspace-v2" onLayout={sizes => setTimelineExpanded(sizes[0] === 0)} className="w-full flex-1 min-h-0">
+          <Panel defaultSize={72} minSize={25} collapsible collapsedSize={0}>
             <section aria-label="Design settings" className={panelClass}>
-              <h2 className={headingClass}><SlidersHorizontal size={15} />Design & captions</h2>
+              <div className={headingClass}>
+                <h2 className="m-0 flex items-center gap-2 text-xs"><SlidersHorizontal size={15} />Design & captions</h2>
+                <details className="relative ml-auto">
+                  <summary className="cursor-pointer flex items-center gap-1"><FolderOpen size={14} />Project info</summary>
+                  <div className="absolute right-0 top-7 z-50 w-72 max-h-80 overflow-y-auto rounded-lg border border-edge-subtle bg-surface-1 p-3 shadow-lg">{library}</div>
+                </details>
+              </div>
               <div className="flex-1 min-h-0 p-2">{sidebar}</div>
             </section>
           </Panel>
+          <ResizeHandle vertical />
+          <Panel defaultSize={28} minSize={20} maxSize={100}>
+            <section aria-label="Project timeline" className={panelClass}>
+              <div className={`${headingClass} flex-wrap`}>
+                <h2 className="m-0 flex items-center gap-2 text-xs font-semibold"><AudioWaveform size={15} />Caption timeline</h2>
+                <span className="ml-auto font-normal text-fg-muted">Select a caption to adjust its timing</span>
+                <button type="button" className={BTN_SECONDARY_SM} aria-pressed={timelineExpanded} onClick={toggleTimeline}>
+                  {timelineExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  {timelineExpanded ? 'Restore editor layout' : 'Expand caption timeline'}
+                </button>
+              </div>
+              <div className="flex-1 min-h-0">{timeline}</div>
+            </section>
+          </Panel>
         </PanelGroup>
-      </Panel>
-      <ResizeHandle vertical />
-      <Panel defaultSize={42} minSize={25} maxSize={100}>
-        <section aria-label="Project timeline" className={panelClass}>
-          <div className={`${headingClass} flex-wrap`}>
-            <h2 className="m-0 flex items-center gap-2 text-xs font-semibold"><AudioWaveform size={15} />Caption timeline</h2>
-            <span className="ml-auto font-normal text-fg-muted">Select a caption to adjust its timing</span>
-            <button type="button" className={BTN_SECONDARY_SM} aria-pressed={timelineExpanded} onClick={toggleTimeline}>
-              {timelineExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-              {timelineExpanded ? 'Restore editor layout' : 'Expand caption timeline'}
-            </button>
-          </div>
-          <div className="flex-1 min-h-0">{timeline}</div>
-        </section>
       </Panel>
     </PanelGroup>
   );

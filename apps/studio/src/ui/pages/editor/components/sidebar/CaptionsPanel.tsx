@@ -55,7 +55,7 @@ interface RailEntry {
   icon: ReactNode;
 }
 
-// Labeled tools sit above their content. Desktop wraps them into rows;
+// Labeled tools sit above their content in one compact row;
 // phones retain a horizontally scrollable rail with native keyboard access.
 const RAIL_TAB_CLASS =
   'shrink-0 min-w-16 px-2 py-2 flex flex-col items-center justify-center gap-1 rounded-lg bg-transparent border-none cursor-pointer ' +
@@ -68,7 +68,7 @@ const RAIL_TAB_LABEL_CLASS =
   'text-3xs font-medium leading-none tracking-tighter whitespace-nowrap';
 
 const RAIL_LIST_CLASS =
-  'order-first flex flex-row lg:flex-wrap gap-1 p-2 border-b border-edge-subtle ' +
+  'order-first flex flex-row flex-nowrap gap-1 p-2 border-b border-edge-subtle ' +
   'shrink-0 bg-surface-0 overflow-x-auto';
 
 // One vertical card at every breakpoint; the tab rail is visually first.
@@ -86,10 +86,10 @@ const SIDEBAR_CONTENT_CLASS =
 const ICON_SIZE = 18;
 
 const RAIL: RailEntry[] = [
-  { id: 'templates',  label: 'Templates',  icon: <LayoutTemplate    size={ICON_SIZE} /> },
+  { id: 'templates',  label: 'Choose style',  icon: <LayoutTemplate    size={ICON_SIZE} /> },
   { id: 'transcript', label: 'Transcript', icon: <Subtitles         size={ICON_SIZE} /> },
   { id: 'typography', label: 'Typography', icon: <Type              size={ICON_SIZE} /> },
-  { id: 'style',      label: 'Style',      icon: <Palette           size={ICON_SIZE} /> },
+  { id: 'style',      label: 'Colors',      icon: <Palette           size={ICON_SIZE} /> },
   { id: 'position',   label: 'Position',   icon: <Move              size={ICON_SIZE} /> },
   { id: 'motion',     label: 'Motion',     icon: <Orbit             size={ICON_SIZE} /> },
   { id: 'effects',    label: 'Effects',    icon: <Sparkles          size={ICON_SIZE} /> },

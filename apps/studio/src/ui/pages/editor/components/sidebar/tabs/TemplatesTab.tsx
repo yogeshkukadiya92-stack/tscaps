@@ -203,7 +203,9 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
   );
 
   return (
-    <EditorTab title="Templates" sheetScope={sheetScope} headerAction={headerAction}>
+    <EditorTab title="Choose caption style" headerAction={headerAction}>
+      <p className="mt-1 mb-2 text-sm text-fg-secondary">Click a style to apply · નીચે style પસંદ કરો અને Previewમાં જુઓ.</p>
+      <p className="mb-3 text-xs text-accent" role="status">Applied to {sheetScope.activeSheet.name}: <strong>{sheetScope.activeSheet.template.metadata.name}</strong></p>
       <TemplateSelector
         templates={templates}
         userTemplates={userTemplates}
@@ -214,6 +216,11 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
         library={library}
         sectionAdornments={sectionAdornments}
       />
+
+      <details className="mt-4">
+        <summary className="cursor-pointer text-xs text-fg-secondary">Manage caption sheets</summary>
+        <EditorTab title="Caption sheets" hideTitleRow sheetScope={sheetScope}>{null}</EditorTab>
+      </details>
 
       <PromptDialog
         open={saveDialogOpen}
