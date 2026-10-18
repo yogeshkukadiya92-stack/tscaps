@@ -20,7 +20,7 @@ import { cellPieceStyle, pointerOrigin } from '@ui/pages/editor/features/timelin
 // them cannot draw narrower than their sum.
 const WORD_CHIP_CLASS =
   'flex items-center border overflow-hidden '
-  + 'text-xs font-medium '
+  + 'text-sm font-medium '
   + 'transition-colors duration-quick ease-standard';
 
 const LIVE_CHIP_CLASS = 'cursor-grab active:cursor-grabbing';

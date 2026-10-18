@@ -23,7 +23,7 @@ export interface TimelineRowGeometry {
   readonly waveformHeightPx: number;
 }
 
-const CHIP_HEIGHT_PX = 29;
+const CHIP_HEIGHT_PX = 40;
 const CHANNEL_RING_PX = 1;
 
 /** Bare channel showing past everything it holds, top and bottom. */
