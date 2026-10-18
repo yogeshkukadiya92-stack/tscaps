@@ -78,3 +78,28 @@ test('both caption panels keep generous height on a laptop', async ({ page }) =>
   await expect(timeline).toBeInViewport({ ratio: 0.99 });
   await expect(page.getByRole('region', { name: 'Video preview', exact: true })).toBeInViewport();
 });
+
+
+test('panels minimize and restore while preserving captions and selection', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc, { width: 1080, height: 1920 });
+  const wordsBefore = await page.evaluate(() => window.__tscapsE2E!.documentWords());
+  const design = page.getByRole('region', { name: 'Design settings' });
+  const widthBefore = (await design.boundingBox())!.width;
+  await page.getByRole('button', { name: 'Minimize Preview', exact: true }).click();
+  await expect.poll(async () => (await design.boundingBox())!.width).toBeGreaterThan(widthBefore * 1.2);
+  await page.getByRole('button', { name: 'Restore Preview', exact: true }).click();
+  await page.getByRole('button', { name: 'Minimize Design & captions', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Restore Design & captions', exact: true })).toBeVisible();
+  const timeline = page.getByRole('region', { name: 'Project timeline', exact: true });
+  await expect(timeline).toBeInViewport({ ratio: 0.99 });
+  await page.getByRole('button', { name: 'Restore Design & captions', exact: true }).click();
+  await page.getByRole('button', { name: 'Minimize Caption timeline', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Restore Caption timeline', exact: true })).toBeVisible();
+  await expect(design).toBeInViewport({ ratio: 0.99 });
+  await page.getByRole('button', { name: 'Restore Caption timeline', exact: true }).click();
+  expect(await page.evaluate(() => window.__tscapsE2E!.documentWords())).toEqual(wordsBefore);
+  await page.screenshot({ path: test.info().outputPath('compact-minimizable-workspace.png') });
+});

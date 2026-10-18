@@ -73,7 +73,7 @@ export const EditorToolbar = memo(function EditorToolbar({
   const theme = useTheme();
   const dashboardAvailable = useAppExit() === null;
   return (
-    <div className="w-full flex items-center gap-1 lg:gap-3 px-1 pt-0.5 pb-1 lg:pt-1 lg:pb-2.5 mb-1 lg:mb-3 border-b border-edge-subtle shrink-0">
+    <div className="w-full flex items-center gap-1 lg:gap-3 px-1 pt-0.5 pb-1 lg:pt-0.5 lg:pb-1 mb-1 lg:mb-1 border-b border-edge-subtle shrink-0">
       <div className="flex items-center gap-1 min-w-0">
         {dashboardAvailable && (
           <Tooltip text="Back to dashboard" position="bottom">

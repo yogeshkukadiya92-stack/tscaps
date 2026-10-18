@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelGroupHandle } from 'react-resizable-panels';
-import { MonitorPlay, FolderOpen, SlidersHorizontal, AudioWaveform, Maximize2, Minimize2 } from 'lucide-react';
+import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle, type ImperativePanelGroupHandle } from 'react-resizable-panels';
+import { MonitorPlay, FolderOpen, SlidersHorizontal, AudioWaveform, Maximize2, Minimize2, Minus } from 'lucide-react';
 import { BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
 import { useObservedHeightPx } from '@ui/_shared/hooks/useObservedHeightPx';
 
@@ -23,10 +23,13 @@ function ResizeHandle({ vertical = false }: { vertical?: boolean }) {
 
 /** Keep the preview visible beside the design controls and caption timeline. */
 export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, library, timeline }: DesktopEditorLayoutProps) {
+  const previewRef = useRef<ImperativePanelHandle>(null);
+  const [previewMinimized, setPreviewMinimized] = useState(false);
+  const [timelineMinimized, setTimelineMinimized] = useState(false);
   const workspaceRef = useRef<HTMLDivElement>(null);
   const workspaceHeight = useObservedHeightPx(workspaceRef);
   // Keep several caption rows readable while the surrounding workspace scrolls.
-  const timelineMinPercent = workspaceHeight > 0 ? Math.min(70, Math.ceil(340 / Math.max(1, workspaceHeight - 8) * 100)) : 40;
+  const timelineMinPercent = workspaceHeight > 0 ? Math.min(70, Math.ceil(340 / Math.max(892, workspaceHeight - 8) * 100)) : 40;
   const rowsRef = useRef<ImperativePanelGroupHandle>(null);
   const previousRows = useRef<number[]>([60, 40]);
   const [timelineExpanded, setTimelineExpanded] = useState(false);
@@ -40,10 +43,16 @@ export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, libra
   const controlsRef = useRef<HTMLDivElement>(null);
   const controlsHeight = useObservedHeightPx(controlsRef);
   return (
+    <div className="flex flex-col flex-1 min-h-0 w-full">
+      {(previewMinimized || timelineExpanded || timelineMinimized) && <div className="flex flex-wrap gap-2 pb-2" aria-label="Minimized panels">
+        {previewMinimized && <button type="button" className={BTN_SECONDARY_SM} onClick={() => previewRef.current?.expand()}>Restore Preview</button>}
+        {timelineExpanded && <button type="button" className={BTN_SECONDARY_SM} onClick={toggleTimeline}>Restore Design & captions</button>}
+        {timelineMinimized && <button type="button" className={BTN_SECONDARY_SM} onClick={() => rowsRef.current?.setLayout(previousRows.current)}>Restore Caption timeline</button>}
+      </div>}
     <PanelGroup direction="horizontal" autoSaveId="reelstudio:side-preview-v1" className="w-full flex-1 min-h-0">
-      <Panel defaultSize={30} minSize={24} maxSize={45}>
+      <Panel ref={previewRef} defaultSize={30} minSize={24} maxSize={45} collapsible collapsedSize={0} onCollapse={() => setPreviewMinimized(true)} onExpand={() => setPreviewMinimized(false)}>
         <section aria-label="Video preview" className={panelClass}>
-          <h2 className={headingClass}><MonitorPlay size={15} />Preview<span className="ml-auto text-fg-muted font-normal">Click video to play</span></h2>
+          <div className={headingClass}><h2 className="m-0 flex items-center gap-2 text-xs"><MonitorPlay size={15} />Preview</h2><button type="button" className={`${BTN_SECONDARY_SM} ml-auto`} aria-label="Minimize Preview" onClick={() => previewRef.current?.collapse()}><Minus size={14} />Minimize</button></div>
           <div className="flex-1 min-h-0 p-3">
             <div className="h-full flex flex-col items-center justify-center min-h-0 gap-3 [container-type:size]" style={{ ['--playback-controls-h' as string]: `${controlsHeight}px` }}>
               {videoBox}
@@ -55,8 +64,8 @@ export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, libra
       <ResizeHandle />
       <Panel defaultSize={70} minSize={55}>
         <div className="h-full overflow-y-auto pr-1" aria-label="Caption workspace panels">
-        <div ref={workspaceRef} className="h-full min-h-[900px]">
-        <PanelGroup ref={rowsRef} direction="vertical" autoSaveId="reelstudio:caption-workspace-v4" onLayout={sizes => setTimelineExpanded(sizes[0] === 0)} className="w-full flex-1 min-h-0">
+        <div ref={workspaceRef} className={`h-full ${timelineExpanded || timelineMinimized ? '' : 'min-h-[900px]'}`}>
+        <PanelGroup ref={rowsRef} direction="vertical" autoSaveId="reelstudio:caption-workspace-v5" onLayout={sizes => { setTimelineExpanded(sizes[0] === 0); setTimelineMinimized(sizes[1] === 0); }} className="w-full flex-1 min-h-0">
           <Panel defaultSize={60} minSize={50} collapsible collapsedSize={0}>
             <section aria-label="Design settings" className={panelClass}>
               <div className={headingClass}>
@@ -65,16 +74,18 @@ export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, libra
                   <summary className="cursor-pointer flex items-center gap-1"><FolderOpen size={14} />Project info</summary>
                   <div className="absolute right-0 top-7 z-50 w-72 max-h-80 overflow-y-auto rounded-lg border border-edge-subtle bg-surface-1 p-3 shadow-lg">{library}</div>
                 </details>
+                <button type="button" className={BTN_SECONDARY_SM} aria-label="Minimize Design & captions" onClick={() => { previousRows.current = timelineMinimized ? previousRows.current : rowsRef.current?.getLayout() ?? [60, 40]; rowsRef.current?.setLayout([0, 100]); }}><Minus size={14} />Minimize</button>
               </div>
               <div className="flex-1 min-h-0 p-2">{sidebar}</div>
             </section>
           </Panel>
           <ResizeHandle vertical />
-          <Panel defaultSize={40} minSize={timelineMinPercent} maxSize={100}>
+          <Panel defaultSize={40} minSize={timelineMinPercent} maxSize={100} collapsible collapsedSize={0}>
             <section aria-label="Project timeline" className={panelClass}>
               <div className={headingClass}>
                 <h2 className="m-0 flex items-center gap-2 text-xs font-semibold"><AudioWaveform size={15} />Caption timeline</h2>
-                <button type="button" className={`${BTN_SECONDARY_SM} ml-auto shrink-0`} aria-pressed={timelineExpanded} onClick={toggleTimeline}>
+                <button type="button" className={`${BTN_SECONDARY_SM} ml-auto`} aria-label="Minimize Caption timeline" onClick={() => { previousRows.current = timelineExpanded ? previousRows.current : rowsRef.current?.getLayout() ?? [60, 40]; rowsRef.current?.setLayout([100, 0]); }}><Minus size={14} />Minimize</button>
+                <button type="button" className={`${BTN_SECONDARY_SM} shrink-0`} aria-pressed={timelineExpanded} onClick={toggleTimeline}>
                   {timelineExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                   {timelineExpanded ? 'Restore editor layout' : 'Expand caption timeline'}
                 </button>
@@ -87,5 +98,6 @@ export function DesktopEditorLayout({ videoBox, playbackControls, sidebar, libra
         </div>
       </Panel>
     </PanelGroup>
+    </div>
   );
 }

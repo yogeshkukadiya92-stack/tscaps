@@ -31,7 +31,7 @@ export function CloudAccountBar() {
     } catch { setError('Could not finish saving or sign out. Please try again.'); }
     finally { setPending(false); }
   }
-  return <div className="shrink-0 px-5 lg:px-8 py-2 bg-surface-1 border-b border-edge-subtle text-xs text-fg-secondary flex items-center gap-3 flex-wrap">
+  return <div className="shrink-0 px-5 lg:px-4 py-0.5 bg-surface-1 border-b border-edge-subtle text-xs text-fg-secondary flex items-center gap-3 flex-wrap">
     <Cloud size={15} className="text-accent" /><span>Account projects</span>
     <span className="ml-auto max-w-[180px] truncate">{session.user.email}</span>
     {isAdmin && <button className={BTN_SECONDARY_SM} onClick={() => navigate(routes.admin())}>Admin panel</button>}
