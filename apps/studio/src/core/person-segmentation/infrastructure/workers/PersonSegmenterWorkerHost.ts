@@ -3,6 +3,7 @@ import type { ModelFileFetcher } from '@tscaps/engine';
 import type { PoseLandmark } from '@core/person-segmentation/domain/PoseLandmark';
 import { MaskDownsampler } from '@core/person-segmentation/services/MaskDownsampler';
 import { MonotonicTimestampMapper } from '@core/person-segmentation/infrastructure/workers/MonotonicTimestampMapper';
+import { MediaPipeWorkerEnvironment } from '@core/person-segmentation/infrastructure/workers/MediaPipeWorkerEnvironment';
 import type {
   DetectPoseRequest,
   InitRequest,
@@ -32,6 +33,7 @@ export class PersonSegmenterWorkerHost {
   constructor(private readonly modelFiles: ModelFileFetcher) {}
 
   start(): void {
+    new MediaPipeWorkerEnvironment().install();
     self.addEventListener('message', this.handleMessage);
   }
 
