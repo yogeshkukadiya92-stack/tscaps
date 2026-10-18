@@ -28,6 +28,11 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Build and test desktop plugin
+        run: |
+          pnpm --filter @reelstudio/desktop-plugin build
+          pnpm --filter @reelstudio/desktop-plugin test
+
       # Cheapest first: a broken engine stops the run before a browser
       # download is paid for. Its tests need one, so they wait below.
       - name: Engine typecheck and lint

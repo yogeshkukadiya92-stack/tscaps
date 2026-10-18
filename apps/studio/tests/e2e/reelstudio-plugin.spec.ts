@@ -17,8 +17,14 @@ async function boot(page: import('@playwright/test').Page) {
   return projectId;
 }
 
-test('plugin applies a real template, saves editable changes, opens preview and downloads a decodable MP4', async ({ page, context }) => {
+test('plugin applies a real template, saves editable changes, opens preview and downloads a decodable video', async ({ page, context }) => {
   const projectId = await boot(page);
+  // Linux Chromium may not have AAC; exercise the same plugin flow with WebM there.
+  const aac = process.env.E2E_FORCE_WEBM !== '1' && await page.evaluate(async () => {
+    try { return !!(await AudioEncoder.isConfigSupported({ codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, bitrate: 192000 })).supported; }
+    catch { return false; }
+  });
+  const format = aac ? 'mp4' : 'webm';
   const outputDir = await mkdtemp(join(tmpdir(), 'reelstudio-plugin-test-'));
   const config = pluginConfig({ REELSTUDIO_URL: new URL(page.url()).origin, REELSTUDIO_PLUGIN_DATA: outputDir });
   const browser = new ReelBrowser(config, context);
@@ -33,14 +39,14 @@ test('plugin applies a real template, saves editable changes, opens preview and 
     expect(await browser.preview(projectId, true)).toMatchObject({ opened: true, playing: true });
     await page.getByRole('button', { name: 'Stop preview', exact: true }).click();
     await expect(page.getByLabel('Effect 1 intensity')).toBeEnabled();
-    const exported = service.start('export_reel', projectId, () => browser.export(projectId, 'mp4'));
+    const exported = service.start('export_reel', projectId, () => browser.export(projectId, format));
     await expect.poll(() => service.get(exported.id).status, { timeout: 90000 }).not.toBe('running');
     const result = service.get(exported.id);
     expect(result.status, JSON.stringify(result)).toBe('succeeded');
     expect((await stat(result.result.path)).size).toBeGreaterThan(1000);
     const bytes = await readFile(result.result.path);
     const decoded = await page.evaluate(async array => {
-      const blob = new Blob([new Uint8Array(array)], { type: 'video/mp4' });
+      const blob = new Blob([new Uint8Array(array)]);
       const video = document.createElement('video'); const url = URL.createObjectURL(blob); video.src = url;
       await new Promise<void>((resolve, reject) => { video.onloadeddata = () => resolve(); video.onerror = () => reject(new Error('Invalid video')); });
       const ctx = new AudioContext(); const audio = await ctx.decodeAudioData(await blob.arrayBuffer());
