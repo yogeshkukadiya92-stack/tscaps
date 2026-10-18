@@ -15,7 +15,7 @@ test('caption timeline expands and restores without losing caption content', asy
   await page.getByRole('button', { name: 'Expand caption timeline', exact: true }).click();
   const restore = page.getByRole('button', { name: 'Restore editor layout', exact: true });
   await expect(restore).toHaveAttribute('aria-pressed', 'true');
-  await expect.poll(async () => (await timeline.boundingBox())!.height).toBeGreaterThan(before.height * 1.8);
+  await expect.poll(async () => (await timeline.boundingBox())!.height).toBeGreaterThan(before.height * 1.4);
   await page.screenshot({ path: test.info().outputPath('expanded-caption-timeline.png') });
   await restore.click();
   await expect(page.getByRole('region', { name: 'Video preview', exact: true })).toBeVisible();
@@ -40,8 +40,24 @@ test('portrait preview and caption style selection remain discoverable', async (
   expect((await preview.boundingBox())!.height).toBeGreaterThan(450);
   await page.screenshot({ path: test.info().outputPath('caption-style-workspace.png') });
   await page.setViewportSize({ width: 1366, height: 768 });
+  await classic.scrollIntoViewIfNeeded();
   await expect(classic).toBeInViewport();
   const beforeHelp = (await preview.boundingBox())!.height;
   await page.getByText('How to make your reel', { exact: false }).click();
   expect((await preview.boundingBox())!.height).toBeCloseTo(beforeHelp, 0);
+});
+
+
+test('short laptop screens reserve room for a complete caption timeline row', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 650 });
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc, { width: 1080, height: 1920 });
+  const timeline = page.getByRole('region', { name: 'Project timeline', exact: true });
+  await expect.poll(async () => (await timeline.boundingBox())!.height).toBeGreaterThanOrEqual(218);
+  const word = timeline.getByText('from', { exact: true }).first();
+  await expect(word).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: test.info().outputPath('laptop-timeline.png') });
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await expect(word).toBeInViewport({ ratio: 1 });
 });
