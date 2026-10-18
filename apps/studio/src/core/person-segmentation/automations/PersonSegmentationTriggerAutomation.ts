@@ -18,35 +18,13 @@ interface RevertSnapshot {
 }
 
 /**
- * Kicks the actor-cutout analysis off for the loaded project, once
- * per project, whenever an active sheet's template starts requiring
- * the effect. The kick-off takes one of two shapes, chosen from what
- * the user was doing at the moment:
- *
- * - The user swapped the template on the current active sheet — an
- *   explicit choice. The dialog opens to ask, and a cancel reverts the
- *   swap so the choice is undone rather than left half-applied.
- * - Any other cause — the template was already picked when the project
- *   loaded, or the active sheet switched onto a behind-actor sheet on
- *   its own. There is nothing to revert, so a cancel would only leave
- *   the template stuck without the analysis it needs. The analysis
- *   starts silently instead, and the playback gate covers what it has
- *   not reached yet.
- *
- * Either way the offer is a one-shot opt-in: once the analyzer has
- * been told to work, nothing here asks or starts again. Two signals
- * carry that decision. This session's acceptance flag stands for
- * "the analyzer is on it right now", surviving the head start's own
- * pending publish. Any `analyzedRanges` on the persisted record stands
- * for "a run happened at some point", surviving a reload. Mask
- * backfills leave `analyzedRanges` empty, so they never count.
- *
- * Coverage of the current captions is not the gate. Re-checking it
- * would reopen the dialog every time the active sheet flips across a
- * section boundary while the drain is still in flight, which is the
- * case reported as "the dialog reopens as I play forward".
+ * Prepares text-behind-person templates in the background, once per project.
+ * Style selection remains available while the playback gate covers unmeasured
+ * frames. Existing analysis is reused across template changes and reloads.
  */
 export class PersonSegmentationTriggerAutomation {
+  private evaluationRevision = 0;
+  private lastEvaluatedProjectId: string | null | undefined;
   private lastEvaluatedTemplateId: string | null = null;
   private lastEvaluatedActiveSheetId: string | null = null;
   private lastEvaluatedSnapshot: RevertSnapshot | null = null;
@@ -118,7 +96,10 @@ export class PersonSegmentationTriggerAutomation {
 
     const templateChanged = templateId !== this.lastEvaluatedTemplateId;
     const activeSheetChanged = activeSheetId !== this.lastEvaluatedActiveSheetId;
-    if (!templateChanged && !activeSheetChanged) return;
+    const projectChanged = snap.projectId !== this.lastEvaluatedProjectId;
+    if (!templateChanged && !activeSheetChanged && !projectChanged) return;
+    this.lastEvaluatedProjectId = snap.projectId;
+    const revision = ++this.evaluationRevision;
 
     // A dialog already up owns the pending revert; do not disturb it.
     if (this.flowStore.status.mode !== 'closed') {
@@ -149,23 +130,20 @@ export class PersonSegmentationTriggerAutomation {
     if (this.captionedRanges.collect(snap.document, snap.sheets).isEmpty()) return;
 
     if (await this.userAlreadyOptedIn(snap.projectId)) return;
+    // A slow cache read must not start work for an obsolete style or project.
+    if (revision !== this.evaluationRevision || this.editorStore.snapshot().projectId !== snap.projectId) return;
 
     if (isTemplateSwapOnSameActiveSheet) {
-      this.askBeforeScanning(previousSnapshot);
+      this.prepareSelectedTemplate(previousSnapshot);
       return;
     }
     this.startScanningSilently();
   }
 
-  /**
-   * Opens the confirm dialog and remembers the state to fall back to
-   * if the user cancels. Reached when the user actively picked the
-   * behind-actor template on the current active sheet, which is the
-   * only path where a cancel has something to revert.
-   */
-  private askBeforeScanning(previousSnapshot: RevertSnapshot | null): void {
+  /** Keep style selection non-blocking, including the first actor template. */
+  private prepareSelectedTemplate(previousSnapshot: RevertSnapshot | null): void {
     this.pendingRevert = previousSnapshot;
-    this.flowStore.openConfirm();
+    this.startScanningSilently();
   }
 
   /**

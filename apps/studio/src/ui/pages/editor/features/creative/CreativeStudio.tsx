@@ -1,11 +1,11 @@
-import './CreativeStudio.css';
-import { StudioTimeline } from './StudioTimeline';
+import '@ui/pages/editor/features/creative/CreativeStudio.css';
+import { StudioTimeline } from '@ui/pages/editor/features/creative/StudioTimeline';
 import { AutoEditPanel } from '@ui/pages/editor/features/creative/AutoEditPanel';
 import { sameAutoEditInputs, type AutoEditDraft } from '@core/creative/AutoEdit';
 import { MotionEffectsGallery } from '@ui/pages/editor/features/creative/MotionEffectsGallery';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ALL_FORMATS, BlobSource, Input } from 'mediabunny';
-import { Clapperboard, Sparkles, Film, Layers, Music2, Palette, Timer, Wand2 } from 'lucide-react';
+import { Clapperboard, Sparkles, Film, Layers, Music2, Palette, Timer, Wand2, Captions } from 'lucide-react';
 import { CutRegistry } from '@core/cuts/domain/CutRegistry';
 import type { EditorState } from '@core/editor/domain/EditorState';
 import { CreativeAssetRepository } from '@core/creative/CreativeAssetRepository';
@@ -25,7 +25,7 @@ const INPUT = 'w-full min-w-0 bg-surface-1 border border-edge-medium rounded-sm 
 const previewPositions = new WeakMap<object, { projectId: string; time: number }>();
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'The edit could not be completed.';
 
-export function CreativeStudio({ state, onDraftPreviewChange }: { state: EditorState; onDraftPreviewChange: (active: boolean) => void }) {
+export function CreativeStudio({ state, onDraftPreviewChange, captionControls }: { state: EditorState; onDraftPreviewChange: (active: boolean) => void; captionControls: ReactNode }) {
   const videos = useVideos(), playback = usePlayback(), editor = useEditor(), projects = useProjects();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false), [error, setError] = useState('');
@@ -61,7 +61,7 @@ export function CreativeStudio({ state, onDraftPreviewChange }: { state: EditorS
   return <div className="w-full flex-1 min-h-0 flex flex-col" aria-label="Creative workspace">
     {error && <div className="p-4"><p role="alert" className="text-sm text-danger">{error}</p><button className={BTN_SECONDARY} disabled={loading} onClick={() => void launch()}>Retry opening editor</button></div>}
     {!file && !error && <p role="status" className="p-4 text-sm text-fg-muted">Preparing your reel editor…</p>}
-    {file && state.creative && <StudioSession key={state.projectId} file={file} state={state} project={state.creative} onDraftPreviewChange={onDraftPreviewChange} />}
+    {file && state.creative && <StudioSession key={state.projectId} file={file} state={state} project={state.creative} captionControls={captionControls} onDraftPreviewChange={onDraftPreviewChange} />}
   </div>;
 }
 
@@ -73,7 +73,7 @@ function NumberField({ label, value, min = 0, max, step = 0.1, change }: {
     onChange={event => { if (event.target.value !== '' && Number.isFinite(event.target.valueAsNumber)) change(Math.max(min, Math.min(max ?? Infinity, event.target.valueAsNumber))); }} /></label>;
 }
 
-function StudioSession({ file, state, project, onDraftPreviewChange }: { file: File; state: EditorState; project: CreativeProject; onDraftPreviewChange: (active: boolean) => void }) {
+function StudioSession({ file, state, project, onDraftPreviewChange, captionControls }: { file: File; state: EditorState; project: CreativeProject; onDraftPreviewChange: (active: boolean) => void; captionControls: ReactNode }) {
   const editor = useEditor(), projects = useProjects(), exporter = useExport();
   const [activeTool, setActiveTool] = useState('Auto');
   const [libraryHost, setLibraryHost] = useState<HTMLDivElement | null>(null);
@@ -166,9 +166,14 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
       // Let a pending paint settle before releasing its decoding resources.
       if (session.current === prepared) { session.current = null; prepared?.close(); }
     };
-    // The project object includes every visual/audio edit; caption state is refreshed when this workspace opens.
+    // Rebuild the shared caption plan whenever caption styling or individual overrides change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewProject, viewSheets, cuts, file, busy, previewRevision, previewSource]);
+  }, [viewProject, viewSheets, cuts, file, busy, previewRevision, previewSource, state.document, state.elementStyles, state.decorationOverrides, state.behindActorOverrides]);
+  useEffect(() => {
+    // A previously rendered download no longer represents the current caption styling.
+    const timer = window.setTimeout(() => setResult(null), 0);
+    return () => window.clearTimeout(timer);
+  }, [state.sheets, state.document, state.elementStyles, state.decorationOverrides, state.behindActorOverrides]);
   useEffect(() => () => { exportAbort.current?.abort(); void audioContext.current?.close(); }, []);
 
   async function preview() {
@@ -296,7 +301,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
     <div className="studio-title"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Creative Studio</h2><p className="text-xs text-fg-muted m-0">Clips, effects, audio and captions. One finished reel.</p></div></div>
     <div className="studio-workbench">
       <nav aria-label="Creative tools" className="studio-tool-rail">
-        {([{ id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span>{label}</span></button>)}
+        {([{ id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Captions', label: 'Captions', icon: Captions }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span>{label}</span></button>)}
       </nav>
       <div className="studio-library" onClickCapture={() => setActiveTool('Auto')} ref={setLibraryHost} aria-label="Editing skill library" />
       <div className="studio-monitor">
@@ -335,6 +340,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange }: { file: F
       <AutoEditPanel libraryHost={libraryHost} file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
       </div>
       <fieldset disabled={editingLocked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
+        <section hidden={activeTool !== 'Captions'} aria-label="Customize captions" className="rounded-lg border border-edge-medium bg-surface-1 p-4 min-w-0">{activeTool === 'Captions' && captionControls}</section>
         <div hidden={activeTool !== 'Effects'} id="creative-Effects" className="rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2">
         <MotionEffectsGallery effects={project.effects ?? []} duration={duration} time={time} boundaries={spans.slice(1).map(s => s.outputStart)} ready={ready}
           onSeek={value => void seek(value)} onChange={effects => change({ ...project, effects })} /></div>

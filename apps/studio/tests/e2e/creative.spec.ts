@@ -21,7 +21,9 @@ async function selectEncodableFormat(page: Page, dialog: ReturnType<Page['getByR
     } catch { return false; }
   });
   const format = aac ? 'mp4' : 'webm';
-  await dialog.getByLabel('Export format', { exact: true }).selectOption(format);
+  const picker = dialog.getByLabel('Export format', { exact: true });
+  if (!await picker.isVisible()) await dialog.getByText('Render & download', { exact: true }).click();
+  await picker.selectOption(format);
   return format;
 }
 async function openStudio(page: Page) {
@@ -584,4 +586,26 @@ test('full editing pack applies lighting, elements, zooms and measured pause cut
   expect(saved.payload.creative.effects?.map(effect => effect.kind)).toEqual(['digital-zoom', 'light-leak', 'headline-wall']);
   await page.screenshot({ path: test.info().outputPath('golden-story-pack.png') });
   expect(errors).toEqual([]);
+});
+
+
+test('caption customization stays in Creative and supports undo', async ({ page }) => {
+  const { dialog } = await openStudio(page);
+  await dialog.getByRole('button', { name: 'Captions', exact: true }).click();
+  const controls = dialog.getByRole('region', { name: 'Customize captions' });
+  // The inspector is a named section; all changes use the shared editor state.
+  await expect(controls.getByRole('heading', { name: 'Customize captions' })).toBeVisible();
+  await controls.getByLabel('Caption settings').selectOption('Font & size');
+  const size = controls.getByRole('textbox', { name: 'Font size value' });
+  const original = await size.inputValue();
+  await size.fill('8');
+  await size.press('Enter');
+  await expect(size).toHaveValue('8.0');
+  await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled({ timeout: 30000 });
+  await dialog.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(size).toHaveValue(original);
+  await controls.getByLabel('Caption settings').selectOption('Style & colour');
+  await expect(controls.getByRole('heading', { name: 'Style', exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Save creative changes' }).click();
+  await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
 });

@@ -3,6 +3,8 @@ import { useActiveEditorMode } from '@ui/pages/editor/hooks/useActiveEditorMode'
 import { useEditorWorkspaceStore } from '@ui/pages/editor/contexts/EditorWorkspaceContext';
 import { useCallback, useMemo, useState, type ReactNode, type Ref } from 'react';
 import { AudioWaveform, Captions, Check, Clapperboard, Film } from 'lucide-react';
+import { CreativeCaptionControls } from '@ui/pages/editor/features/creative/CreativeCaptionControls';
+import type { SheetScope } from '@ui/pages/editor/components/sidebar/tabs/EditorTab';
 import { CreativeStudio } from '@ui/pages/editor/features/creative/CreativeStudio';
 import type { Document, Segment } from '@tscaps/engine';
 import type { EditorState } from '@core/editor/domain/EditorState';
@@ -207,6 +209,20 @@ export function EditorPage({
     </div>
   );
 
+  const captionScope: SheetScope | null = activeSheet ? {
+    sheets: state.sheets, activeSheet,
+    onSetActiveSheet: handleSetActiveSheet,
+    onCreateSheet: (name) => sheets.actions.sheets.create.execute(name),
+    sheetCreationOptions: sheetCreationOptions,
+    onCreateSheetFromOption: handleCreateSheetFromOption,
+    onRenameSheet: (id, name) => sheets.actions.sheets.rename.execute(id, name),
+    onDeleteSheet: (id) => sheets.actions.sheets.delete.execute(id),
+    onCopyStylesFromSheet: (targetId, sourceId) => sheets.actions.sheets.copyStylesFromSheet.execute(targetId, sourceId),
+    onLinkSheet: (targetId, sourceId) => sheets.actions.sheets.link.execute(targetId, sourceId),
+    onUnlinkSheet: (id) => sheets.actions.sheets.unlink.execute(id),
+    onResetSheetToTemplateDefaults: (id) => sheets.actions.style.resetToTemplateDefaults.execute(id),
+  } : null;
+
   const captionsPanel = (
     <CaptionsPanel
       sheets={state.sheets}
@@ -320,7 +336,7 @@ export function EditorPage({
           {workspaceModes.map(mode => <button key={mode.id} id={`workspace-tab-${mode.id}`} role="tab" aria-selected={activeMode === mode.id} aria-controls="editor-workspace-panel" tabIndex={activeMode === mode.id ? 0 : -1} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex flex-1 sm:flex-none min-w-0 items-center justify-center gap-1 sm:gap-2 rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'bg-accent text-fg-on-accent' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}<span>{mode.label}<small aria-hidden="true">{mode.id === 'captions' ? 'Words & style' : mode.id === 'creative' ? 'Music & effects' : 'Timing & cuts'}</small></span></button>)}
         </nav>
         <div id="editor-workspace-panel" role="tabpanel" aria-labelledby={`workspace-tab-${activeMode}`} className="flex flex-col w-full flex-1 min-h-0 min-w-0">
-        {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} />}
+        {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} captionControls={captionScope ? <CreativeCaptionControls document={state.document} sheetScope={captionScope} templates={state.availableTemplates} library={library} /> : <p className="text-sm text-fg-muted">Add captions in the Captions workspace to customize their style.</p>} />}
         <div className={activeMode === 'creative' ? 'hidden' : 'flex flex-col w-full flex-1 min-h-0'}>
         {isMobile ? (
           <MobileEditorLayout

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AlignmentConfig, Document, SvgFilterDefinitions } from '@tscaps/engine';
 import type { RefreshDocumentAction } from '@core/editor/actions/RefreshDocumentAction';
 import type { StartBehindActorAnalysisAction } from '@core/person-segmentation/actions/StartBehindActorAnalysisAction';
@@ -207,13 +207,13 @@ describe('offering the scan behind the text-behind-actor effect', () => {
     expect(startAnalysis.starts).toBe(0);
   });
 
-  it('offers it when the only cached masks came from a segment forced on by hand', async () => {
+  it('prepares in the background when only manually forced masks exist', async () => {
     const { store, repository, flowStore } = startedHarness();
     await repository.store(PROJECT_ID, PersonSegmentationResult.nothingKnown(cacheHoldingOneMask()));
 
     await pickBehindActorTemplateOn(store);
 
-    expect(flowStore.status.mode).toBe('confirm');
+    expect(flowStore.status.mode).toBe('closed');
   });
 
   it('lets it go once a run has left something on record, even nothing usable', async () => {
@@ -225,12 +225,13 @@ describe('offering the scan behind the text-behind-actor effect', () => {
     expect(flowStore.status.mode).toBe('closed');
   });
 
-  it('offers it on a project nothing has ever been measured for', async () => {
-    const { store, flowStore } = startedHarness();
+  it('prepares a new project without opening a blocking dialog', async () => {
+    const { store, flowStore, startAnalysis } = startedHarness();
 
     await pickBehindActorTemplateOn(store);
 
-    expect(flowStore.status.mode).toBe('confirm');
+    expect(flowStore.status.mode).toBe('closed');
+    expect(startAnalysis.starts).toBe(1);
   });
 
   it('stays quiet when the caption on screen is painted with a template that never lifts it', async () => {
@@ -264,7 +265,7 @@ describe('offering the scan behind the text-behind-actor effect', () => {
       ]),
     });
     await settled();
-    expect(flowStore.status.mode).toBe('confirm');
+    expect(flowStore.status.mode).toBe('closed');
 
     // The dialog closes on accept, and the analyzer publishes the head start.
     flowStore.finishRunning();
@@ -283,17 +284,18 @@ describe('offering the scan behind the text-behind-actor effect', () => {
     expect(flowStore.status.mode).toBe('closed');
   });
 
-  it('offers it again when the user cancels and re-picks the template, since cancel is not opt-in', async () => {
-    const { store, flowStore } = startedHarness();
+  it('reuses the running scan when a user switches styles away and back', async () => {
+    const { store, flowStore, startAnalysis } = startedHarness();
     await pickBehindActorTemplateOn(store);
-    expect(flowStore.status.mode).toBe('confirm');
+    expect(flowStore.status.mode).toBe('closed');
 
     flowStore.close();
     store.patch({ sheets: [sheetOn(BEHIND_ACTOR_SHEET_ID, plainTemplate)] });
     await settled();
     await pickBehindActorTemplateOn(store);
 
-    expect(flowStore.status.mode).toBe('confirm');
+    expect(flowStore.status.mode).toBe('closed');
+    expect(startAnalysis.starts).toBe(1);
   });
 
   it('remembers the acceptance across a project with no persisted id, where nothing gets written', async () => {
@@ -322,7 +324,7 @@ describe('offering the scan behind the text-behind-actor effect', () => {
     );
     automation.start();
     await pickBehindActorTemplateOn(store);
-    expect(flowStore.status.mode).toBe('confirm');
+    expect(flowStore.status.mode).toBe('closed');
 
     flowStore.finishRunning();
     automation.noteAcceptance();
@@ -416,6 +418,21 @@ describe('offering the scan behind the text-behind-actor effect', () => {
     store.patch({ activeSheetId: PLAIN_SHEET_ID });
     await settled();
 
+    expect(startAnalysis.starts).toBe(0);
+  });
+});
+
+
+describe('style selection while actor cache is loading', () => {
+  it('does not scan an obsolete style after the user picks a plain template', async () => {
+    const { store, repository, flowStore, startAnalysis } = startedHarness();
+    let finishRead!: (result: PersonSegmentationResult | null) => void;
+    vi.spyOn(repository, 'load').mockImplementationOnce(() => new Promise(resolve => { finishRead = resolve; }));
+    await pickBehindActorTemplateOn(store);
+    store.patch({ sheets: [sheetOn(BEHIND_ACTOR_SHEET_ID, plainTemplate)] });
+    finishRead(null);
+    await settled();
+    expect(flowStore.status.mode).toBe('closed');
     expect(startAnalysis.starts).toBe(0);
   });
 });
