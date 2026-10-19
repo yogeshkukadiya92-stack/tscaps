@@ -10,6 +10,7 @@ from gujarati_transcription import correct_aligned_spelling, enabled
 @pytest.fixture(autouse=True)
 def setup(monkeypatch, tmp_path):
     monkeypatch.setenv('GROQ_API_KEY', 'groq-test')
+    monkeypatch.setattr('gujarati_transcription.proofread_reference', lambda _client, text: text)
     monkeypatch.setenv('OPENAI_API_KEY', 'openai-test')
     monkeypatch.setenv('GUJARATI_AUDIO_ASSIST', 'true')
     monkeypatch.setenv('PROCESSING_BUDGET_DB', str(tmp_path / 'budget.sqlite'))
@@ -167,6 +168,7 @@ def test_aligner_cannot_silently_drop_a_spoken_word(monkeypatch):
             assert kwargs['remove_instant_words'] is False
             return Result()
     monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: Model())
+    monkeypatch.setattr(gujarati_alignment, 'full_alignment_model', lambda: Model())
     with pytest.raises(HTTPException):
         gujarati_alignment.align_reference(np.zeros(16000), 'વાત છે')
 
@@ -200,11 +202,12 @@ def test_zero_duration_word_is_acoustically_realigned_without_another_paid_call(
                 words[1]['end'] = words[1]['start']
             return Result(words)
     monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: Model())
+    monkeypatch.setattr(gujarati_alignment, 'full_alignment_model', lambda: Model())
     def handle(request):
         paid.append(request.url.host)
         return httpx.Response(200, json={'text': 'વાત છે'})
     result = transcribe_groq(np.zeros(16000), 'gu', httpx.MockTransport(handle))
-    assert steps == [400, 320]
+    assert steps == [400, 400]
     assert paid == ['api.openai.com']
     assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in complete]
 
@@ -221,6 +224,26 @@ def test_retries_never_publish_zero_duration_or_omit_short_words(monkeypatch):
             calls.append(kwargs['token_step'])
             return Result()
     monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: Model())
+    monkeypatch.setattr(gujarati_alignment, 'full_alignment_model', lambda: Model())
     with pytest.raises(HTTPException):
         gujarati_alignment.align_reference(np.zeros(16000), 'વાત છે')
-    assert calls == [400, 320, 240]
+    assert calls == [400, 400]
+
+
+def test_independent_acoustic_repair_preserves_words_and_neighbour_bounds():
+    from gujarati_alignment import repair_collapsed_words, timing_issue
+    primary = [{'word': 'એક', 'start': .1, 'end': .4},
+               {'word': 'run', 'start': .5, 'end': .5},
+               {'word': 'છે', 'start': .6, 'end': .8}]
+    alternate = [{'word': 'એક', 'start': .1, 'end': .1},
+                 {'word': 'run', 'start': .4, 'end': .58},
+                 {'word': 'છે', 'start': .6, 'end': .8}]
+    repaired = repair_collapsed_words(primary, alternate)
+    assert timing_issue(repaired, 1) is None
+    assert repaired[0] == primary[0] and repaired[2] == primary[2]
+    assert primary[1]['end'] == .5
+    assert repaired[1]['start'] == .4 and repaired[1]['end'] == .58
+    alternate[1]['end'] = .9
+    assert repair_collapsed_words(primary, alternate) == primary
+    alternate[1]['word'] = 'અલગ'
+    assert repair_collapsed_words(primary, alternate) == primary

@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 
 import httpx
 from fastapi import HTTPException
+from gujarati_spelling import proofread_reference
 
 
 def enabled():
@@ -53,7 +54,7 @@ def audio_reference(client, audio, seconds):
         text = response.json()['text']
         if not isinstance(text, str) or len(text) > 120000:
             raise ValueError('Invalid reference')
-        return text.strip()
+        return proofread_reference(client, text.strip()) if text.strip() else ""
     except (ValueError, KeyError, TypeError) as error:
         raise HTTPException(503, 'Invalid Gujarati audio assistance response') from error
 

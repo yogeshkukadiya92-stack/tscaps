@@ -20,8 +20,16 @@ class AlignmentDraftError(HTTPException):
 
 @lru_cache(maxsize=1)
 def alignment_model():
+    return load_alignment_model(os.getenv('GUJARATI_ALIGNMENT_MODEL', '/models/aligner'))
+
+
+@lru_cache(maxsize=1)
+def full_alignment_model():
+    return load_alignment_model(os.getenv('GUJARATI_FULL_ALIGNMENT_MODEL', '/models/aligner-full'))
+
+
+def load_alignment_model(model_path):
     import stable_whisper
-    model_path = os.getenv('GUJARATI_ALIGNMENT_MODEL', '/models/aligner')
     # Large v3 needs 128 mel bins. Without this asset faster-whisper
     # silently defaults to 80 and fails only at the first real request.
     if not (Path(model_path) / 'preprocessor_config.json').is_file():
@@ -41,23 +49,26 @@ def align_reference(pcm, reference):
     last_failure = None
     try:
         from gujarati_transcription import normalized
-        model = alignment_model()
-        # Gujarati uses many Whisper tokens per word. A token-window boundary can
-        # collapse a spoken word to zero duration. Re-run acoustic alignment with
-        # different boundaries using the SAME audio and complete OpenAI text.
-        # Never delete the word, distribute gap time, or pay for another ASR call.
-        for token_step in (400, 320, 240):
-            result = model.align(
-                pcm, reference, language='gu', verbose=None, regroup=False,
-                remove_instant_words=False, failure_threshold=0.02, token_step=token_step,
-            )
+        def measure(model):
+            result = model.align(pcm, reference, language='gu', verbose=None, regroup=False,
+                                 remove_instant_words=False, failure_threshold=None, token_step=400)
             if result is None:
-                continue
-            aligned = [word for segment in result.to_dict()['segments'] for word in segment['words']]
-            if normalized(' '.join(word['word'] for word in aligned)) != normalized(reference):
-                continue
-            if aligned and timing_issue(aligned, len(pcm) / 16000) is None:
-                return aligned
+                return []
+            words = [w for segment in result.to_dict()['segments'] for w in segment['words']]
+            return words if normalized(' '.join(w['word'] for w in words)) == normalized(reference) else []
+        aligned = measure(alignment_model())
+        seconds = len(pcm) / 16000
+        if aligned and timing_issue(aligned, seconds) is None:
+            return aligned
+        # The pruned Turbo decoder can collapse a code-switched word. Measure
+        # the same complete transcript with the full multilingual decoder once.
+        # Only borrow genuinely measured times; never interpolate or drop words.
+        alternate = measure(full_alignment_model())
+        if alternate and timing_issue(alternate, seconds) is None:
+            return alternate
+        aligned = repair_collapsed_words(aligned, alternate)
+        if aligned and timing_issue(aligned, seconds) is None:
+            return aligned
         raise ValueError('Alignment could not time every transcript word')
     except Exception as error:
         import traceback
@@ -67,6 +78,27 @@ def align_reference(pcm, reference):
             last_failure['dependency'] = error.name
         logging.getLogger(__name__).exception('Gujarati acoustic alignment failed')
         raise HTTPException(503, 'Gujarati word alignment failed; please retry later') from error
+
+
+def repair_collapsed_words(aligned, alternate):
+    """Use an independent acoustic measurement for isolated collapsed words."""
+    from gujarati_transcription import normalized
+    if len(aligned) != len(alternate) or any(normalized(a['word']) != normalized(b['word'])
+                                               for a, b in zip(aligned, alternate)):
+        return aligned
+    collapsed = [i for i, w in enumerate(aligned)
+                 if math.isfinite(w['start']) and w['start'] == w['end']]
+    if len(collapsed) > min(4, max(1, len(aligned) // 20)):
+        return aligned
+    repaired = [dict(w) for w in aligned]
+    for index in collapsed:
+        candidate = alternate[index]
+        a, b = candidate['start'], candidate['end']
+        if (math.isfinite(a) and math.isfinite(b) and 0 < b - a <= 3
+                and (index == 0 or a >= repaired[index - 1]['end'] - .02)
+                and (index + 1 == len(repaired) or b <= repaired[index + 1]['start'] + .02)):
+            repaired[index].update(start=a, end=b)
+    return repaired
 
 
 def timing_issue(aligned, seconds):
@@ -139,4 +171,4 @@ def transcribe_gujarati(pcm, transport=None):
                               'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',
             'transcription': {'provider': 'openai', 'model': transcription_model(),
-                              'alignment': 'whisper-attention', 'version': 5}}
+                              'alignment': 'whisper-attention', 'spelling_model': 'gpt-5.4-mini-2026-03-17', 'version': 6}}
