@@ -181,3 +181,46 @@ def test_legacy_openai_model_uses_singular_language_hint(monkeypatch):
         return httpx.Response(200, json={'text': 'વાત છે'})
     with httpx.Client(transport=httpx.MockTransport(handle)) as client:
         assert audio_reference(client, b'audio', 10) == 'વાત છે'
+
+
+def test_zero_duration_word_is_acoustically_realigned_without_another_paid_call(monkeypatch):
+    import gujarati_alignment
+    steps, paid = [], []
+    complete = [{'word': 'વાત', 'start': 0.2, 'end': 0.7},
+                {'word': 'છે', 'start': 0.7, 'end': 0.9}]
+    class Result:
+        def __init__(self, words): self.words = words
+        def to_dict(self): return {'segments': [{'words': self.words}]}
+    class Model:
+        def align(self, pcm, reference, **kwargs):
+            assert reference == 'વાત છે'
+            steps.append(kwargs['token_step'])
+            words = [dict(w) for w in complete]
+            if len(steps) == 1:
+                words[1]['end'] = words[1]['start']
+            return Result(words)
+    monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: Model())
+    def handle(request):
+        paid.append(request.url.host)
+        return httpx.Response(200, json={'text': 'વાત છે'})
+    result = transcribe_groq(np.zeros(16000), 'gu', httpx.MockTransport(handle))
+    assert steps == [400, 320]
+    assert paid == ['api.openai.com']
+    assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in complete]
+
+
+def test_retries_never_publish_zero_duration_or_omit_short_words(monkeypatch):
+    import gujarati_alignment
+    calls = []
+    class Result:
+        def to_dict(self):
+            return {'segments': [{'words': [{'word': 'વાત', 'start': .2, 'end': .7},
+                                             {'word': 'છે', 'start': .7, 'end': .7}]}]}
+    class Model:
+        def align(self, *_args, **kwargs):
+            calls.append(kwargs['token_step'])
+            return Result()
+    monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: Model())
+    with pytest.raises(HTTPException):
+        gujarati_alignment.align_reference(np.zeros(16000), 'વાત છે')
+    assert calls == [400, 320, 240]

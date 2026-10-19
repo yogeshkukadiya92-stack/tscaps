@@ -33,17 +33,25 @@ def align_reference(pcm, reference):
     global last_failure
     last_failure = None
     try:
-        result = alignment_model().align(
-            pcm, reference, language='gu', verbose=None, regroup=False,
-            remove_instant_words=False, failure_threshold=0.02, token_step=400,
-        )
-        if result is None:
-            raise ValueError(f'Alignment rejected transcript ({len(reference.split())} words)')
-        aligned = [word for segment in result.to_dict()['segments'] for word in segment['words']]
         from gujarati_transcription import normalized
-        if normalized(' '.join(word['word'] for word in aligned)) != normalized(reference):
-            raise ValueError('Alignment omitted transcript words')
-        return aligned
+        model = alignment_model()
+        # Gujarati uses many Whisper tokens per word. A token-window boundary can
+        # collapse a spoken word to zero duration. Re-run acoustic alignment with
+        # different boundaries using the SAME audio and complete OpenAI text.
+        # Never delete the word, distribute gap time, or pay for another ASR call.
+        for token_step in (400, 320, 240):
+            result = model.align(
+                pcm, reference, language='gu', verbose=None, regroup=False,
+                remove_instant_words=False, failure_threshold=0.02, token_step=token_step,
+            )
+            if result is None:
+                continue
+            aligned = [word for segment in result.to_dict()['segments'] for word in segment['words']]
+            if normalized(' '.join(word['word'] for word in aligned)) != normalized(reference):
+                continue
+            if aligned and timing_issue(aligned, len(pcm) / 16000) is None:
+                return aligned
+        raise ValueError('Alignment could not time every transcript word')
     except Exception as error:
         import traceback
         frame = traceback.extract_tb(error.__traceback__)[-1]
@@ -52,6 +60,22 @@ def align_reference(pcm, reference):
             last_failure['dependency'] = error.name
         logging.getLogger(__name__).exception('Gujarati acoustic alignment failed')
         raise HTTPException(503, 'Gujarati word alignment failed; please retry later') from error
+
+
+def timing_issue(aligned, seconds):
+    previous_end = 0
+    for index, item in enumerate(aligned):
+        try:
+            a, b = float(item['start']), float(item['end'])
+            text = item['word'].strip()
+            if (not text or not math.isfinite(a) or not math.isfinite(b)
+                    or a < previous_end - 0.02 or a < 0 or b <= a
+                    or b > seconds + 0.02 or b - a > 3):
+                raise ValueError('Unreliable word timing')
+            previous_end = b
+        except (KeyError, TypeError, ValueError, AttributeError):
+            return index
+    return None
 
 
 def audio_windows(pcm):
@@ -105,4 +129,4 @@ def transcribe_gujarati(pcm, transport=None):
                               'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',
             'transcription': {'provider': 'openai', 'model': transcription_model(),
-                              'alignment': 'whisper-attention', 'version': 4}}
+                              'alignment': 'whisper-attention', 'version': 5}}

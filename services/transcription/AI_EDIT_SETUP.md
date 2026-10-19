@@ -78,7 +78,7 @@ invalid/reversed/zero timestamps, or >3-second word spans fail without replacing
 the user's captions. The current transcript is never a Whisper prefix prompt.
 
 Responses identify provider, model, alignment and protocol version 4 for live
-verification. Health exposes `gujarati_alignment_version: 4` and non-content
+verification. Health exposes `gujarati_alignment_version: 5` and non-content
 failure diagnostics. Audio is held in request memory only. Successful HTTP status
 and valid timing bounds do not establish perfect speech-recognition accuracy:
 compare the full video with the generated words, including technical terms,
