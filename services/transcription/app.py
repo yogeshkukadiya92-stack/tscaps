@@ -5,7 +5,7 @@ import re
 import wave
 import tempfile
 from uuid import UUID
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from starlette.background import BackgroundTask
 from contextlib import asynccontextmanager
 
@@ -47,6 +47,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, root_path=os.getenv('API_ROOT_PATH', ''))
+from gujarati_alignment import AlignmentDraftError
+
+
+@app.exception_handler(AlignmentDraftError)
+async def alignment_draft_error(_request, error):
+    # authorize() runs before inference. Do not persist the user's speech or put
+    # it in public health diagnostics when returning their untimed draft.
+    return JSONResponse(status_code=error.status_code,
+                        content={'detail': error.detail, 'draftText': error.draft_text})
+
+
 origins = [value.strip() for value in os.getenv('ALLOWED_ORIGINS', '').split(',') if value.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST', 'GET'],
                    allow_headers=['Authorization', 'Content-Type'])

@@ -11,6 +11,13 @@ import httpx
 from fastapi import HTTPException
 
 
+class AlignmentDraftError(HTTPException):
+    """Return paid ASR text only to the authenticated caller, never in health/logs."""
+    def __init__(self, reference):
+        super().__init__(503, 'Gujarati word alignment failed; please retry later')
+        self.draft_text = reference
+
+
 @lru_cache(maxsize=1)
 def alignment_model():
     import stable_whisper
@@ -107,9 +114,12 @@ def transcribe_gujarati(pcm, transport=None):
             reference = audio_reference(client, as_wave(chunk), end - start)
             if not reference:
                 continue
-            aligned = align_reference(chunk, reference)
+            try:
+                aligned = align_reference(chunk, reference)
+            except HTTPException as error:
+                raise AlignmentDraftError(reference) from error
             if not aligned:
-                raise HTTPException(503, 'Gujarati word alignment failed; please retry later')
+                raise AlignmentDraftError(reference)
             previous_end = 0
             for word_index, item in enumerate(aligned):
                 try:
@@ -124,7 +134,7 @@ def transcribe_gujarati(pcm, transport=None):
                     last_failure = {'stage': 'timing-validation', 'index': word_index,
                                     'start': item.get('start'), 'end': item.get('end'),
                                     'chunk_seconds': end - start}
-                    raise HTTPException(503, 'Invalid GPU transcription response') from error
+                    raise AlignmentDraftError(reference) from error
                 words.append({'text': text, 'start': round(start + a, 3),
                               'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',

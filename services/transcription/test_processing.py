@@ -88,3 +88,21 @@ def test_proxy_prefix_is_accepted_when_configured(client, monkeypatch):
     monkeypatch.setattr(app, 'root_path', '/processing')
     assert client.get('/processing/health').status_code == 200
     assert client.get('/health').status_code == 200
+
+
+def test_failed_alignment_draft_is_only_returned_to_its_authenticated_caller(client, monkeypatch):
+    from gujarati_alignment import AlignmentDraftError
+    calls = []
+    def failed(*args):
+        calls.append(True)
+        raise AlignmentDraftError('વાત છે')
+    monkeypatch.setattr('app.infer', failed)
+    unauthorized = client.post('/transcribe?language=gu', content=wav(), headers={'Content-Type': 'audio/wav'})
+    assert unauthorized.status_code == 401 and calls == []
+    response = client.post('/transcribe?language=gu', content=wav(),
+        headers={'Authorization': 'Bearer valid', 'Content-Type': 'audio/wav'})
+    assert response.status_code == 503
+    assert response.json()['draftText'] == 'વાત છે'
+    assert 'words' not in response.json()
+    assert 'વાત છે' not in client.get('/health').text
+    assert app.state.busy is False
