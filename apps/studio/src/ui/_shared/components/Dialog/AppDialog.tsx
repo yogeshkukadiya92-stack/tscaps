@@ -47,9 +47,9 @@ const OVERLAY_BASE =
   'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out';
 
 const CONTENT_BASE =
-  'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-h-[85dvh] overflow-y-auto ' +
+  'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-h-[85dvh] overflow-y-auto overscroll-contain ' +
   'thin-scroll [scrollbar-width:thin] [scrollbar-color:rgb(var(--color-fg-faint)/0.25)_transparent] ' +
-  'bg-surface-2 border border-edge-subtle rounded-md shadow-md ' +
+  'bg-surface-2 border border-edge-subtle rounded-xl shadow-lg ' +
   'p-4 sm:p-6 flex flex-col gap-4 focus:outline-none ' +
   'data-[state=open]:animate-fade-in data-[state=closed]:pointer-events-none';
 
@@ -88,7 +88,7 @@ const DESCRIPTION = 'text-sm text-fg-secondary leading-normal m-0 break-words';
  * identity.
  */
 const CLOSE_BTN =
-  'absolute top-3 right-3 inline-flex items-center justify-center w-7 h-7 rounded-xs ' +
+  'absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-lg ' +
   'text-fg-muted hover:text-fg-primary hover:bg-surface-3 ' +
   'transition-colors duration-quick ease-standard cursor-pointer ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ' +
@@ -124,7 +124,7 @@ export function AppDialog({
           {titleSrOnly ? (
             <Dialog.Title className="sr-only">{title}</Dialog.Title>
           ) : (
-            <Dialog.Title className={`${TITLE} ${showCloseButton ? 'pr-7' : ''}`}>{title}</Dialog.Title>
+            <Dialog.Title className={`${TITLE} ${showCloseButton ? 'pr-10' : ''}`}>{title}</Dialog.Title>
           )}
           {description !== undefined && (
             <Dialog.Description className={DESCRIPTION}>{description}</Dialog.Description>

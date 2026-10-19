@@ -55,7 +55,7 @@ export function AuthScreen({ initialError, recovering, onRecovered, initialMode 
       navigate(destination, { state: { ...location.state, authEmail: email } });
       return;
     }
-    setMode(next); setError(''); setNotice(''); setPassword(''); setConfirmation('');
+    setMode(next); setError(''); setNotice(''); setPassword(''); setConfirmation(''); setShow(false);
   }
 
   return <section className="public-auth bg-surface-0 text-fg-primary flex flex-col">
@@ -69,7 +69,7 @@ export function AuthScreen({ initialError, recovering, onRecovered, initialMode 
             className={`rounded-sm p-2 text-sm ${mode === value ? 'bg-surface-3 text-accent font-semibold' : 'text-fg-muted'}`}
             onClick={() => switchMode(value)}>{value === 'signin' ? 'Sign in' : 'Sign up'}</button>)}
         </div>}
-        <form onSubmit={event => void submit(event)} className="flex flex-col gap-4">
+        <form onSubmit={event => void submit(event)} className="flex flex-col gap-4" aria-busy={pending}>
           {mode === 'signup' && !recovering && <label className="text-sm text-fg-secondary flex flex-col gap-2">Your name<input className={INPUT} autoComplete="name" maxLength={80} required value={name} onChange={e => setName(e.target.value)} disabled={pending} /></label>}
           {!recovering && <label className="text-sm text-fg-secondary flex flex-col gap-2">Email<input className={INPUT} type="email" autoComplete="email" maxLength={254} required value={email} onChange={e => setEmail(e.target.value)} disabled={pending} /></label>}
           {(mode !== 'reset' || recovering) && <>
@@ -77,7 +77,7 @@ export function AuthScreen({ initialError, recovering, onRecovered, initialMode 
               <div className="relative"><input className={`${INPUT} pr-12`} aria-label={recovering ? 'New password' : 'Password'} type={show ? 'text' : 'password'}
                 autoComplete={mode === 'signup' || recovering ? 'new-password' : 'current-password'} minLength={mode === 'signup' || recovering ? 10 : 1} maxLength={128}
                 required value={password} onChange={e => setPassword(e.target.value)} disabled={pending} />
-                <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(v => !v)} className="absolute right-3 top-3 text-fg-muted">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
+                <button type="button" aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} disabled={pending} onClick={() => setShow(v => !v)} className="absolute right-1 top-1 flex h-10 w-10 items-center justify-center rounded-md text-fg-muted hover:text-fg-primary">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
             </label>
             {(mode === 'signup' || recovering) && <label className="text-sm text-fg-secondary flex flex-col gap-2">Confirm password<input aria-label="Confirm password" className={INPUT} type={show ? 'text' : 'password'} autoComplete="new-password" required value={confirmation} onChange={e => setConfirmation(e.target.value)} disabled={pending} />
               <span className="text-xs text-fg-muted">Use at least 10 characters.</span></label>}

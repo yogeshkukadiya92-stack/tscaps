@@ -84,3 +84,17 @@
 .workspace-toolbar select { min-height: 44px; }
 .workspace-library-header h2 { font-size: 18px; }
 @media (max-width: 640px) { .workspace-start--compact { padding: 20px; } }
+
+/* Consistent touch targets without enlarging the desktop editing chrome. */
+.workspace-start p { line-height: 1.7; max-width: 48ch; }
+.workspace-projects--list .workspace-project-details { min-width: 0; }
+.workspace-view button { min-width: 36px; min-height: 36px; display: grid; place-items: center; }
+.workspace-nav-active { color: rgb(var(--color-accent)); }
+@media (max-width: 640px) {
+  .workspace-page-actions > button { min-height: 44px; }
+  .workspace-start button { min-height: 44px; }
+  .workspace-view button { min-width: 40px; min-height: 40px; }
+  .workspace-search input { font-size: 16px; }
+  .workspace-search button { width: 32px; height: 32px; flex-shrink: 0; }
+  .workspace-toolbar select { min-width: 0; }
+}

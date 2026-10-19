@@ -112,3 +112,16 @@ body {
 *::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-fg-muted) / .7); }
 *::-webkit-scrollbar-thumb:active { background: rgb(var(--color-fg-secondary)); }
 @media (forced-colors: active) { * { scrollbar-color: auto; } }
+
+/* Honor motion preferences for shared dialogs, loading and theme changes too. */
+@media (prefers-reduced-motion: reduce) {
+  body, .theme-transitioning,
+  .theme-transitioning *,
+  [data-floating-layer], [data-floating-layer] + *,
+  [data-radix-popper-content-wrapper] {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

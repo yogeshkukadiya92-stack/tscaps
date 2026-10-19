@@ -102,7 +102,7 @@ export function PromptDialog({
   const counter = maxLength !== undefined ? `${value.length}/${maxLength}` : null;
 
   return (
-    <AppDialog open={open} onClose={onCancel} size="sm" title={label} titleSrOnly>
+    <AppDialog open={open} onClose={onCancel} size="sm" title={label} titleSrOnly locked={loading}>
       <div>
         <div className="flex items-baseline justify-between mb-1.5">
           <label className={INPUT_LABEL} htmlFor="prompt-input">{label}</label>
@@ -116,7 +116,7 @@ export function PromptDialog({
           className={inputClass}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); handleConfirm(); } }}
           readOnly={loading}
           aria-invalid={visibleError ? true : undefined}
           aria-describedby={visibleError ? 'prompt-error' : undefined}

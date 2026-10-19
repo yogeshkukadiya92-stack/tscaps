@@ -101,3 +101,42 @@
 @media (prefers-reduced-motion: reduce) { .public-site * { transition: none !important; animation: none !important; } }
 
 @media (min-width: 701px) and (max-width: 1000px) { .public-pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .public-plan-trial { grid-column: 1 / -1; } }
+
+/* Keep the public experience on the same typographic rhythm as the studio. */
+.public-site :is(h1, h2, h3) { font-family: var(--font-display); text-wrap: balance; }
+.public-hero > *, .public-auth-layout > *, .public-feature-grid > * { min-width: 0; }
+.public-header-actions { flex-shrink: 0; }
+.public-header :is(nav a, .public-signin) { display: inline-flex; align-items: center; min-height: 44px; }
+.public-feature-grid article { transition: border-color var(--motion-quick) var(--ease-standard); }
+.public-feature-grid article:hover { border-color: var(--edge-strong); }
+.public-faq summary { min-height: 44px; align-items: center; }
+.public-faq summary svg { flex-shrink: 0; }
+.public-auth-form > div { background: rgb(var(--color-surface-1)); border: 1px solid var(--public-line); border-radius: 16px; padding: 28px; box-shadow: var(--shadow-sm); }
+.public-auth-form h1 { font-size: clamp(26px, 3vw, 32px); line-height: 1.2; }
+.public-auth-form input { min-height: 48px; }
+.public-auth-form form > button { min-height: 48px; }
+.public-auth-form [role='alert'] { padding: 12px 14px; border: 1px solid rgb(var(--color-danger) / .25); border-radius: 8px; background: rgb(var(--color-danger) / .06); overflow-wrap: anywhere; }
+.public-auth-form [role='status'] { padding: 12px 14px; border: 1px solid rgb(var(--color-accent) / .25); border-radius: 8px; background: rgb(var(--color-accent) / .06); overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .public-header { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 16px 20px 10px; }
+  .public-header nav { grid-column: 1 / -1; justify-content: space-between; gap: 16px; }
+  .public-header-actions { gap: 10px; }
+  .public-header-actions .public-button { min-height: 44px; }
+  .public-hero h1 { font-size: clamp(40px, 10vw, 64px); line-height: 1.06; }
+  .public-hero-actions { flex-wrap: wrap; gap: 16px 24px; }
+  .public-text-link { min-height: 44px; }
+  .public-auth-form { padding: 28px 16px 40px; }
+  .public-auth-form > div { padding: 24px 20px; }
+  .public-auth-form input { font-size: 16px; }
+}
+@media (max-width: 360px) {
+  .public-header { grid-template-columns: 1fr; }
+  .public-header-actions { justify-content: space-between; }
+  .public-header nav { grid-row: 3; }
+  .public-main { padding-inline: 18px; }
+}
+@media (min-width: 701px) and (max-width: 900px) {
+  .public-auth-layout { grid-template-columns: 1fr; min-height: auto; }
+  .public-auth-story { display: none; }
+  .public-auth-form { justify-items: center; padding: 40px 24px; }
+}

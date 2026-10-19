@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useId } from 'react';
 
 interface TextInputProps {
   label: string;
@@ -25,10 +25,12 @@ export const TextInput = memo(function TextInput({
   disabled,
   onChange,
 }: TextInputProps) {
+  const fieldId = useId();
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</span>
+      <label htmlFor={fieldId} className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</label>
       <input
+          id={fieldId}
         type="text"
         className={INPUT_CLS}
         value={value}

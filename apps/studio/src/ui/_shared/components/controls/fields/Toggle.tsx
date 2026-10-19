@@ -40,6 +40,7 @@ export const Toggle = memo(function Toggle({
       <span className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</span>
       {adornment}
       <Switch.Root
+        aria-label={label}
         checked={value}
         disabled={disabled}
         onCheckedChange={onChange}

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface SelectOption {
@@ -34,11 +34,13 @@ export const Select = memo(function Select({
   disabled,
   onChange,
 }: SelectProps) {
+  const fieldId = useId();
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</span>
-      <div className="relative flex-1">
+      <label htmlFor={fieldId} className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</label>
+      <div className="relative flex-1 min-w-0">
         <select
+          id={fieldId}
           className={SELECT_CLS}
           value={value}
           disabled={disabled}
