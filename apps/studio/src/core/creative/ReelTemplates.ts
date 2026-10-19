@@ -1,13 +1,15 @@
+import { INSTAGRAM_TEMPLATE_AUDIO, type InstagramAudioReference } from '@core/creative/InstagramReelAudio';
 import { newCreativeProject, type CreativeAsset, type CreativeProject } from '@core/creative/CreativeProject';
 import { newMotionEffect, type MotionEffectKind } from '@core/creative/MotionEffects';
 import type { Motion } from '@core/creative/creativeModel';
 
-export const REEL_TEMPLATE_CATEGORIES = ['All', 'Travel', 'Celebration', 'Business', 'Lifestyle', 'Creator', 'Fashion'] as const;
+export const REEL_TEMPLATE_CATEGORIES = ['All', 'Travel', 'Celebration', 'Business', 'Lifestyle', 'Creator', 'Fashion', 'Gujarati / Hindi'] as const;
 export type MusicMood = 'sunrise' | 'celebrate' | 'minimal' | 'dream' | 'drive' | 'runway';
 export interface ReelTemplate {
   id: string; name: string; category: string; description: string; color: string;
   bpm: number; beats: readonly number[]; look: string; motion: Motion; intensity: number;
   effect: MotionEffectKind; music: MusicMood;
+  instagram?: InstagramAudioReference;
 }
 // Each arrangement defines its own pacing; durations and all boundaries derive from the music tempo.
 type TemplateRow = [string, string, string, string, string, number, number[], string, Motion, number, MotionEffectKind, MusicMood];
@@ -42,9 +44,16 @@ const rows: TemplateRow[] = [
   ['beauty-details', 'Beauty Details', 'Fashion', 'Soft light and close-up focus for beauty looks.', '#e5c1d9', 100, [8,4,8,4,8], 'warm', 'push', .2, 'light-leak', 'dream'],
   ['runway-cuts', 'Runway Cuts', 'Fashion', 'Fast outfit changes and a final hero frame.', '#a98bdf', 132, [8,2,2,4,4,4,8], 'cool', 'pulse', .5, 'zoom-through', 'runway'],
   ['jewellery-glow', 'Jewellery Glow', 'Fashion', 'Golden detail shots with slow focus and light.', '#e6c77b', 88, [8,8,4,4,8], 'warm', 'push', .2, 'spotlight', 'dream'],
+  ['desi-garba-recap', 'ગરબાની રમઝટ · Garba Recap', 'Gujarati / Hindi', 'Outfit detail, friends, twirls and a group finale. Inspired by current Surat Garba recaps.', '#f4aa56', 128, [4,2,2,4,2,2,4,4,8], 'warm', 'pulse', .45, 'zoom-through', 'celebrate'],
+  ['desi-mela-memories', 'મેળાની યાદો · Mela Memories', 'Gujarati / Hindi', 'A bright opening, quick festival details and a gentle memory hold. Inspired by observed fairground reels.', '#ffd080', 100, [4,2,2,4,4,8], 'warm', 'push', .3, 'light-leak', 'celebrate'],
+  ['desi-raat-bhar-glow', 'Raat Bhar · Festive Glow', 'Gujarati / Hindi', 'Soft couple portraits, festive light and a warm final reveal. Add the suggested song inside Instagram.', '#efa4c4', 96, [4,4,2,2,4,8], 'warm', 'push', .25, 'light-leak', 'dream'],
+  ['desi-gujju-portrait', 'મારી મજા · Gujju Portrait', 'Gujarati / Hindi', 'Four portrait moments with a confident opening and clean focus changes.', '#efc375', 120, [4,4,4,4], 'clean', 'push', .3, 'digital-zoom', 'minimal'],
+  ['desi-manzar-journey', 'નવી સફર · Manzar Journey', 'Gujarati / Hindi', 'Open on your starting point, show the process, then hold on your progress.', '#88d6c2', 112, [8,4,4,2,2,4,8], 'cinema', 'push', .35, 'zoom-through', 'sunrise'],
+  ['desi-late-night-diary', 'રાતની યાદો · Night Diary', 'Gujarati / Hindi', 'Quiet night-time memories with long holds and subtle light. A format reference rather than a verified viral trend.', '#a8b8de', 80, [8,4,4,8], 'cool', 'push', .2, 'light-leak', 'dream'],
 ];
 export const REEL_TEMPLATES: readonly ReelTemplate[] = rows.map(([id, name, category, description, color, bpm, beats, look, motion, intensity, effect, music]) => ({
   id, name, category, description, color, bpm, beats, look, motion, intensity, effect, music,
+  ...(INSTAGRAM_TEMPLATE_AUDIO[id] ? { instagram: INSTAGRAM_TEMPLATE_AUDIO[id] } : {}),
 }));
 
 export const reelTemplateBeats = (template: ReelTemplate, mediaCount = 0): readonly number[] =>

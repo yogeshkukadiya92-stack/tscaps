@@ -43,6 +43,12 @@ try {
         Creator: ['camera', 'music', 'office', 'camera'], Fashion: ['fashion', 'clothes', 'flowers', 'fashion'],
       };
       const specific = {
+        'desi-garba-recap': ['fashion', 'flowers', 'wedding', 'clothes'],
+        'desi-mela-memories': ['city', 'wedding', 'flowers', 'lake'],
+        'desi-raat-bhar-glow': ['wedding', 'flowers', 'fashion', 'city'],
+        'desi-gujju-portrait': ['fashion', 'clothes', 'lake', 'flowers'],
+        'desi-manzar-journey': ['office', 'camera', 'interior', 'mountain'],
+        'desi-late-night-diary': ['city', 'coffee', 'music', 'lake'],
         'city-lights': ['city', 'office', 'city', 'interior'], 'nature-diary': ['mountain', 'lake', 'flowers', 'mountain'],
         'birthday-confetti': ['cake', 'flowers', 'wedding', 'cake'], 'wedding-memories': ['wedding', 'flowers', 'wedding', 'flowers'],
         'property-tour': ['interior', 'office', 'interior', 'office'], 'cafe-menu': ['coffee', 'food', 'coffee', 'food'],

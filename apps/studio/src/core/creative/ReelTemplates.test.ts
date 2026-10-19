@@ -7,8 +7,8 @@ import { EditorStore } from '@core/editor/store/EditorStore';
 const asset: CreativeAsset = { id: 'test-media', key: 'local/project/creative/test-media', remote: false, name: 'photo.webm', mimeType: 'video/webm', duration: 1.3 };
 describe('ready-made reel arrangements', () => {
   it('builds every recipe on its exact music grid, including short/repeated media and reload validation', () => {
-    expect(REEL_TEMPLATES).toHaveLength(30);
-    expect(new Set(REEL_TEMPLATES.map(t => t.id)).size).toBe(30);
+    expect(REEL_TEMPLATES).toHaveLength(36);
+    expect(new Set(REEL_TEMPLATES.map(t => t.id)).size).toBe(36);
     for (const template of REEL_TEMPLATES) {
       const project = assembleReelTemplate(template, [{ asset, duration: asset.duration }, { asset: null, duration: 2 }], null, 'Our story');
       const spans = compositionSpans(project, [{ start: 0, end: 100 }]);
