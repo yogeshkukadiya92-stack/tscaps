@@ -1,3 +1,4 @@
+import { buildPhotoVideo, isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MEDIA_FILE_ACCEPT, isAcceptedMediaFile, isAudioFile, VIDEO_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
 
@@ -51,9 +52,10 @@ export function VideoDropzone({ onFile }: VideoDropzoneProps) {
         return;
       }
       setError(null);
-      if (!isAudioFile(file)) { onFile(file); return; }
+      if (!isAudioFile(file) && !isReelPhoto(file)) { onFile(file); return; }
       busyRef.current = true; setBusy(true);
       try {
+        if (isReelPhoto(file)) { onFile(await buildPhotoVideo(file)); return; }
         const { buildAudioCaptionVideo } = await import('@core/audio/services/AudioCaptionVideoBuilder');
         onFile(await buildAudioCaptionVideo(file));
       } catch (cause) { showError(cause instanceof Error ? cause.message : 'Could not open this audio file.'); }
@@ -86,7 +88,7 @@ export function VideoDropzone({ onFile }: VideoDropzoneProps) {
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
       >
-        <p className={ZONE_TITLE}>{busy ? 'Preparing audio for captions…' : 'Drop your video or audio here'}</p>
+        <p className={ZONE_TITLE}>{busy ? 'Preparing your media…' : 'Drop your video, photo or audio here'}</p>
         <label className={ZONE_HINT}>
           or <span className={BROWSE_LINK}>browse files</span>
           <input

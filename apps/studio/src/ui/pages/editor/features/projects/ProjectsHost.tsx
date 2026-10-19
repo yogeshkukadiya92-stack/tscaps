@@ -1,5 +1,6 @@
+import { buildPhotoVideo, isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { isAcceptedVideoFile, VIDEO_ONLY_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
+import { isAcceptedVideoFile } from '@ui/_shared/video/videoAcceptance';
 import { useHref, useNavigate } from 'react-router-dom';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
@@ -35,6 +36,7 @@ export function ProjectsHost() {
   const [trash, setTrash] = useState<{ id: string; name: string }[] | null>(null);
   const [trashPending, setTrashPending] = useState(false);
   const preparingRef = useRef(false);
+  const [preparingMedia, setPreparingMedia] = useState(false);
   const [audioError, setAudioError] = useState('');
 
   const refresh = useCallback(async () => {
@@ -111,13 +113,13 @@ export function ProjectsHost() {
   const handleNewProject = useCallback(async (file: File) => {
     if (preparingRef.current) return;
     setAudioError('');
-    if (!isAcceptedVideoFile(file)) { setAudioError(VIDEO_ONLY_UNSUPPORTED_MESSAGE); return; }
-    preparingRef.current = true;
+    if (!isAcceptedVideoFile(file) && !isReelPhoto(file)) { setAudioError('Choose a video (MP4, WebM, MOV) or photo (JPG, PNG, WebP).'); return; }
+    preparingRef.current = true; setPreparingMedia(true);
     try {
-      videos.actions.load.execute(file);
+      videos.actions.load.execute(isReelPhoto(file) ? await buildPhotoVideo(file) : file);
       navigate(routes.editor());
     } catch (cause) { setAudioError(cause instanceof Error ? cause.message : 'Could not open this video file.'); }
-    finally { preparingRef.current = false; }
+    finally { preparingRef.current = false; setPreparingMedia(false); }
   }, [videos, navigate, routes]);
 
   const handleOpenProject = useCallback((id: string) => {
@@ -164,9 +166,9 @@ export function ProjectsHost() {
       isMobileDevice={isMobile}
       homeHref={homeHref}
       title={projects.cloudEnabled ? 'Your projects' : 'Local projects'}
-      subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · Upload video with New project`}
+      subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · Add video or photos with New project`}
       emptyTitle="Make your first project."
-      emptyBody="Add your video, choose its language, correct the captions and pick a design. Press Export to download your finished reel."
+      emptyBody="Add a video or photo. Open Creative → Templates to build a reel with music and motion, or add captions to a talking video."
       headerNote={projects.cloudEnabled ? <div className="flex flex-col gap-2">
         <p className="text-xs text-fg-muted m-0">Cloud videos are automatically removed 48 hours after upload. Download your finished reel before then. Caption edits remain saved; keep your original video to relink later.</p>
         <div className="flex gap-2 flex-wrap">
@@ -186,6 +188,7 @@ export function ProjectsHost() {
       onImportProject={handleImportProject}
       theme={theme}
     />
+    {preparingMedia && <p role="status" className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-edge-medium p-4">Preparing your media…</p>}
     {audioError && <div className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-danger p-4" role="alert">{audioError}<button className={BTN_SECONDARY_SM} onClick={() => setAudioError('')}>Dismiss</button></div>}
     </>
   );

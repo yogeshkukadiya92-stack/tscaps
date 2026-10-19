@@ -182,7 +182,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
                 <Plus size={14} />
                 <span>New project</span>
               </button>
-              <input ref={newInputRef} type="file" accept={VIDEO_FILE_ACCEPT} onChange={handleNewSelected} hidden />
+              <input ref={newInputRef} type="file" accept={`${VIDEO_FILE_ACCEPT},image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp`} onChange={handleNewSelected} hidden />
               {onImportProject && (
                 <input ref={importInputRef} type="file" accept=".tscaps,application/json" onChange={handleImportSelected} hidden />
               )}

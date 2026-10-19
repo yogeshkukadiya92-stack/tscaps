@@ -67,6 +67,16 @@ Before applying, click **Preview before / after** and switch **Before** (the cur
 
 The preview retains its current output time when changing effects, colour, captions or comparison versions. When trimming makes the reel shorter than the playhead, the preview clamps to its new end. Playback pauses while the updated frame prepares.
 
+### Ready-made photo and video reels
+
+Open **Creative → Templates** for **30 ready-made reels** across Travel, Celebration, Business, Lifestyle, Creator and Fashion. Each arrangement includes a predefined instrumental mood, BPM, scene lengths, colour look, camera motion and timed lighting or zoom transitions. These are full media arrangements, separate from the caption recipes under Auto Edit.
+
+Choose a template, select JPG/PNG/WebP photos and/or supported videos, arrange the file order, optionally enter a title, and click **Build reel automatically**. With no selection, it uses the original project video. Media cycles to fill the scene slots; selecting more files extends the arrangement on the same beat pattern so every file is included. A short video repeats within its slot rather than leaving blank frames. Photos use a centred 9:16 crop. **New project** and the editor dropzone also accept a photo to start a project without a source video; the normal no-audio flow opens an empty transcript.
+
+Music is an original deterministic synthesised instrumental loop generated locally in six moods; no external music service is required. **Listen to preset music** previews the selected mood. Uncheck music to build a silent montage, or upload a replacement under Audio. Template arrangements mute original clip sound; use Audio and Clips to restore it. New media does not receive automatic subtitles; existing captions remain available on the original project video.
+
+Building replaces the creative arrangement in one undoable operation. Preview the result, fine-tune in Clips, Effects, Look and Audio, then **Save changes** and **Render & download**. The generated media uses the existing private/local asset repository, and all edits use the shared preview/export compositor. Build does not render or download the finished video automatically. Cloud media requires a successful upload; keep original photos/videos for future recropping or relinking.
+
 ### Motion Effects gallery
 
 Open **Creative → Effects** in the main editor workspace to add Digital Zoom, Checklist, Phone Mockup, Headline Wall, Chart Grow, Pull-back Reveal, Cover Story or Zoom-through Cut. Effects have editable start/end times on the final reel timeline, text, accent colour and relevant intensity/position controls. Chart rows use `Label | 50` (up to six non-negative values). Phone Mockup and Pull-back Reveal frame the current reel, including captions and B-roll. Add source videos using Clips/B-roll.

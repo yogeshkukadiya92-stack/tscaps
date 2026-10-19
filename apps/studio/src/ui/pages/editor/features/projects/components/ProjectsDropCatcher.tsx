@@ -1,10 +1,10 @@
+import { isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowUpFromLine } from 'lucide-react';
 import { Toast, TOAST_AUTO_DISMISS_MS } from '@ui/_shared/components/Toast/Toast';
 import {
   VIDEO_ONLY_LABEL,
   isAcceptedVideoFile,
-  VIDEO_ONLY_UNSUPPORTED_MESSAGE,
 } from '@ui/_shared/video/videoAcceptance';
 
 const PROJECT_FILE_EXTENSION = '.tscaps';
@@ -57,8 +57,8 @@ export function ProjectsDropCatcher({ onVideo, onVideoIntent, onProjectFile }: P
       onProjectFile(file);
       return;
     }
-    if (!isAcceptedVideoFile(file)) {
-      setError(VIDEO_ONLY_UNSUPPORTED_MESSAGE);
+    if (!isAcceptedVideoFile(file) && !isReelPhoto(file)) {
+      setError('Choose a video (MP4, WebM, MOV) or photo (JPG, PNG, WebP).');
       return;
     }
     // The same gate the "New project" button runs. A drop that skipped
@@ -117,7 +117,7 @@ export function ProjectsDropCatcher({ onVideo, onVideoIntent, onProjectFile }: P
     };
   }, [accept]);
 
-  const formatHint = onProjectFile ? `${VIDEO_ONLY_LABEL} · TSCAPS` : VIDEO_ONLY_LABEL;
+  const formatHint = `${VIDEO_ONLY_LABEL} · JPG · PNG · WebP${onProjectFile ? ' · TSCAPS' : ''}`;
 
   return (
     <>

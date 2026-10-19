@@ -1,4 +1,8 @@
 import '@ui/pages/editor/features/creative/CreativeStudio.css';
+import { ReadyMadeReels } from '@ui/pages/editor/features/creative/ReadyMadeReels';
+import { assembleReelTemplate, type ReelTemplate } from '@core/creative/ReelTemplates';
+import { createTemplateMusic } from '@core/creative/ReelTemplateMusic';
+import { buildPhotoVideo, isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { StudioTimeline } from '@ui/pages/editor/features/creative/StudioTimeline';
 import { AutoEditPanel } from '@ui/pages/editor/features/creative/AutoEditPanel';
 import { sameAutoEditInputs, type AutoEditDraft } from '@core/creative/AutoEdit';
@@ -9,7 +13,7 @@ import { Clapperboard, Sparkles, Film, Layers, Music2, Palette, Timer, Wand2, Ca
 import { CutRegistry } from '@core/cuts/domain/CutRegistry';
 import type { EditorState } from '@core/editor/domain/EditorState';
 import { CreativeAssetRepository } from '@core/creative/CreativeAssetRepository';
-import { compositionSpans, newCreativeProject, type BRoll, type CreativeClip, type CreativeProject } from '@core/creative/CreativeProject';
+import { compositionSpans, newCreativeProject, type BRoll, type CreativeAsset, type CreativeClip, type CreativeProject } from '@core/creative/CreativeProject';
 import type { CreativeSession } from '@core/creative/CreativeRenderer';
 import { toAudioBuffer } from '@core/creative/CreativeAudio';
 import { findSilences, LOOKS, type CreativeSettings, type Motion } from '@core/creative/creativeModel';
@@ -242,6 +246,35 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     } catch (cause) { setError(errorText(cause)); }
     finally { setUploading(false); }
   }
+  async function buildTemplate(template: ReelTemplate, files: readonly File[], title: string, includeMusic: boolean) {
+    if (files.length > 30) throw new Error('Choose up to 30 photos or videos per reel.');
+    stop(); setUploading(true); setError('');
+    const base = editor.store.snapshot();
+    try {
+      const repository = new CreativeAssetRepository();
+      const media: { asset: CreativeAsset | null; duration: number }[] = [];
+      const photoDuration = Math.max(...template.beats) * 60 / template.bpm;
+      for (const selected of files) {
+        const prepared = isReelPhoto(selected) ? await buildPhotoVideo(selected, photoDuration) : selected;
+        const input = new Input({ source: new BlobSource(prepared), formats: ALL_FORMATS });
+        let length: number;
+        try {
+          const track = await input.getPrimaryVideoTrack();
+          if (!track || !await track.canDecode()) throw new Error(`Cannot open ${selected.name}. Use JPG, PNG, WebP, MP4, WebM or MOV.`);
+          length = await input.computeDuration();
+          if (!Number.isFinite(length) || length < .1 || length > 1800) throw new Error('Use videos between 0.1 seconds and 30 minutes.');
+        } finally { input.dispose(); }
+        media.push({ asset: await repository.put(prepared, length, projectId), duration: length });
+      }
+      if (!media.length) media.push({ asset: null, duration: base.video.duration });
+      const musicFile = includeMusic ? createTemplateMusic(template.music, template.bpm) : null;
+      const music = musicFile ? await repository.put(musicFile, 32 * 60 / template.bpm, projectId) : null;
+      if (!sameAutoEditInputs(base, editor.store.snapshot())) throw new Error('Your project changed while preparing media. Build the template again.');
+      const next = assembleReelTemplate(template, media, music, title);
+      change(next); timeRef.current = 0; setTime(0);
+      setNotice(`${template.name} is ready to preview. Adjust any edit, then render and download your reel.`);
+    } finally { setUploading(false); }
+  }
   function clipChange(id: string, values: Partial<CreativeClip>) { change({ ...project, clips: project.clips.map(c => c.id === id ? { ...c, ...values } : c) }); }
   function overlayChange(id: string, values: Partial<BRoll>) { change({ ...project, overlays: project.overlays.map(o => o.id === id ? { ...o, ...values } : o) }); }
   function move(index: number, offset: number) {
@@ -317,7 +350,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     <div className="studio-title"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Edit your reel</h2><p className="text-xs text-fg-muted m-0">Choose an edit below. Preview it on your reel.</p></div></div>
     <div className="studio-workbench">
       <nav aria-label="Creative tools" className="studio-tool-rail">
-        {([{ id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Captions', label: 'Captions', icon: Captions }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span>{label}</span></button>)}
+        {([{ id: 'Templates', label: 'Templates', icon: Clapperboard }, { id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Captions', label: 'Captions', icon: Captions }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span>{label}</span></button>)}
       </nav>
       <div className="studio-monitor">
         <div className="studio-monitor-heading"><span>Your reel</span><span>{viewProject.settings.portrait ? '9:16 portrait' : 'Original ratio'} · 30 fps</span></div>
@@ -355,6 +388,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
       <div hidden={activeTool !== 'Auto'}>
       <AutoEditPanel libraryHost={libraryHost} file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
       </div>
+      <div hidden={activeTool !== 'Templates'}>{activeTool === 'Templates' && <ReadyMadeReels locked={editingLocked} onBuild={buildTemplate} />}</div>
       <fieldset disabled={editingLocked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
         <section hidden={activeTool !== 'Captions'} aria-label="Customize captions" className="rounded-lg border border-edge-medium bg-surface-1 p-4 min-w-0">{activeTool === 'Captions' && captionControls}</section>
         <div hidden={activeTool !== 'Effects'} id="creative-Effects" className="rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2">

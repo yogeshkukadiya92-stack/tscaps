@@ -1,3 +1,4 @@
+import { isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 /**
  * Single source of truth for which video files the editor accepts.
  * Shared by the in-editor dropzone and the projects-page drop catcher
@@ -10,14 +11,14 @@ export const ACCEPTED_VIDEO_TYPES = [
 ];
 
 export const ACCEPTED_AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/x-flac', 'audio/webm'];
-export const MEDIA_FILE_ACCEPT = 'video/mp4,video/webm,video/quicktime,audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac';
+export const MEDIA_FILE_ACCEPT = 'video/mp4,video/webm,video/quicktime,audio/*,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.mp3,.wav,.m4a,.aac,.ogg,.flac';
 export const isAudioFile = (file: File): boolean => ACCEPTED_AUDIO_TYPES.includes(file.type) || /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(file.name);
-export const isAcceptedMediaFile = (file: File): boolean => ACCEPTED_VIDEO_TYPES.includes(file.type) || isAudioFile(file);
+export const isAcceptedMediaFile = (file: File): boolean => ACCEPTED_VIDEO_TYPES.includes(file.type) || isAudioFile(file) || isReelPhoto(file);
 
-export const ACCEPTED_VIDEO_LABEL = 'Video or audio · MP4 · WEBM · MOV · MP3 · WAV · M4A';
+export const ACCEPTED_VIDEO_LABEL = 'Video, photo or audio · MP4 · WEBM · MOV · MP3 · WAV · M4A';
 
 export const VIDEO_UNSUPPORTED_MESSAGE =
-  'Please use a video (MP4, WebM, MOV) or audio (MP3, WAV, M4A, AAC, OGG, FLAC) file.';
+  'Please use a photo (JPG, PNG, WebP), video (MP4, WebM, MOV) or audio (MP3, WAV, M4A, AAC, OGG, FLAC) file.';
 
 /** Video-only entry point used by the project library. */
 export const VIDEO_FILE_ACCEPT = 'video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov';
