@@ -75,9 +75,9 @@ Forced alignment preserves the complete OpenAI transcript, including short
 Gujarati words. It does not discard zero-duration words, silently remove an
 unaligned tail, or allocate guessed time evenly through gaps. Missing words,
 invalid/reversed/zero timestamps, or >3-second word spans fail without replacing
-the user's captions. The current transcript is never a Whisper prefix prompt.
+the user's captions. If a word collapses at a token-window boundary, alignment retries with up to three different token windows using the same audio and complete transcript. These retries do not make another paid transcription call. The current transcript is never a Whisper prefix prompt.
 
-Responses identify provider, model, alignment and protocol version 4 for live
+Responses identify provider, model, alignment and protocol version 5 for live
 verification. Health exposes `gujarati_alignment_version: 5` and non-content
 failure diagnostics. Audio is held in request memory only. Successful HTTP status
 and valid timing bounds do not establish perfect speech-recognition accuracy:
