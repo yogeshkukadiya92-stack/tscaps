@@ -134,7 +134,7 @@ def audio_windows(pcm):
         start = end
 
 
-def transcribe_gujarati(pcm, transport=None):
+def transcribe_gujarati(pcm, transport=None, keywords=None):
     global last_failure
     from groq_provider import as_wave
     from gujarati_transcription import audio_reference, transcription_model
@@ -143,7 +143,7 @@ def transcribe_gujarati(pcm, transport=None):
         for begin, finish in audio_windows(pcm):
             start, end = begin / 16000, finish / 16000
             chunk = pcm[begin:finish]
-            reference = audio_reference(client, as_wave(chunk), end - start)
+            reference = audio_reference(client, as_wave(chunk), end - start, keywords=keywords)
             if not reference:
                 continue
             try:
@@ -171,4 +171,4 @@ def transcribe_gujarati(pcm, transport=None):
                               'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',
             'transcription': {'provider': 'openai', 'model': transcription_model(),
-                              'alignment': 'whisper-attention', 'spelling_model': 'gpt-5.4-mini-2026-03-17', 'version': 8}}
+                              'alignment': 'whisper-attention', 'spelling_model': 'gpt-5.4-mini-2026-03-17', 'version': 9}}

@@ -2,6 +2,8 @@ import type { Document } from '@modules/document/index';
 
 export interface TranscriberOptions {
   language?: string;
+  /** Optional names/terminology for this recording; local decoders may ignore them. */
+  keywords?: string[];
 }
 
 /**

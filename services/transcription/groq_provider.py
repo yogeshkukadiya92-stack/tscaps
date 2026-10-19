@@ -45,12 +45,12 @@ def as_wave(pcm):
     return buffer.getvalue()
 
 
-def transcribe_groq(pcm, language, transport=None):
+def transcribe_groq(pcm, language, transport=None, keywords=None):
     if language == 'gu':
         from gujarati_transcription import enabled
         if enabled():
             from gujarati_alignment import transcribe_gujarati
-            return transcribe_gujarati(pcm, transport)
+            return transcribe_gujarati(pcm, transport, keywords=keywords)
     model = os.getenv('GROQ_MODEL', 'whisper-large-v3')
     if model not in RATES:
         raise HTTPException(503, 'Unsupported transcription model')

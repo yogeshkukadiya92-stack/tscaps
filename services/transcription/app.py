@@ -10,7 +10,7 @@ from starlette.background import BackgroundTask
 from contextlib import asynccontextmanager
 
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.concurrency import run_in_threadpool
 
@@ -67,7 +67,7 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST',
 async def health():
     from gujarati_transcription import enabled
     from gujarati_alignment import last_failure
-    return {'gujarati_alignment_failure': last_failure, 'gujarati_alignment_version': 8, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
+    return {'gujarati_alignment_failure': last_failure, 'gujarati_alignment_version': 9, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
 
 
 async def authorize(request: Request):
@@ -88,7 +88,7 @@ async def authorize(request: Request):
     return user
 
 
-def infer(body: bytes, language: str | None):
+def infer(body: bytes, language: str | None, keywords: str | None = None):
     try:
         pcm = decode_wave(body)
     except (ValueError, EOFError, wave.Error) as error:
@@ -96,7 +96,7 @@ def infer(body: bytes, language: str | None):
         raise HTTPException(400, 'Expected a valid mono 16 kHz PCM16 WAV') from error
     if app.state.provider == 'groq':
         from groq_provider import transcribe_groq
-        return transcribe_groq(pcm, language)
+        return transcribe_groq(pcm, language, keywords=keywords)
     segments, info = app.state.engine.transcribe(pcm, language=language, task='transcribe',
         beam_size=5, batch_size=int(os.getenv('WHISPER_BATCH_SIZE', '8')),
         word_timestamps=True, vad_filter=True, condition_on_previous_text=False,
@@ -110,7 +110,7 @@ def infer(body: bytes, language: str | None):
 
 
 @app.post('/transcribe')
-async def transcribe(request: Request, language: str | None = None):
+async def transcribe(request: Request, language: str | None = None, keywords: str | None = Query(None, max_length=1024)):
     await authorize(request)
     if not hasattr(app.state, 'engine') and app.state.provider != 'groq':
         raise HTTPException(503, 'Transcription is not enabled')
@@ -129,7 +129,7 @@ async def transcribe(request: Request, language: str | None = None):
                 if len(body) + len(chunk) > MAX_BYTES:
                     raise HTTPException(413, 'Audio exceeds 30 minutes')
                 body.extend(chunk)
-        return await run_in_threadpool(infer, bytes(body), language)
+        return await run_in_threadpool(infer, bytes(body), language, keywords)
     except TimeoutError:
         raise HTTPException(408, 'Audio upload timed out')
     finally:

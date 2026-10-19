@@ -18,6 +18,7 @@ export class ServerTranscriber implements ConfigurableTranscriber {
       this.progress.enterInferringPhase();
       const url = new URL(`${this.endpoint}/transcribe`);
       if (options?.language) url.searchParams.set('language', options.language);
+      if (options?.language === 'gu') url.searchParams.set('keywords', (options.keywords ?? []).join(','));
       const send = (token: string) => this.request(url, {
         method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'audio/wav' },
         body: audio, signal: AbortSignal.timeout(15 * 60 * 1000), credentials: 'omit', redirect: 'error',

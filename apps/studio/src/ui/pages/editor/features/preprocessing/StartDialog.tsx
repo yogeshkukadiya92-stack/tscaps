@@ -126,6 +126,8 @@ export function StartDialog({
 }: StartDialogProps) {
   const [language, setLanguage] = useState<string>(initialLanguage ?? (allowAutoDetect ? AUTO_DETECT_LANGUAGE_VALUE : ''));
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [vocabulary, setVocabulary] = useState('');
+  const [vocabularyError, setVocabularyError] = useState<string | null>(null);
   const [languageError, setLanguageError] = useState<string | null>(null);
   const [subtitleFile, setSubtitleFile] = useState<SubtitleFile | null>(null);
   const [subtitleFileError, setSubtitleFileError] = useState<string | null>(null);
@@ -169,6 +171,14 @@ export function StartDialog({
     const selectedLanguage = romanHinglish ? 'hi' : language;
     const isExplicit = selectedLanguage !== '' && selectedLanguage !== AUTO_DETECT_LANGUAGE_VALUE;
     const transcriber: TranscriberOptions = isExplicit ? { language: selectedLanguage } : {};
+    if (serverProcessing && selectedLanguage === 'gu') {
+      const terms = vocabulary.split(',').map(term => term.trim()).filter(Boolean);
+      if (terms.length > 16 || terms.some(term => term.length > 64)) {
+        setVocabularyError('Use up to 16 names or terms, each under 65 characters.');
+        return;
+      }
+      transcriber.keywords = [...new Set(terms)];
+    }
     const picked = isExplicit ? languages.find((l) => l.code === selectedLanguage) : undefined;
     if (picked !== undefined) onLanguagePicked?.(picked);
     return (onStart ?? ((options) => preprocessVideo.execute(options)))({
@@ -268,6 +278,16 @@ export function StartDialog({
             placeholder="Select a language"
             errorMessage={languageError ?? undefined}
           />}
+          {serverProcessing && language === 'gu' && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary">
+            Names & technical words (optional)
+            <input aria-label="Names & technical words" maxLength={1024}
+              className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"
+              placeholder="Names, brands or specialist words, separated by commas"
+              value={vocabulary} onChange={event => { setVocabulary(event.target.value); setVocabularyError(null); }} />
+            <span className="text-fg-muted">આ વિડિયોમાં બોલાયેલા નામ અને ખાસ શબ્દો commaથી લખો. Helps with their spelling.</span>
+            {vocabularyError && <span role="alert" className="text-danger">{vocabularyError}</span>}
+          </label>}
+
 
           {extraFields}
         </>

@@ -261,3 +261,13 @@ def test_gujarati_uses_configured_domain_vocabulary_without_english_language_bia
         return httpx.Response(200, json={'text': 'એમ્બ્રોઇડરીવાળા'})
     with httpx.Client(transport=httpx.MockTransport(handle)) as client:
         assert audio_reference(client, b'audio', 60) == 'એમ્બ્રોઇડરીવાળા'
+
+
+def test_recording_vocabulary_overrides_or_clears_deployment_defaults(monkeypatch):
+    from gujarati_transcription import transcription_keywords
+    monkeypatch.setenv('GUJARATI_TRANSCRIPTION_KEYWORDS', 'Wilcom,Codex')
+    assert transcription_keywords('ડૉક્ટર,ક્લિનિક') == ['ડૉક્ટર', 'ક્લિનિક']
+    assert transcription_keywords('') == []
+    with pytest.raises(HTTPException) as error:
+        transcription_keywords('x' * 65)
+    assert error.value.status_code == 400

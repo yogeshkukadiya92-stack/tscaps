@@ -23,6 +23,14 @@ describe('audio-only server transcription', () => {
     expect(document.language).toBe('gu');
     expect(document.getWords().map(word => word.text)).toEqual(['ગુજરાતી', 'video']);
   });
+  it('scopes technical names to this Gujarati request and explicitly clears other recordings', async () => {
+    const first = setup({ words: [{ text: 'Wilcom', start: 0, end: .5 }] });
+    await first.transcriber.transcribe(new Blob(), { language: 'gu', keywords: ['Wilcom', 'એમ્બ્રોઇડરી'] });
+    expect(first.request.mock.calls[0]![0].searchParams.get('keywords')).toBe('Wilcom,એમ્બ્રોઇડરી');
+    const next = setup({ words: [{ text: 'ગુજરાતી', start: 0, end: .5 }] });
+    await next.transcriber.transcribe(new Blob(), { language: 'gu' });
+    expect(next.request.mock.calls[0]![0].searchParams.get('keywords')).toBe('');
+  });
   it('encodes mono PCM16 with bounded samples and a WAV header', async () => {
     const view = new DataView(await encodeTranscriptionAudio(new Float32Array([-2, 0, 2, NaN])).arrayBuffer());
     expect(view.byteLength).toBe(52);
