@@ -77,8 +77,8 @@ unaligned tail, or allocate guessed time evenly through gaps. Missing words,
 invalid/reversed/zero timestamps, or >3-second word spans fail without replacing
 the user's captions. If the pruned decoder collapses a word, the full multilingual decoder measures the same complete audio/text once. An isolated collapsed word can use that independently measured interval only if the words match and neighbouring timestamps remain ordered. No additional paid ASR call is made. The current transcript is never a Whisper prefix prompt.
 
-Responses identify provider, model, alignment and protocol version 7 for live
-verification. Health exposes `gujarati_alignment_version: 7` and non-content
+Responses identify provider, model, alignment and protocol version 8 for live
+verification. Health exposes `gujarati_alignment_version: 8` and non-content
 failure diagnostics. Audio is held in request memory only. Successful HTTP status
 and valid timing bounds do not establish perfect speech-recognition accuracy:
 compare the full video with the generated words, including technical terms,
@@ -89,3 +89,5 @@ Gujarati spelling is checked before alignment with `gpt-5.4-mini-2026-03-17` usi
 On an alignment failure, only the authenticated request receives its own untimed `draftText` with HTTP 503. The draft is not a valid timed-caption result and is not exposed through public health or stored by the service.
 
 A narrow Gujarati loanword lexicon canonicalizes observed phonetic variants of embroidery to એમ્બ્રોઇડરી, preserving the already-recognized suffix and punctuation. It cannot insert a missing word or alter an unrelated word. This runs before proofreading and after accepted corrections.
+
+Use Gujarati as the single language hint for Gujarati speech. Optional `GUJARATI_TRANSCRIPTION_KEYWORDS` is a comma-separated deployment vocabulary (at most 16 terms, 64 characters each). Supply real names and terminology from the recording; the ASR sends these as `keywords[]`, not previous-transcript prefix text. This deployment uses the owner's Wilcom/Codex/embroidery terminology. Vocabulary guides recognition but does not bypass acoustic validation.

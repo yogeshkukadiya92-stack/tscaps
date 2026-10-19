@@ -27,6 +27,13 @@ def transcription_model():
     return model
 
 
+def transcription_keywords():
+    terms = [term.strip() for term in os.getenv('GUJARATI_TRANSCRIPTION_KEYWORDS', '').split(',') if term.strip()]
+    if len(terms) > 16 or any(len(term) > 64 or any(ord(c) < 32 for c in term) for term in terms):
+        raise HTTPException(503, 'Invalid Gujarati transcription vocabulary')
+    return list(dict.fromkeys(terms))
+
+
 def audio_reference(client, audio, seconds):
     from groq_provider import reserve_budget
     model = transcription_model()
@@ -37,10 +44,14 @@ def audio_reference(client, audio, seconds):
     fields = {'model': model, 'response_format': 'json',
               'prompt': 'ગુજરાતી વાતચીત, જેમાં રોજિંદા English શબ્દો અને નામો પણ બોલાય છે. ગુજરાતી લિપિ.'}
     if model == 'gpt-transcribe':
-        fields['languages[]'] = ['gu', 'en']
+        fields['languages[]'] = ['gu']
+        if terms := transcription_keywords():
+            fields['keywords[]'] = terms
     else:
         fields['language'] = 'gu'
         fields['temperature'] = '0'
+        if terms := transcription_keywords():
+            fields['prompt'] += ' નામો અને શબ્દો: ' + ', '.join(terms)
     try:
         response = client.post('https://api.openai.com/v1/audio/transcriptions',
             headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY']},

@@ -247,3 +247,17 @@ def test_independent_acoustic_repair_preserves_words_and_neighbour_bounds():
     assert repair_collapsed_words(primary, alternate) == primary
     alternate[1]['word'] = 'અલગ'
     assert repair_collapsed_words(primary, alternate) == primary
+
+
+def test_gujarati_uses_configured_domain_vocabulary_without_english_language_bias(monkeypatch):
+    from gujarati_transcription import audio_reference
+    monkeypatch.setenv('GUJARATI_TRANSCRIPTION_KEYWORDS', 'Wilcom, Codex,એમ્બ્રોઇડરી,એટલા')
+    def handle(request):
+        assert b'name="keywords[]"' in request.content
+        assert b'Wilcom' in request.content and b'Codex' in request.content
+        assert 'એમ્બ્રોઇડરી'.encode() in request.content
+        assert b'name="languages[]"\r\n\r\ngu' in request.content
+        assert b'name="languages[]"\r\n\r\nen' not in request.content
+        return httpx.Response(200, json={'text': 'એમ્બ્રોઇડરીવાળા'})
+    with httpx.Client(transport=httpx.MockTransport(handle)) as client:
+        assert audio_reference(client, b'audio', 60) == 'એમ્બ્રોઇડરીવાળા'
