@@ -1,4 +1,5 @@
 """Align OpenAI's Gujarati transcript to audio, without redistributing word times."""
+import logging
 import math
 import os
 from functools import lru_cache
@@ -24,9 +25,10 @@ def align_reference(pcm, reference):
             remove_instant_words=True, failure_threshold=0.2,
         )
         if result is None:
-            raise ValueError('Alignment failed')
+            raise ValueError(f'Alignment rejected transcript ({len(reference.split())} words)')
         return [word for segment in result.to_dict()['segments'] for word in segment['words']]
     except Exception as error:
+        logging.getLogger(__name__).exception('Gujarati acoustic alignment failed')
         raise HTTPException(503, 'Gujarati word alignment failed; please retry later') from error
 
 
