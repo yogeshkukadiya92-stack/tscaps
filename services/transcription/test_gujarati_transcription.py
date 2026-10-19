@@ -26,7 +26,8 @@ def test_audio_grounded_reference_then_timestamped_decode():
             assert b'gpt-4o-transcribe' in request.content
             assert b'audio.wav' in request.content
             return httpx.Response(200, json={'text': 'આ મેડિકલ છે'})
-        assert 'આ મેડિકલ છે'.encode() in request.content
+        # A transcript prefix can make Whisper omit the same words in audio.
+        assert 'આ મેડિકલ છે'.encode() not in request.content
         return httpx.Response(200, json={'words': [
             {'word': 'આ', 'start': 0, 'end': .2},
             {'word': 'મેડીકલ', 'start': .2, 'end': .6},

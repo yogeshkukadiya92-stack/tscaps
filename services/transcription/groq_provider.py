@@ -84,7 +84,9 @@ def transcribe_groq(pcm, language, transport=None):
             if language == 'gu':
                 # Whisper's prompt is transcription context, not an instruction
                 # following chat prompt. Keep it in the requested script.
-                fields['prompt'] = reference or 'ગુજરાતી ભાષામાં વાતચીત. ગુજરાતી શબ્દો સાથે English શબ્દો.'
+                # The current audio transcript is not previous context. Feeding it
+                # back as a prefix makes Whisper skip matching opening speech.
+                fields['prompt'] = 'ગુજરાતી ભાષામાં વાતચીત. ગુજરાતી શબ્દો સાથે English શબ્દો.'
             try:
                 response = client.post('https://api.groq.com/openai/v1/audio/transcriptions',
                     headers={'Authorization': 'Bearer ' + key}, data=fields,
