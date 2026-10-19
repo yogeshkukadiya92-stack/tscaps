@@ -42,3 +42,11 @@ def test_proofreading_cannot_bypass_the_shared_openai_cap(monkeypatch, tmp_path)
         with pytest.raises(HTTPException) as error:
             proofread_reference(client, 'ગુજરાતી વાતચીત છે')
     assert error.value.status_code == 429
+
+
+def test_canonical_loanword_keeps_suffix_punctuation_and_unrelated_words():
+    from gujarati_spelling import canonicalize_loanwords
+    text = 'એમ્બ્રોડેરીવાળા, એમરોડેરીમાં એમ્બ્રોડરીની છે Wilcom એમરોડેરીપણ'
+    output = canonicalize_loanwords(text)
+    assert output == 'એમ્બ્રોઇડરીવાળા, એમ્બ્રોઇડરીમાં એમ્બ્રોઇડરીની છે Wilcom એમરોડેરીપણ'
+    assert len(output.split()) == len(text.split())

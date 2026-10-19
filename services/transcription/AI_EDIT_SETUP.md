@@ -77,8 +77,8 @@ unaligned tail, or allocate guessed time evenly through gaps. Missing words,
 invalid/reversed/zero timestamps, or >3-second word spans fail without replacing
 the user's captions. If the pruned decoder collapses a word, the full multilingual decoder measures the same complete audio/text once. An isolated collapsed word can use that independently measured interval only if the words match and neighbouring timestamps remain ordered. No additional paid ASR call is made. The current transcript is never a Whisper prefix prompt.
 
-Responses identify provider, model, alignment and protocol version 6 for live
-verification. Health exposes `gujarati_alignment_version: 6` and non-content
+Responses identify provider, model, alignment and protocol version 7 for live
+verification. Health exposes `gujarati_alignment_version: 7` and non-content
 failure diagnostics. Audio is held in request memory only. Successful HTTP status
 and valid timing bounds do not establish perfect speech-recognition accuracy:
 compare the full video with the generated words, including technical terms,
@@ -87,3 +87,5 @@ short function words, long pauses and the ending.
 Gujarati spelling is checked before alignment with `gpt-5.4-mini-2026-03-17` using structured, indexed one-word replacements. At most eight phonetically similar Gujarati-word edits are accepted; short words, English names, word counts and order are protected. The fixed 1024-token completion and conservative UTF-8 input bound reserve twice published $.75/$4.50 per-million-token prices against the same OpenAI transcription cap. Proofreading failure does not overwrite captions. Model/pricing: https://developers.openai.com/api/docs/models/gpt-5.4-mini
 
 On an alignment failure, only the authenticated request receives its own untimed `draftText` with HTTP 503. The draft is not a valid timed-caption result and is not exposed through public health or stored by the service.
+
+A narrow Gujarati loanword lexicon canonicalizes observed phonetic variants of embroidery to એમ્બ્રોઇડરી, preserving the already-recognized suffix and punctuation. It cannot insert a missing word or alter an unrelated word. This runs before proofreading and after accepted corrections.

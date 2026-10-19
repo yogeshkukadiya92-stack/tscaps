@@ -17,6 +17,16 @@ SCHEMA = {'type': 'object', 'properties': {'corrections': {'type': 'array', 'ite
     'required': ['corrections'], 'additionalProperties': False}
 
 
+# Established Gujarati spelling of this loanword. ASR often produces these
+# phonetic variants; preserve the recognised suffix, punctuation and word count.
+_EMBROIDERY = re.compile(r'(?<![\w\u0a80-\u0aff])(?:એમ્બ્રોડેરી|એમ્બ્રોડરી|એમરોડેરી)'
+                         r'(વાળા|વાળી|વાળું|માં|નું|ની|ના|ને|થી|નો|નાં|ઓ)?(?![\w\u0a80-\u0aff])')
+
+
+def canonicalize_loanwords(reference):
+    return _EMBROIDERY.sub(lambda match: 'એમ્બ્રોઇડરી' + (match.group(1) or ''), reference)
+
+
 def apply_corrections(reference, corrections):
     from gujarati_transcription import normalized
     tokens = reference.split()
@@ -43,6 +53,7 @@ def apply_corrections(reference, corrections):
 def proofread_reference(client, reference):
     import os
     from groq_provider import reserve_budget
+    reference = canonicalize_loanwords(reference)
     content = json.dumps(list(enumerate(reference.split())), ensure_ascii=False)
     if len(content.encode()) > 60000:
         raise HTTPException(503, 'Gujarati spelling check supports shorter audio segments')
@@ -61,6 +72,6 @@ def proofread_reference(client, reference):
         if response.status_code != 200:
             raise ValueError('Spelling provider unavailable')
         result = response.json()['choices'][0]['message']['content']
-        return apply_corrections(reference, json.loads(result)['corrections'])
+        return canonicalize_loanwords(apply_corrections(reference, json.loads(result)['corrections']))
     except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
         raise HTTPException(503, 'Gujarati spelling check failed; please retry later')
