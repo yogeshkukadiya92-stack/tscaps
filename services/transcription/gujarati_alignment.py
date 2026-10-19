@@ -72,6 +72,7 @@ def audio_windows(pcm):
 
 
 def transcribe_gujarati(pcm, transport=None):
+    global last_failure
     from groq_provider import as_wave
     from gujarati_transcription import audio_reference, transcription_model
     words = []
@@ -86,7 +87,7 @@ def transcribe_gujarati(pcm, transport=None):
             if not aligned:
                 raise HTTPException(503, 'Gujarati word alignment failed; please retry later')
             previous_end = 0
-            for item in aligned:
+            for word_index, item in enumerate(aligned):
                 try:
                     a, b = float(item['start']), float(item['end'])
                     text = item['word'].strip()
@@ -96,6 +97,9 @@ def transcribe_gujarati(pcm, transport=None):
                         raise ValueError('Unreliable word timing')
                     previous_end = b
                 except (KeyError, TypeError, ValueError, AttributeError) as error:
+                    last_failure = {'stage': 'timing-validation', 'index': word_index,
+                                    'start': item.get('start'), 'end': item.get('end'),
+                                    'chunk_seconds': end - start}
                     raise HTTPException(503, 'Invalid GPU transcription response') from error
                 words.append({'text': text, 'start': round(start + a, 3),
                               'end': round(min(end, start + b), 3)})
