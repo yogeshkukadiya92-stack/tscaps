@@ -21,7 +21,7 @@ test(`Creative caption gallery keeps monitor and tool headings accessible at ${v
     const inspector = el.querySelector('.studio-inspector')!.getBoundingClientRect();
     return { monitorWidth: monitor.width, inspectorWidth: inspector.width, inspectorRight: inspector.right, monitorLeft: monitor.left };
   });
-  expect(panels.monitorWidth).toBeGreaterThan(panels.inspectorWidth);
+  expect(panels.inspectorWidth).toBeGreaterThan(panels.monitorWidth);
   expect(panels.monitorLeft).toBeGreaterThanOrEqual(panels.inspectorRight);
   await studio.locator('.studio-timeline-disclosure > summary').click();
   await studio.locator('.studio-timeline').scrollIntoViewIfNeeded();

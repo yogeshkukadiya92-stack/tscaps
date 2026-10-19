@@ -14,3 +14,39 @@
 
 .editor-studio .editor-workflow-tabs { padding-bottom: 6px; }
 .editor-studio > div > details > summary { padding-block: 3px; }
+
+/* Shared editing workspace: one visual language for captions and creative. */
+.editor-studio { padding: 12px 20px 18px; }
+.editor-project-toolbar { min-height: 56px; border-bottom: 0; margin-bottom: 6px; }
+.editor-project-toolbar input[aria-label='Project name'] { background: rgb(var(--color-surface-1)); border: 1px solid var(--edge-subtle); border-radius: 10px; padding: 10px 14px; max-width: min(38vw, 440px); width: 32vw; }
+.editor-workflow-tabs { gap: 6px; padding-block: 4px 12px !important; }
+.editor-workflow-tabs > button { border-radius: 8px; min-height: 38px; }
+.editor-surface { box-shadow: 0 2px 8px rgb(0 0 0 / .035); }
+.reference-editor .caption-settings-card { border: 0; border-radius: 0; box-shadow: none; }
+.caption-section-navigation { order: -1; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px; border-radius: 10px; background: rgb(var(--color-surface-2)); }
+.caption-section-navigation [role='tablist'] { flex: 1; padding: 0; border: 0; background: transparent; gap: 4px; }
+.caption-section-navigation [role='tab'] { flex: 1; flex-direction: row; gap: 8px; min-height: 38px; border-radius: 8px; }
+.caption-section-navigation [role='tab'] span { font-size: 12px; letter-spacing: 0; }
+.caption-section-navigation [role='tab'][data-state='active'] { color: rgb(var(--color-fg-on-accent)); background: rgb(var(--color-accent)); box-shadow: 0 2px 4px rgb(0 0 0 / .06); }
+.caption-more-tools select { max-width: 130px; min-height: 36px; font-size: 12px; padding: 6px; border-radius: 6px; background: rgb(var(--color-surface-1)); color: rgb(var(--color-fg-secondary)); border: 1px solid var(--edge-subtle); cursor: pointer; }
+.caption-more-tools select:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 2px; }
+.reference-editor .caption-template-grid { grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr)); gap: 14px; }
+.reference-editor .caption-template-frame { aspect-ratio: 4 / 4.5; }
+.reference-editor .caption-template-grid button[aria-pressed] { border-radius: 12px; }
+.reference-editor .caption-template-grid button[aria-pressed='true'] { box-shadow: 0 0 0 2px rgb(var(--color-accent) / .14); }
+.reference-editor .caption-template-grid button[aria-pressed] > span { padding: 10px 12px; font-weight: 600; }
+.editor-caption-timeline > div:last-child > div > div { border-radius: 0; box-shadow: none; border-inline: 0; border-bottom: 0; }
+.editor-reel-preview { background: rgb(var(--color-surface-1)); }
+@media (max-width: 1023px) {
+  .editor-studio { padding: 8px; }
+  .editor-project-toolbar input[aria-label='Project name'] { padding: 7px; }
+  .caption-section-navigation { flex-wrap: wrap; }
+  .caption-section-navigation [role='tablist'] { flex-basis: 100%; }
+  .caption-more-tools { margin-left: auto; }
+}
+@media (max-width: 640px) {
+  .editor-project-toolbar { min-height: 44px; }
+  .caption-section-navigation [role='tab'] { min-width: 0; min-height: 44px; padding-inline: 6px; }
+  .caption-section-navigation [role='tab'] svg { display: none; }
+  .caption-more-tools select { min-height: 44px; }
+}

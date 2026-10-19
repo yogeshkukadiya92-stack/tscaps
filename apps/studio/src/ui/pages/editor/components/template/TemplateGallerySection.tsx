@@ -87,7 +87,7 @@ export const TemplateGallerySection = memo(function TemplateGallerySection({
           </button>
         )}
       </header>
-      <div ref={gridRef} className={GALLERY_GRID}>
+      <div ref={gridRef} className={`caption-template-grid ${GALLERY_GRID}`}>
         {shown.map((template) => renderCard(template))}
       </div>
     </section>

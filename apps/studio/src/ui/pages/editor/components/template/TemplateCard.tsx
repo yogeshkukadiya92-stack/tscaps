@@ -78,7 +78,7 @@ export const TemplateCard = memo(function TemplateCard({
           isHovered={isHovered}
           hostRef={hostRef}
           onHoverLost={onHoverLost}
-          aspectClass="aspect-[4/2]"
+          aspectClass="caption-template-frame aspect-[4/2]"
         />
         <span className="w-full px-2 py-1.5 text-left text-xs text-fg-secondary">{template.metadata.name}<span className="block mt-1 text-accent">{isSelected ? '✓ Applied' : 'Apply style'}</span></span>
       </button>

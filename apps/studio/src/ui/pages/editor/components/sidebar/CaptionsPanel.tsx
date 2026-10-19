@@ -73,7 +73,7 @@ const RAIL_LIST_CLASS =
 
 // One vertical card at every breakpoint; the tab rail is visually first.
 const SIDEBAR_CARD_CLASS =
-  'relative flex flex-col h-full min-h-0 bg-surface-1 border border-edge-medium rounded-lg shadow-sm overflow-hidden';
+  'caption-settings-card relative flex flex-col h-full min-h-0 bg-surface-1 border border-edge-medium rounded-lg shadow-sm overflow-hidden';
 
 // `thin-scroll` paints the WebKit thumb (see `globals.css`); the inline
 // `scrollbar-*` utilities cover Firefox. `-mr-2 pr-2` extends the scroll
@@ -220,14 +220,22 @@ export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelPro
         {activeTab !== 'transcript' && <ScrollFade scrollRef={refsByTab[activeTab]} />}
       </div>
 
+      <div className="caption-section-navigation">
       <Tabs.List className={RAIL_LIST_CLASS} aria-label="Editor sections">
-        {RAIL.map(({ id, label, icon }) => (
-          <Tabs.Trigger key={id} value={id} className={RAIL_TAB_CLASS} aria-label={label}>
-            {icon}
-            <span className={RAIL_TAB_LABEL_CLASS}>{label}</span>
-          </Tabs.Trigger>
-        ))}
+        {(['transcript', 'templates', 'motion'] as const).map(tabId => {
+          const { id, label, icon } = RAIL.find(entry => entry.id === tabId)!;
+          return <Tabs.Trigger key={id} value={id} className={RAIL_TAB_CLASS} aria-label={label}>
+            {icon}<span className={RAIL_TAB_LABEL_CLASS}>{id === 'transcript' ? 'Edit words' : id === 'templates' ? 'Templates' : 'Animation'}</span>
+          </Tabs.Trigger>;
+        })}
       </Tabs.List>
+      <label className="caption-more-tools"><span className="sr-only">More caption tools</span>
+        <select aria-label="More caption tools" value={['transcript', 'templates', 'motion'].includes(activeTab) ? '' : activeTab} onChange={event => tabStore.setActiveTab(event.target.value as CaptionsTabId)}>
+          <option value="" disabled>Customize…</option>
+          {RAIL.filter(entry => !['transcript', 'templates', 'motion'].includes(entry.id)).map(entry => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
+        </select>
+      </label>
+      </div>
     </Tabs.Root>
   );
 });
