@@ -77,8 +77,8 @@ unaligned tail, or allocate guessed time evenly through gaps. Missing words,
 invalid/reversed/zero timestamps, or >3-second word spans fail without replacing
 the user's captions. If the pruned decoder collapses a word, the full multilingual decoder measures the same complete audio/text once. An isolated collapsed word can use that independently measured interval only if the words match and neighbouring timestamps remain ordered. No additional paid ASR call is made. The current transcript is never a Whisper prefix prompt.
 
-Responses identify provider, model, alignment and protocol version 9 for live
-verification. Health exposes `gujarati_alignment_version: 9` and non-content
+Responses identify provider, model, alignment and protocol version 10 for live
+verification. Health exposes `gujarati_alignment_version: 10` and non-content
 failure diagnostics. Audio is held in request memory only. Successful HTTP status
 and valid timing bounds do not establish perfect speech-recognition accuracy:
 compare the full video with the generated words, including technical terms,
@@ -93,3 +93,5 @@ A narrow Gujarati loanword lexicon canonicalizes observed phonetic variants of e
 Use Gujarati as the single language hint for Gujarati speech. Optional `GUJARATI_TRANSCRIPTION_KEYWORDS` is a comma-separated deployment vocabulary (at most 16 terms, 64 characters each). Supply real names and terminology from the recording; the ASR sends these as `keywords[]`, not previous-transcript prefix text. This deployment uses the owner's Wilcom/Codex/embroidery terminology. Vocabulary guides recognition but does not bypass acoustic validation.
 
 The Gujarati start/retranscribe dialog has an optional Names & technical words field. Terms are sent only for that recording as the bounded `keywords` query parameter. An explicit empty list clears deployment defaults, so the next video does not inherit the previous recording's names. Other languages and local decoders retain their existing behavior.
+
+Alignment reconciliation finds a complete ordered path through the two actual acoustic measurements. Up to 120 ms of decoder overlap can be trimmed at the following word's measured onset, retaining at least 40 ms for the preceding word. No silent-gap interpolation, transcript-word deletion, or equal sentence-duration allocation is used. If no valid complete path exists, the draft fails safely.

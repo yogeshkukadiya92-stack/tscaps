@@ -271,3 +271,32 @@ def test_recording_vocabulary_overrides_or_clears_deployment_defaults(monkeypatc
     with pytest.raises(HTTPException) as error:
         transcription_keywords('x' * 65)
     assert error.value.status_code == 400
+
+
+def test_acoustic_reconciliation_can_change_neighbours_without_inventing_time():
+    from gujarati_alignment import repair_collapsed_words, timing_issue
+    primary = [{'word': 'એક', 'start': .1, 'end': .6},
+               {'word': 'શબ્દ', 'start': .6, 'end': .6},
+               {'word': 'છે', 'start': .9, 'end': 1.1}]
+    alternate = [{'word': 'એક', 'start': .1, 'end': .4},
+                 {'word': 'શબ્દ', 'start': .4, 'end': .7},
+                 {'word': 'છે', 'start': 1., 'end': 1.}]
+    result = repair_collapsed_words(primary, alternate)
+    assert timing_issue(result, 1.2) is None
+    assert result == [alternate[0], alternate[1], primary[2]]
+    assert primary[1]['start'] == primary[1]['end']
+
+
+def test_small_decoder_overlap_uses_next_measured_onset_not_a_guessed_midpoint():
+    from gujarati_alignment import repair_collapsed_words, timing_issue
+    primary = [{'word': 'એક', 'start': .1, 'end': .6},
+               {'word': 'શબ્દ', 'start': .6, 'end': .6},
+               {'word': 'છે', 'start': .9, 'end': 1.1}]
+    alternate = [{'word': 'એક', 'start': .1, 'end': .1},
+                 {'word': 'શબ્દ', 'start': .52, 'end': .8},
+                 {'word': 'છે', 'start': 1., 'end': 1.}]
+    result = repair_collapsed_words(primary, alternate)
+    assert timing_issue(result, 1.2) is None
+    assert result[0]['end'] == .52
+    assert result[1] == alternate[1]
+    assert primary[0]['end'] == .6

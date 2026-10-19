@@ -66,7 +66,7 @@ def align_reference(pcm, reference):
         alternate = measure(full_alignment_model())
         if alternate and timing_issue(alternate, seconds) is None:
             return alternate
-        aligned = repair_collapsed_words(aligned, alternate)
+        aligned = repair_collapsed_words(aligned, alternate, seconds)
         if aligned and timing_issue(aligned, seconds) is None:
             return aligned
         raise ValueError('Alignment could not time every transcript word')
@@ -80,25 +80,50 @@ def align_reference(pcm, reference):
         raise HTTPException(503, 'Gujarati word alignment failed; please retry later') from error
 
 
-def repair_collapsed_words(aligned, alternate):
-    """Use an independent acoustic measurement for isolated collapsed words."""
+def repair_collapsed_words(aligned, alternate, seconds=math.inf):
+    """Find an ordered path through actual intervals from both measurements.
+
+    A fallback word may start before its Turbo neighbour ends. Move that
+    neighbour to its independently measured interval too, rather than rejecting
+    the reel or inventing a boundary between them. Every word must have a path.
+    """
     from gujarati_transcription import normalized
-    if len(aligned) != len(alternate) or any(normalized(a['word']) != normalized(b['word'])
-                                               for a, b in zip(aligned, alternate)):
+    if not aligned or len(aligned) != len(alternate) or any(
+            normalized(a['word']) != normalized(b['word']) for a, b in zip(aligned, alternate)):
         return aligned
-    collapsed = [i for i, w in enumerate(aligned)
-                 if math.isfinite(w['start']) and w['start'] == w['end']]
-    if len(collapsed) > min(4, max(1, len(aligned) // 20)):
-        return aligned
-    repaired = [dict(w) for w in aligned]
-    for index in collapsed:
-        candidate = alternate[index]
-        a, b = candidate['start'], candidate['end']
-        if (math.isfinite(a) and math.isfinite(b) and 0 < b - a <= 3
-                and (index == 0 or a >= repaired[index - 1]['end'] - .02)
-                and (index + 1 == len(repaired) or b <= repaired[index + 1]['start'] + .02)):
-            repaired[index].update(start=a, end=b)
-    return repaired
+    layers = []
+    for index, pair in enumerate(zip(aligned, alternate)):
+        layer = []
+        for source, word in enumerate(pair):
+            a, b = word['start'], word['end']
+            if not (math.isfinite(a) and math.isfinite(b) and 0 <= a < b and b - a <= 3 and b <= seconds + .02):
+                continue
+            if index == 0:
+                layer.append((float(source), source, word, None))
+                continue
+            compatible = [(previous[0] + source + .1 * (previous[1] != source), j)
+                          for j, previous in enumerate(layers[-1])
+                          if a >= previous[2]['end'] - .12
+                          and (a >= previous[2]['end'] or a - previous[2]['start'] >= .04)]
+            if compatible:
+                score, parent = min(compatible)
+                layer.append((score, source, word, parent))
+        if not layer:
+            return aligned
+        layers.append(layer)
+    position = min(range(len(layers[-1])), key=lambda i: layers[-1][i][0])
+    path = []
+    for layer in reversed(layers):
+        _, _, word, parent = layer[position]
+        path.append(dict(word))
+        position = parent
+    path.reverse()
+    # Resolve at most 120 ms of decoder disagreement at the next measured
+    # onset. This trims an overlap; it never fills a silent gap or invents an
+    # individual time by spreading a sentence's duration across its words.
+    for previous, following in zip(path, path[1:]):
+        previous['end'] = min(previous['end'], following['start'])
+    return path
 
 
 def timing_issue(aligned, seconds):
@@ -171,4 +196,4 @@ def transcribe_gujarati(pcm, transport=None, keywords=None):
                               'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',
             'transcription': {'provider': 'openai', 'model': transcription_model(),
-                              'alignment': 'whisper-attention', 'spelling_model': 'gpt-5.4-mini-2026-03-17', 'version': 9}}
+                              'alignment': 'whisper-attention', 'spelling_model': 'gpt-5.4-mini-2026-03-17', 'version': 10}}
