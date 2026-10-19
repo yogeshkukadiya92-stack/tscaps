@@ -101,3 +101,44 @@ def test_other_languages_do_not_send_audio_to_openai():
         return httpx.Response(200, json={'words': [{'word': 'hello', 'start': 0, 'end': .5}]})
     transcribe_groq(np.zeros(16000), 'en', httpx.MockTransport(handle))
     assert calls == ['api.groq.com']
+
+
+def test_alignment_diagnostics_do_not_expose_transcript(monkeypatch):
+    import gujarati_alignment
+    class FailedModel:
+        def align(self, *_args, **_kwargs):
+            raise RuntimeError('private caption text')
+    monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: FailedModel())
+    with pytest.raises(HTTPException) as failure:
+        gujarati_alignment.align_reference(np.zeros(16000), 'private caption text')
+    assert 'private caption text' not in str(failure.value.detail)
+    assert gujarati_alignment.last_failure['type'] == 'RuntimeError'
+    assert 'private caption text' not in str(gujarati_alignment.last_failure)
+
+
+def test_missing_model_audio_config_fails_before_serving(monkeypatch, tmp_path):
+    import sys
+    from types import SimpleNamespace
+    import gujarati_alignment
+    gujarati_alignment.alignment_model.cache_clear()
+    monkeypatch.setenv('GUJARATI_ALIGNMENT_MODEL', str(tmp_path))
+    load = lambda *_a, **_k: pytest.fail('Must validate assets before model loading')
+    monkeypatch.setitem(sys.modules, 'stable_whisper', SimpleNamespace(load_faster_whisper=load))
+    with pytest.raises(RuntimeError, match='preprocessing configuration'):
+        gujarati_alignment.alignment_model()
+    gujarati_alignment.alignment_model.cache_clear()
+
+
+def test_wrong_mel_configuration_fails_before_serving(monkeypatch, tmp_path):
+    import sys
+    from types import SimpleNamespace
+    import gujarati_alignment
+    gujarati_alignment.alignment_model.cache_clear()
+    (tmp_path / 'preprocessor_config.json').write_text('{}')
+    monkeypatch.setenv('GUJARATI_ALIGNMENT_MODEL', str(tmp_path))
+    model = SimpleNamespace(feature_extractor=SimpleNamespace(mel_filters=np.zeros((80, 201))),
+                            model=SimpleNamespace(n_mels=128))
+    monkeypatch.setitem(sys.modules, 'stable_whisper', SimpleNamespace(load_faster_whisper=lambda *_a, **_k: model))
+    with pytest.raises(RuntimeError, match='does not match'):
+        gujarati_alignment.alignment_model()
+    gujarati_alignment.alignment_model.cache_clear()

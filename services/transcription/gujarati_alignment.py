@@ -3,6 +3,7 @@ import logging
 import math
 import os
 from functools import lru_cache
+from pathlib import Path
 
 last_failure = None
 
@@ -13,11 +14,19 @@ from fastapi import HTTPException
 @lru_cache(maxsize=1)
 def alignment_model():
     import stable_whisper
-    return stable_whisper.load_faster_whisper(
-        os.getenv('GUJARATI_ALIGNMENT_MODEL', '/models/aligner'),
+    model_path = os.getenv('GUJARATI_ALIGNMENT_MODEL', '/models/aligner')
+    # Large v3 needs 128 mel bins. Without this asset faster-whisper
+    # silently defaults to 80 and fails only at the first real request.
+    if not (Path(model_path) / 'preprocessor_config.json').is_file():
+        raise RuntimeError('Gujarati aligner is missing its audio preprocessing configuration')
+    model = stable_whisper.load_faster_whisper(
+        model_path,
         device='cpu', compute_type='int8', cpu_threads=4, num_workers=1,
         local_files_only=True,
     )
+    if model.feature_extractor.mel_filters.shape[0] != model.model.n_mels:
+        raise RuntimeError('Gujarati aligner audio configuration does not match the model')
+    return model
 
 
 def align_reference(pcm, reference):
