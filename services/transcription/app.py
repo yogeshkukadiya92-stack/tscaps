@@ -34,6 +34,11 @@ async def lifespan(app: FastAPI):
             num_workers=1,
         ))
         app.state.engine = BatchedInferencePipeline(model=model)
+    if app.state.provider == 'groq' and os.getenv('ENABLE_TRANSCRIPTION', 'true') == 'true':
+        from gujarati_transcription import enabled
+        if enabled():
+            from gujarati_alignment import alignment_model
+            await run_in_threadpool(alignment_model)
     app.state.busy = False
     app.state.render_busy = False
     app.state.http = httpx.AsyncClient(timeout=15, follow_redirects=False)
@@ -50,7 +55,7 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST',
 @app.get('/health')
 async def health():
     from gujarati_transcription import enabled
-    return {'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
+    return {'gujarati_alignment_version': 2, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
 
 
 async def authorize(request: Request):

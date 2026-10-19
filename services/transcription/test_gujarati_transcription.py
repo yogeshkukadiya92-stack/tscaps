@@ -17,38 +17,52 @@ def setup(monkeypatch, tmp_path):
     monkeypatch.setenv('OPENAI_TRANSCRIPTION_MONTHLY_USD_LIMIT', '5')
 
 
-def test_audio_grounded_reference_then_timestamped_decode():
+def test_openai_transcript_is_forced_aligned_instead_of_whisper_prompt(monkeypatch):
+    calls = []
+    expected = [{'word': 'ડિઝાઇનરની', 'start': .8, 'end': 1.5},
+                {'word': 'જોબ', 'start': 1.5, 'end': 2.0}]
+    def align(pcm, reference):
+        assert len(pcm) == 8 * 16000
+        assert reference == 'ડિઝાઇનરની જોબ'
+        return expected
+    monkeypatch.setattr('gujarati_alignment.align_reference', align)
+    def handle(request):
+        calls.append(request.url.host)
+        assert request.url.host == 'api.openai.com'
+        assert request.headers['authorization'] == 'Bearer openai-test'
+        assert b'gpt-4o-transcribe' in request.content
+        return httpx.Response(200, json={'text': 'ડિઝાઇનરની જોબ'})
+    result = transcribe_groq(np.zeros(8 * 16000), 'gu', httpx.MockTransport(handle))
+    assert calls == ['api.openai.com']
+    assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in expected]
+    assert result['transcription']['alignment'] == 'whisper-attention'
+
+
+def test_short_windows_keep_absolute_times_and_own_boundary_words(monkeypatch):
+    monkeypatch.setattr('gujarati_alignment.align_reference', lambda *_: [
+        {'word': 'વાત', 'start': 1, 'end': 1.4},
+        {'word': 'છે', 'start': 2, 'end': 2.4}])
     calls = []
     def handle(request):
         calls.append(request.url.host)
-        if request.url.host == 'api.openai.com':
-            assert request.headers['authorization'] == 'Bearer openai-test'
-            assert b'gpt-4o-transcribe' in request.content
-            assert b'audio.wav' in request.content
-            return httpx.Response(200, json={'text': 'આ મેડિકલ છે'})
-        # A transcript prefix can make Whisper omit the same words in audio.
-        assert 'આ મેડિકલ છે'.encode() not in request.content
-        return httpx.Response(200, json={'words': [
-            {'word': 'આ', 'start': 0, 'end': .2},
-            {'word': 'મેડીકલ', 'start': .2, 'end': .6},
-            {'word': 'છે', 'start': .6, 'end': 1}]})
-    result = transcribe_groq(np.zeros(16000), 'gu', httpx.MockTransport(handle))
-    assert calls == ['api.openai.com', 'api.groq.com']
-    assert result['words'][1] == {'text': 'મેડિકલ', 'start': .2, 'end': .6}
-
-
-def test_short_windows_recover_later_speech_and_keep_absolute_times():
-    calls = []
-    def handle(request):
-        calls.append(request.url.host)
-        if request.url.host == 'api.openai.com':
-            return httpx.Response(200, json={'text': 'વાત છે'})
-        return httpx.Response(200, json={'words': [
-            {'word': 'વાત', 'start': 1, 'end': 1.4},
-            {'word': 'છે', 'start': 2, 'end': 2.4}]})
+        return httpx.Response(200, json={'text': 'વાત છે'})
     result = transcribe_groq(np.zeros(32 * 16000), 'gu', httpx.MockTransport(handle))
-    assert calls == ['api.openai.com', 'api.groq.com'] * 2
+    assert calls == ['api.openai.com'] * 2
     assert [w['start'] for w in result['words']] == [1, 2, 20, 21]
+
+
+@pytest.mark.parametrize('items', [
+    [{'word': 'ખોટું', 'start': 0, 'end': 5.66}],
+    [{'word': 'શબ્દ', 'start': 8, 'end': 8}],
+    [{'word': 'શબ્દ', 'start': float('nan'), 'end': 1}],
+    [{'word': 'એક', 'start': 1, 'end': 2}, {'word': 'બે', 'start': .5, 'end': 1}],
+    [],
+])
+def test_unreliable_alignment_is_never_published(monkeypatch, items):
+    monkeypatch.setattr('gujarati_alignment.align_reference', lambda *_: items)
+    with pytest.raises(HTTPException):
+        transcribe_groq(np.zeros(8 * 16000), 'gu', httpx.MockTransport(
+            lambda _: httpx.Response(200, json={'text': 'ગુજરાતી શબ્દ'})))
 
 
 def test_new_words_do_not_receive_made_up_timing():

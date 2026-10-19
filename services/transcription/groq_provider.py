@@ -46,6 +46,11 @@ def as_wave(pcm):
 
 
 def transcribe_groq(pcm, language, transport=None):
+    if language == 'gu':
+        from gujarati_transcription import enabled
+        if enabled():
+            from gujarati_alignment import transcribe_gujarati
+            return transcribe_gujarati(pcm, transport)
     model = os.getenv('GROQ_MODEL', 'whisper-large-v3')
     if model not in RATES:
         raise HTTPException(503, 'Unsupported transcription model')
@@ -72,11 +77,6 @@ def transcribe_groq(pcm, language, transport=None):
             end = min(duration, core_end + 1)
             audio = as_wave(pcm[int(start * 16000):int(end * 16000)])
             reserve_budget(end - start, model)
-            reference = None
-            if language == 'gu':
-                from gujarati_transcription import audio_reference, enabled
-                if enabled():
-                    reference = audio_reference(client, audio, end - start)
             fields = {'model': model, 'response_format': 'verbose_json', 'temperature': '0',
                       'timestamp_granularities[]': 'word'}
             if language:
@@ -102,9 +102,6 @@ def transcribe_groq(pcm, language, transport=None):
                 detected_language = result.get('language', detected_language)
                 if not isinstance(result.get('words'), list):
                     raise ValueError('Missing word timestamps')
-                if reference:
-                    from gujarati_transcription import correct_aligned_spelling
-                    result['words'] = correct_aligned_spelling(result['words'], reference)
                 for index, item in enumerate(result['words']):
                     absolute_start, absolute_end = float(item['start']) + start, float(item['end']) + start
                     text = item['word'].strip()

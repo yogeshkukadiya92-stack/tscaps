@@ -48,3 +48,24 @@ Credits are separate from existing subscriptions. The existing whole-app subscri
 Run a real OpenAI request with configured models, Razorpay test-mode checkout and signed webhook delivery, then a physical-phone upload/quote/edit/export. Unit/integration tests use mocked OpenAI and payments; they do not incur charges. No deployment or real charge is performed by this implementation task.
 
 API reference used: https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat
+
+### Gujarati caption accuracy and timing
+
+When `GUJARATI_AUDIO_ASSIST=auto` (default) and `OPENAI_API_KEY` is present,
+Gujarati transcription uses `gpt-4o-transcribe` for the actual text, followed
+by local Whisper attention forced alignment of that text against the audio.
+The current transcript must never be supplied as Whisper's previous-text prompt:
+that can omit the opening speech. Spelling-only replacement cannot recover omissions.
+
+`Dockerfile.api` includes a pinned CPU alignment runtime and a pinned multilingual
+Large v3 Turbo model snapshot at `/models/aligner`. `GUJARATI_ALIGNMENT_MODEL`
+can override that local directory. The model loads once before the service is ready;
+there are no model downloads during requests. English and other languages retain
+the Groq path. Gujarati OpenAI usage retains its independent monthly budget.
+
+The response includes `transcription.provider`, `model`, `alignment`, and `version`
+for verification, without credentials or audio. Health exposes
+`gujarati_alignment_version: 2`. Alignment uses the original audio time axis,
+20-second cores with overlap, and rejects invalid, reversed, or >3-second word
+spans instead of manufacturing timings. Words with no acoustic duration are
+removed by the aligner (for example an unspoken ending on a clipped video).
