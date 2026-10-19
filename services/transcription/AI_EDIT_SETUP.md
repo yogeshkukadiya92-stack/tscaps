@@ -65,7 +65,7 @@ the Groq path. Gujarati OpenAI usage retains its independent monthly budget.
 
 The response includes `transcription.provider`, `model`, `alignment`, and `version`
 for verification, without credentials or audio. Health exposes
-`gujarati_alignment_version: 2`. Alignment uses the original audio time axis,
-20-second cores with overlap, and rejects invalid, reversed, or >3-second word
+`gujarati_alignment_version: 3`. Alignment uses the original audio time axis,
+four-second cores with one-second context overlap, and rejects invalid, reversed, or >3-second word
 spans instead of manufacturing timings. Words with no acoustic duration are
 removed by the aligner (for example an unspoken ending on a clipped video).

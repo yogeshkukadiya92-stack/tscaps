@@ -56,8 +56,9 @@ def transcribe_gujarati(pcm, transport=None):
     duration = len(pcm) / 16000
     words = []
     with httpx.Client(timeout=180, follow_redirects=False, transport=transport) as client:
-        for core_start in range(0, math.ceil(duration), 20):
-            core_end = min(duration, core_start + 20)
+        # Independent short contexts prevent one sentence from hiding later speech.
+        for core_start in range(0, math.ceil(duration), 4):
+            core_end = min(duration, core_start + 4)
             start, end = max(0, core_start - 1), min(duration, core_end + 1)
             chunk = pcm[int(start * 16000):int(end * 16000)]
             reference = audio_reference(client, as_wave(chunk), end - start)
@@ -84,4 +85,4 @@ def transcribe_gujarati(pcm, transport=None):
                                   'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',
             'transcription': {'provider': 'openai', 'model': 'gpt-4o-transcribe',
-                              'alignment': 'whisper-attention', 'version': 2}}
+                              'alignment': 'whisper-attention', 'version': 3}}

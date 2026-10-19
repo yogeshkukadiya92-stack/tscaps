@@ -22,7 +22,7 @@ def test_openai_transcript_is_forced_aligned_instead_of_whisper_prompt(monkeypat
     expected = [{'word': 'ડિઝાઇનરની', 'start': .8, 'end': 1.5},
                 {'word': 'જોબ', 'start': 1.5, 'end': 2.0}]
     def align(pcm, reference):
-        assert len(pcm) == 8 * 16000
+        assert len(pcm) == 5 * 16000
         assert reference == 'ડિઝાઇનરની જોબ'
         return expected
     monkeypatch.setattr('gujarati_alignment.align_reference', align)
@@ -33,8 +33,8 @@ def test_openai_transcript_is_forced_aligned_instead_of_whisper_prompt(monkeypat
         assert b'gpt-4o-transcribe' in request.content
         return httpx.Response(200, json={'text': 'ડિઝાઇનરની જોબ'})
     result = transcribe_groq(np.zeros(8 * 16000), 'gu', httpx.MockTransport(handle))
-    assert calls == ['api.openai.com']
-    assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in expected]
+    assert calls == ['api.openai.com'] * 2
+    assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in expected] + [{'text': w['word'], 'start': w['start'] + 3, 'end': w['end'] + 3} for w in expected if w['start'] + 3 >= 4]
     assert result['transcription']['alignment'] == 'whisper-attention'
 
 
@@ -47,8 +47,8 @@ def test_short_windows_keep_absolute_times_and_own_boundary_words(monkeypatch):
         calls.append(request.url.host)
         return httpx.Response(200, json={'text': 'વાત છે'})
     result = transcribe_groq(np.zeros(32 * 16000), 'gu', httpx.MockTransport(handle))
-    assert calls == ['api.openai.com'] * 2
-    assert [w['start'] for w in result['words']] == [1, 2, 20, 21]
+    assert calls == ['api.openai.com'] * 8
+    assert [w['start'] for w in result['words']] == [1, 2] + [t for offset in range(3, 28, 4) for t in (offset + 1, offset + 2)]
 
 
 @pytest.mark.parametrize('items', [
