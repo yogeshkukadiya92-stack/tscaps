@@ -6,6 +6,7 @@ from groq_provider import reserve_budget, transcribe_groq
 
 @pytest.fixture(autouse=True)
 def configure(monkeypatch, tmp_path):
+    monkeypatch.setenv('GUJARATI_AUDIO_ASSIST', 'false')
     monkeypatch.setenv('PROCESSING_BUDGET_DB', str(tmp_path / 'usage.sqlite'))
     monkeypatch.setenv('GROQ_API_KEY', 'test-key')
     monkeypatch.setenv('GROQ_MODEL', 'whisper-large-v3')
@@ -86,8 +87,13 @@ def test_large_out_of_range_endpoint_still_fails():
 
 
 def test_whisper_final_word_padded_tail_is_clipped():
-    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
-        'words': [{'word': 'છે', 'start': 113.08, 'end': 137.02}]}))
+    calls = []
+    def handle(request):
+        calls.append(request)
+        # Final 100–115s core has one second of left context (offset 99).
+        return httpx.Response(200, json={'words':
+            [{'word': 'છે', 'start': 14.08, 'end': 38.02}] if len(calls) == 6 else []})
+    transport = httpx.MockTransport(handle)
     result = transcribe_groq(np.zeros(115 * 16000), 'gu', transport)
     assert result['words'] == [{'text': 'છે', 'start': 113.08, 'end': 115.0}]
 

@@ -104,7 +104,7 @@ export function AutoEditPanel({ libraryHost, file, state, locked, onStart, onBus
   const currentDraft = draft && isCurrent(draft.base) ? draft : null;
   const skillLibrary = (
     <fieldset disabled={locked || working || quoting} className="border-0 p-0 m-0 flex flex-col gap-2">
-      <legend className="text-sm font-semibold mb-2">Ready editing skills · તૈયાર એડિટિંગ</legend>
+      <legend className="text-sm font-semibold mb-2">Choose your style · સ્ટાઇલ પસંદ કરો</legend>
       <p className="text-xs text-fg-muted m-0">Choose a style. Preview. Make it yours. <span lang="gu">Prompt વગર તૈયાર એડિટિંગ.</span></p>
       <input type="search" aria-label="Search editing skills" placeholder="Search editing styles…" value={search} onChange={e => setSearch(e.target.value)} className="studio-skill-search" />
       <div className="studio-skill-list">
@@ -120,11 +120,11 @@ export function AutoEditPanel({ libraryHost, file, state, locked, onStart, onBus
     <div className="flex items-center gap-2"><Sparkles size={20} className="text-accent" /><h3 className="font-semibold m-0">Auto Edit</h3></div>
     {libraryHost ? createPortal(skillLibrary, libraryHost) : skillLibrary}
     <div className="studio-recipe-intro">
-      <span className="studio-eyebrow">Edit inspector</span>
+      <span className="studio-eyebrow">Selected style</span>
       <h3>{selectedSkill.name}</h3><p>{selectedSkill.description}</p>
-      <span className="studio-local-badge">Built-in skill · No AI credits</span>
+      <span className="studio-local-badge">Included · No AI credits needed</span>
       <div className="studio-included"><strong>Included in this edit</strong>{([['pauses', 'Quiet pause cuts', 'Protect transcribed speech'], ['zooms', 'Digital zooms', 'Emphasis matched to this style'], ['polish', 'Lighting & voice polish', 'Editable effects and audio cleanup'], ['captions', 'Caption styling', 'Preserve custom formatting']] as const).filter(([key]) => selectedSkill.options[key]).map(([key, label, detail]) => <div key={key}><span aria-hidden="true">✓</span><p>{label}<small>{detail}</small></p></div>)}</div>
-      <button className={BTN_PRIMARY} disabled={locked || working || quoting} onClick={() => void analyze(false, false, selectedSkill)}>Prepare preview</button>
+      <button className={BTN_PRIMARY} disabled={locked || working || quoting} onClick={() => void analyze(false, false, selectedSkill)}>Preview this style</button>
     </div>
     <details className="studio-disclosure"><summary>AI custom instructions · Credits</summary>
     <div className="rounded-md border border-edge-medium bg-surface-2 p-3 flex flex-col gap-2">

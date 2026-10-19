@@ -76,3 +76,17 @@ The service uses the existing browser compositor in WebM, preserving captions, c
 5. Enable the public runtime endpoints only after the service checks pass. Remove the endpoints and redeploy to restore device processing.
 
 Local development: CPU dependency pins target Python 3.11/3.12. The GPU/render container builds and real model/render smoke tests require Docker/the target server and are not established by mocked unit tests.
+
+### Gujarati audio accuracy
+
+Gujarati requests (`language=gu`) now use independent 20-second cores with one-second context on both sides and full Whisper Large v3. This bounds the effect of a decoder omission and preserves absolute word timestamps across chunks. Other languages keep the existing 600-second cores.
+
+On the **processing service**, configure `OPENAI_API_KEY` and `GUJARATI_AUDIO_ASSIST=true` to require the audio-grounded OpenAI pass. The existing AI creative-edit endpoint alone does not improve speech recognition. With the default `auto` setting, assistance is active when that service has an OpenAI key; `false` disables it. `/processing/health` reports `gujarati_audio_assist` without exposing credentials. This applies to server/Groq transcription; browser/local Whisper does not call OpenAI.
+
+Each Gujarati audio window is sent to `gpt-4o-transcribe` as Gujarati, keeping spoken English words, then its transcript guides the timestamped Groq decoder. Small similar one-to-one spelling differences are corrected using the audio reference while preserving the decoder's word times. Unmatched insertions, deletions and unrelated phrases are not assigned invented timestamps. A failed enabled OpenAI pass fails the request explicitly rather than silently returning a supposedly corrected result. No automatic paid retries are made.
+
+`OPENAI_TRANSCRIPTION_MONTHLY_USD_LIMIT` defaults to `5`, independently of the existing Groq budget and creative-edit credits. Reservations use a conservative estimate of $0.72/audio-hour with a ten-second minimum per window; this is an application reservation, not an exact invoice or a provider-wide billing cap. Persist `PROCESSING_BUDGET_DB` as before. Shorter requests and context overlap increase per-request minimum billing. Set provider billing limits as well.
+
+Rebuild the processing image after deploying these files; setting only the frontend key/configuration is insufficient. Verify health, then regenerate captions with the Gujarati language selected. Existing saved captions are not rewritten. Validate a representative Gujarati recording against a human transcript, checking word error rate, speech coverage and timing; mocked API tests validate wiring and safeguards, not recognition accuracy. The screenshot of a 21-second gap cannot establish whether that region contains speech without the source recording.
+
+API contracts: [OpenAI speech-to-text documentation](https://developers.openai.com/api/docs/guides/speech-to-text), [GPT-4o Transcribe](https://developers.openai.com/api/docs/models/gpt-4o-transcribe). GPT-4o returns transcript text; word timestamps continue to come from Whisper.

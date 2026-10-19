@@ -314,14 +314,13 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     return () => onDraftPreviewChange(false);
   }, [validComparison, onDraftPreviewChange]);
   return <section aria-label="Creative Studio" className="professional-studio">
-    <div className="studio-title"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Creative Studio</h2><p className="text-xs text-fg-muted m-0">Clips, effects, audio and captions. One finished reel.</p></div></div>
+    <div className="studio-title"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0">Edit your reel</h2><p className="text-xs text-fg-muted m-0">Choose an edit below. Preview it on your reel.</p></div></div>
     <div className="studio-workbench">
       <nav aria-label="Creative tools" className="studio-tool-rail">
         {([{ id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Captions', label: 'Captions', icon: Captions }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span>{label}</span></button>)}
       </nav>
-      <div className="studio-library" onClickCapture={() => setActiveTool('Auto')} ref={setLibraryHost} aria-label="Editing skill library" />
       <div className="studio-monitor">
-        <div className="studio-monitor-heading"><span>Program monitor</span><span>{viewProject.settings.portrait ? '9:16 portrait' : 'Original ratio'} · 30 fps</span></div>
+        <div className="studio-monitor-heading"><span>Your reel</span><span>{viewProject.settings.portrait ? '9:16 portrait' : 'Original ratio'} · 30 fps</span></div>
         {validComparison && <div ref={comparisonHost} className="rounded-lg border border-accent/40 bg-surface-1 p-3 flex flex-col gap-2" aria-label="Before and after preview">
           <div className="flex gap-2" role="group" aria-label="Preview version">{(['before', 'after'] as const).map(side => <button key={side} className={comparisonSide === side ? BTN_PRIMARY : BTN_SECONDARY} aria-pressed={comparisonSide === side} disabled={locked} onClick={() => { if (side !== comparisonSide) { stop(); setReady(false); setComparisonSide(side); } }}>{side === 'before' ? 'Before' : 'After'}</button>)}</div>
           <p className="text-xs text-fg-muted m-0">{comparisonSide === 'before' ? 'Before · Your saved/current edit' : 'After · Proposed auto edit'} · Draft only. Apply to save or export.</p>
@@ -336,7 +335,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
           <button className={BTN_SECONDARY} disabled={!ready || locked} onClick={() => playing ? stop() : void preview()}>{playing ? 'Stop preview' : 'Preview'}</button>
           <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => { stop(); editor.store.undo(); setPreviewRevision(v => v + 1); }}>Undo</button>
           <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => { stop(); editor.store.redo(); setPreviewRevision(v => v + 1); }}>Redo</button>
-          <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => void save()}>Save creative changes</button>
+          <button className={BTN_SECONDARY} disabled={editingLocked} onClick={() => void save()}>Save changes</button>
         </div>
         <p className="text-xs text-fg-muted m-0">Captions stay linked to the original clips through cuts, speed and reordering. Added clips keep their own audio; B-roll is muted.</p>
         {settings.speed !== 1 && <p className="text-xs text-fg-muted m-0">Speed changes also change voice pitch in the mixed reel.</p>}
@@ -352,6 +351,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         </details>
       </div>
       <div className="studio-inspector" data-active-tool={activeTool}>
+      <div hidden={activeTool !== 'Auto'} className="studio-library" ref={setLibraryHost} aria-label="Editing skill library" />
       <div hidden={activeTool !== 'Auto'}>
       <AutoEditPanel libraryHost={libraryHost} file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
       </div>
@@ -426,7 +426,9 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         </section>
       </fieldset>
       </div>
+    <details className="studio-timeline-disclosure"><summary>Timeline <span>Fine-tune clips, captions & audio</span></summary>
     <StudioTimeline spans={spans} project={viewProject} document={state.document} time={time} duration={duration} disabled={!ready || locked} onSeek={value => void seek(value)} />
+    </details>
     </div>
   </section>;
 }
