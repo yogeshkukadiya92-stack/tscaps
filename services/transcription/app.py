@@ -55,7 +55,8 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST',
 @app.get('/health')
 async def health():
     from gujarati_transcription import enabled
-    return {'gujarati_alignment_version': 2, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
+    from gujarati_alignment import last_failure
+    return {'gujarati_alignment_failure': last_failure, 'gujarati_alignment_version': 2, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
 
 
 async def authorize(request: Request):

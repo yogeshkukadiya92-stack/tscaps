@@ -4,6 +4,8 @@ import math
 import os
 from functools import lru_cache
 
+last_failure = None
+
 import httpx
 from fastapi import HTTPException
 
@@ -19,6 +21,8 @@ def alignment_model():
 
 
 def align_reference(pcm, reference):
+    global last_failure
+    last_failure = None
     try:
         result = alignment_model().align(
             pcm, reference, language='gu', verbose=None, regroup=False,
@@ -28,6 +32,11 @@ def align_reference(pcm, reference):
             raise ValueError(f'Alignment rejected transcript ({len(reference.split())} words)')
         return [word for segment in result.to_dict()['segments'] for word in segment['words']]
     except Exception as error:
+        import traceback
+        frame = traceback.extract_tb(error.__traceback__)[-1]
+        last_failure = {'type': type(error).__name__, 'module': os.path.basename(frame.filename), 'line': frame.lineno}
+        if isinstance(error, ModuleNotFoundError):
+            last_failure['dependency'] = error.name
         logging.getLogger(__name__).exception('Gujarati acoustic alignment failed')
         raise HTTPException(503, 'Gujarati word alignment failed; please retry later') from error
 
