@@ -26,9 +26,11 @@ def audio_reference(client, audio, seconds):
             headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY']},
             data={'model': 'gpt-4o-transcribe', 'language': 'gu', 'response_format': 'json',
                   'temperature': '0', 'prompt':
-                  'આ ગુજરાતી વાતચીતનું શબ્દશઃ લખાણ છે. ગુજરાતી લિપિ જાળવો. '
-                  'બોલાયેલા English શબ્દો English માં રાખો. અનુવાદ કે સારાંશ ન કરો. '
-                  'માત્ર સાંભળેલા શબ્દો લખો; મૌનમાં શબ્દો ઉમેરશો નહીં.'},
+                  'Transcribe ALL speech from the beginning to the end of this Gujarati recording. '
+                  'Write every clause and repetition, not just the first sentence. '
+                  'Use Gujarati script for Gujarati speech and naturally pronounced loanwords. '
+                  'Preserve English names and acronyms. Do not translate or summarize. '
+                  'Do not invent words in silence or complete a cut-off ending.'},
             files={'file': ('audio.wav', audio, 'audio/wav')})
     except httpx.HTTPError as error:
         raise HTTPException(503, 'Gujarati audio assistance temporarily unavailable') from error
