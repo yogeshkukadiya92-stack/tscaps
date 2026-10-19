@@ -1,14 +1,16 @@
+import { ReelTemplateSampleCard, ReelTemplateSampleDialog } from '@ui/pages/editor/features/creative/ReelTemplateSample';
 import { useEffect, useRef, useState } from 'react';
 import { REEL_TEMPLATES, REEL_TEMPLATE_CATEGORIES, reelTemplateDuration, type ReelTemplate } from '@core/creative/ReelTemplates';
 import { createTemplateMusic } from '@core/creative/ReelTemplateMusic';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 
-export function ReadyMadeReels({ locked, onBuild }: { locked: boolean; onBuild: (template: ReelTemplate, files: readonly File[], title: string, music: boolean) => Promise<void> }) {
+export function ReadyMadeReels({ locked, onBuild, onSamplePreview }: { locked: boolean; onSamplePreview: () => void; onBuild: (template: ReelTemplate, files: readonly File[], title: string, music: boolean) => Promise<void> }) {
   const [selected, setSelected] = useState(REEL_TEMPLATES[0]!);
   const [category, setCategory] = useState('All'), [query, setQuery] = useState('');
   const [files, setFiles] = useState<File[]>([]), [title, setTitle] = useState(''), [music, setMusic] = useState(true);
   const [working, setWorking] = useState(false), [error, setError] = useState(''), [limit, setLimit] = useState(6);
   const [musicUrl, setMusicUrl] = useState('');
+  const [hovered, setHovered] = useState<string | null>(null), [sample, setSample] = useState<ReelTemplate | null>(null);
   const audio = useRef<HTMLAudioElement>(null);
   const matches = REEL_TEMPLATES.filter(t => (category === 'All' || t.category === category) && `${t.name} ${t.description} ${t.category}`.toLowerCase().includes(query.toLowerCase()));
   useEffect(() => () => { if (musicUrl) URL.revokeObjectURL(musicUrl); }, [musicUrl]);
@@ -24,10 +26,11 @@ export function ReadyMadeReels({ locked, onBuild }: { locked: boolean; onBuild: 
     <fieldset disabled={locked || working} className="border-0 p-0 m-0 flex flex-col gap-3 min-w-0">
       <input type="search" aria-label="Search ready-made reels" placeholder="Travel, wedding, product, fashion…" value={query} onChange={e => { setQuery(e.target.value); setLimit(6); }} className="w-full bg-surface-2 rounded-md border border-edge-medium p-2 text-sm" />
       <div className="flex flex-wrap gap-2" role="group" aria-label="Ready-made reel categories">{REEL_TEMPLATE_CATEGORIES.map(c => <button type="button" key={c} aria-pressed={category === c} className={`text-xs border rounded-full px-3 py-1 ${category === c ? 'border-accent text-accent' : 'border-edge-medium'}`} onClick={() => { setCategory(c); setLimit(6); }}>{c}</button>)}</div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{matches.slice(0, limit).map(t => <button type="button" key={t.id} aria-pressed={selected.id === t.id} onClick={() => { audio.current?.pause(); setMusicUrl(''); setSelected(t); }} className={`text-left p-3 rounded-lg border ${selected.id === t.id ? 'border-accent bg-surface-3' : 'border-edge-medium bg-surface-2'}`}>
-        <span className="flex items-end gap-1 h-10 mb-2" aria-hidden="true">{t.beats.map((b, i) => <span key={i} style={{ background: t.color, height: `${35 + b * 4}%`, flex: b, opacity: .45 + i / t.beats.length * .55 }} className="rounded-sm" />)}</span>
-        <strong className="block text-sm">{t.name}</strong><span className="block text-xs text-accent">{reelTemplateDuration(t).toFixed(0)}s · {t.beats.length} scenes · {t.bpm} BPM</span><span className="block text-xs text-fg-muted mt-1">{t.description}</span>
-      </button>)}</div>
+      <p className="text-xs text-fg-muted m-0">Hover or focus to preview. Watch sample opens the video with music; selecting a template keeps your current edit until you build.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{matches.slice(0, limit).map(t => <ReelTemplateSampleCard key={t.id} template={t} selected={selected.id === t.id} active={hovered === t.id && !sample && !locked && !working}
+        onActivate={active => setHovered(active ? t.id : null)}
+        onSelect={() => { audio.current?.pause(); setMusicUrl(''); setSelected(t); }}
+        onWatch={() => { audio.current?.pause(); setHovered(null); onSamplePreview(); setSample(t); }} />)}</div>
       {!matches.length && <p className="text-sm">No matching templates. Try another search.</p>}
       {matches.length > limit && <button type="button" className={BTN_SECONDARY} onClick={() => setLimit(n => n + 6)}>Show more templates</button>}
       <div className="border-t border-edge-medium pt-3 flex flex-col gap-3">
@@ -44,6 +47,7 @@ export function ReadyMadeReels({ locked, onBuild }: { locked: boolean; onBuild: 
         <button type="button" className={BTN_PRIMARY} onClick={() => void build()}>{working ? 'Building your reel…' : 'Build reel automatically'}</button>
       </div>
     </fieldset>
+    {sample && <ReelTemplateSampleDialog key={sample.id} template={sample} onClose={() => setSample(null)} onSelect={() => { setSelected(sample); setMusicUrl(''); setSample(null); }} />}
     {error && <p role="alert" className="text-sm text-danger">{error}</p>}
   </section>;
 }

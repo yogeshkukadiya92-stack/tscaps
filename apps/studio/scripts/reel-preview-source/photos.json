@@ -1,0 +1,18 @@
+{
+  "lake": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=720&h=1280&q=85",
+  "mountain": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=720&h=1280&q=85",
+  "city": "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=720&h=1280&q=85",
+  "wedding": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=720&h=1280&q=85",
+  "cake": "https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?auto=format&fit=crop&w=720&h=1280&q=85",
+  "flowers": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=720&h=1280&q=85",
+  "interior": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=720&h=1280&q=85",
+  "office": "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=720&h=1280&q=85",
+  "headphones": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=720&h=1280&q=85",
+  "coffee": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=720&h=1280&q=85",
+  "food": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=720&h=1280&q=85",
+  "fitness": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=720&h=1280&q=85",
+  "camera": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=720&h=1280&q=85",
+  "music": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=720&h=1280&q=85",
+  "fashion": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=720&h=1280&q=85",
+  "clothes": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=720&h=1280&q=85"
+}

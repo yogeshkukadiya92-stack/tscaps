@@ -12,6 +12,7 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "templates:build": "tsx --tsconfig tsconfig.app.json scripts/build-templates.ts",
+    "reel-previews:build": "node scripts/build-reel-previews.mjs",
     "templates:contract": "tsx --tsconfig tsconfig.app.json scripts/check-template-contract.ts"
   },
   "dependencies": {

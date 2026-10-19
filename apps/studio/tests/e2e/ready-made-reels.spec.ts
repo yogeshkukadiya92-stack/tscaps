@@ -12,7 +12,7 @@ test('builds a photo and video reel with music, undo, persistence and a playable
   await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });
   await gallery.getByRole('searchbox').fill('before / after');
-  await gallery.getByRole('button', { name: /Before \/ After/ }).click();
+  await gallery.getByRole('button', { name: 'Use Before / After template', exact: true }).click();
   const png = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d')!; x.fillStyle = '#e52b2b'; x.fillRect(0, 0, 64, 64); return c.toDataURL('image/png').split(',')[1]!; });
   await gallery.getByLabel('Template photos and videos').setInputFiles([
     { name: 'red-photo.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') },

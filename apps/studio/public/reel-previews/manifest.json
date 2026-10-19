@@ -1,0 +1,955 @@
+{
+  "travel-postcard": {
+    "duration": 8,
+    "excerptStart": 2.615384615384615,
+    "photos": [
+      "lake",
+      "mountain",
+      "city",
+      "lake"
+    ],
+    "recipe": {
+      "id": "travel-postcard",
+      "name": "Travel Postcard",
+      "category": "Travel",
+      "description": "Warm highlights with a slow opening and quick memories.",
+      "color": "#f7b267",
+      "bpm": 104,
+      "beats": [
+        8,
+        4,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.45,
+      "effect": "light-leak",
+      "music": "sunrise"
+    },
+    "bytes": 429961
+  },
+  "weekend-escape": {
+    "duration": 8,
+    "excerptStart": 0,
+    "photos": [
+      "lake",
+      "mountain",
+      "city",
+      "lake"
+    ],
+    "recipe": {
+      "id": "weekend-escape",
+      "name": "Weekend Escape",
+      "category": "Travel",
+      "description": "Six snapshots, bright rhythm and zoom-through cuts.",
+      "color": "#64d8cb",
+      "bpm": 120,
+      "beats": [
+        4,
+        4,
+        4,
+        4,
+        8,
+        8
+      ],
+      "look": "pop",
+      "motion": "pulse",
+      "intensity": 0.35,
+      "effect": "zoom-through",
+      "music": "sunrise"
+    },
+    "bytes": 687811
+  },
+  "cinematic-journey": {
+    "duration": 8,
+    "excerptStart": 4,
+    "photos": [
+      "lake",
+      "mountain",
+      "city",
+      "lake"
+    ],
+    "recipe": {
+      "id": "cinematic-journey",
+      "name": "Cinematic Journey",
+      "category": "Travel",
+      "description": "Long cinematic shots and subtle focus moves.",
+      "color": "#8ea6bf",
+      "bpm": 80,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "cinema",
+      "motion": "push",
+      "intensity": 0.3,
+      "effect": "digital-zoom",
+      "music": "dream"
+    },
+    "bytes": 450868
+  },
+  "city-lights": {
+    "duration": 8,
+    "excerptStart": 1.75,
+    "photos": [
+      "city",
+      "office",
+      "city",
+      "interior"
+    ],
+    "recipe": {
+      "id": "city-lights",
+      "name": "City Lights",
+      "category": "Travel",
+      "description": "Cool urban frames with an accelerating middle.",
+      "color": "#829cff",
+      "bpm": 128,
+      "beats": [
+        8,
+        4,
+        2,
+        2,
+        4,
+        4,
+        8
+      ],
+      "look": "cool",
+      "motion": "pulse",
+      "intensity": 0.4,
+      "effect": "zoom-through",
+      "music": "drive"
+    },
+    "bytes": 564806
+  },
+  "nature-diary": {
+    "duration": 8,
+    "excerptStart": 3.454545454545454,
+    "photos": [
+      "mountain",
+      "lake",
+      "flowers",
+      "mountain"
+    ],
+    "recipe": {
+      "id": "nature-diary",
+      "name": "Nature Diary",
+      "category": "Travel",
+      "description": "Gentle motion and soft light for landscapes.",
+      "color": "#9bc391",
+      "bpm": 88,
+      "beats": [
+        8,
+        4,
+        8,
+        4,
+        8
+      ],
+      "look": "clean",
+      "motion": "push",
+      "intensity": 0.25,
+      "effect": "light-leak",
+      "music": "dream"
+    },
+    "bytes": 357757
+  },
+  "birthday-confetti": {
+    "duration": 8,
+    "excerptStart": 2,
+    "photos": [
+      "cake",
+      "flowers",
+      "wedding",
+      "cake"
+    ],
+    "recipe": {
+      "id": "birthday-confetti",
+      "name": "Birthday Confetti",
+      "category": "Celebration",
+      "description": "Colourful beat cuts for your favourite moments.",
+      "color": "#fb8dba",
+      "bpm": 120,
+      "beats": [
+        8,
+        4,
+        4,
+        2,
+        2,
+        4,
+        8
+      ],
+      "look": "pop",
+      "motion": "pulse",
+      "intensity": 0.55,
+      "effect": "light-leak",
+      "music": "celebrate"
+    },
+    "bytes": 594479
+  },
+  "wedding-memories": {
+    "duration": 8,
+    "excerptStart": 4,
+    "photos": [
+      "wedding",
+      "flowers",
+      "wedding",
+      "flowers"
+    ],
+    "recipe": {
+      "id": "wedding-memories",
+      "name": "Wedding Memories",
+      "category": "Celebration",
+      "description": "A romantic slow reveal with golden light.",
+      "color": "#eac4a1",
+      "bpm": 80,
+      "beats": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.2,
+      "effect": "light-leak",
+      "music": "dream"
+    },
+    "bytes": 265692
+  },
+  "festival-glow": {
+    "duration": 8,
+    "excerptStart": 2.2857142857142856,
+    "photos": [
+      "wedding",
+      "flowers",
+      "cake",
+      "flowers"
+    ],
+    "recipe": {
+      "id": "festival-glow",
+      "name": "Festival Glow",
+      "category": "Celebration",
+      "description": "Vibrant festive moments with energetic focus changes.",
+      "color": "#ffa84d",
+      "bpm": 112,
+      "beats": [
+        8,
+        4,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "pulse",
+      "intensity": 0.5,
+      "effect": "digital-zoom",
+      "music": "celebrate"
+    },
+    "bytes": 508689
+  },
+  "family-album": {
+    "duration": 8,
+    "excerptStart": 3,
+    "photos": [
+      "wedding",
+      "flowers",
+      "cake",
+      "flowers"
+    ],
+    "recipe": {
+      "id": "family-album",
+      "name": "Family Album",
+      "category": "Celebration",
+      "description": "Comfortable photo holds and warm memories.",
+      "color": "#edb8a9",
+      "bpm": 96,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.25,
+      "effect": "light-leak",
+      "music": "sunrise"
+    },
+    "bytes": 308515
+  },
+  "party-recap": {
+    "duration": 8,
+    "excerptStart": 0,
+    "photos": [
+      "wedding",
+      "flowers",
+      "cake",
+      "flowers"
+    ],
+    "recipe": {
+      "id": "party-recap",
+      "name": "Party Recap",
+      "category": "Celebration",
+      "description": "Fast snapshots, bold colour and rhythmic zooms.",
+      "color": "#c78aff",
+      "bpm": 136,
+      "beats": [
+        4,
+        4,
+        2,
+        2,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "pop",
+      "motion": "pulse",
+      "intensity": 0.6,
+      "effect": "zoom-through",
+      "music": "celebrate"
+    },
+    "bytes": 861158
+  },
+  "product-drop": {
+    "duration": 8,
+    "excerptStart": 2,
+    "photos": [
+      "headphones",
+      "camera",
+      "headphones",
+      "camera"
+    ],
+    "recipe": {
+      "id": "product-drop",
+      "name": "Product Drop",
+      "category": "Business",
+      "description": "A hero opening, detail shots and a final reveal.",
+      "color": "#80e4d1",
+      "bpm": 120,
+      "beats": [
+        8,
+        4,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "clean",
+      "motion": "push",
+      "intensity": 0.4,
+      "effect": "spotlight",
+      "music": "minimal"
+    },
+    "bytes": 252565
+  },
+  "property-tour": {
+    "duration": 8,
+    "excerptStart": 3,
+    "photos": [
+      "interior",
+      "office",
+      "interior",
+      "office"
+    ],
+    "recipe": {
+      "id": "property-tour",
+      "name": "Property Tour",
+      "category": "Business",
+      "description": "Elegant room reveals and a spacious final shot.",
+      "color": "#d6bb86",
+      "bpm": 96,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.3,
+      "effect": "zoom-through",
+      "music": "minimal"
+    },
+    "bytes": 401335
+  },
+  "cafe-menu": {
+    "duration": 8,
+    "excerptStart": 2.615384615384615,
+    "photos": [
+      "coffee",
+      "food",
+      "coffee",
+      "food"
+    ],
+    "recipe": {
+      "id": "cafe-menu",
+      "name": "Café Menu",
+      "category": "Business",
+      "description": "Warm food details with a lively middle.",
+      "color": "#e6aa77",
+      "bpm": 104,
+      "beats": [
+        8,
+        4,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.35,
+      "effect": "light-leak",
+      "music": "sunrise"
+    },
+    "bytes": 370180
+  },
+  "brand-story": {
+    "duration": 8,
+    "excerptStart": 2.8,
+    "photos": [
+      "headphones",
+      "office",
+      "interior",
+      "headphones"
+    ],
+    "recipe": {
+      "id": "brand-story",
+      "name": "Brand Story",
+      "category": "Business",
+      "description": "Quiet opening, steady details and confident finish.",
+      "color": "#a5b9d5",
+      "bpm": 100,
+      "beats": [
+        8,
+        4,
+        8,
+        4,
+        8
+      ],
+      "look": "cinema",
+      "motion": "push",
+      "intensity": 0.25,
+      "effect": "spotlight",
+      "music": "minimal"
+    },
+    "bytes": 332136
+  },
+  "sale-showcase": {
+    "duration": 8,
+    "excerptStart": 0,
+    "photos": [
+      "headphones",
+      "clothes",
+      "camera",
+      "fashion"
+    ],
+    "recipe": {
+      "id": "sale-showcase",
+      "name": "Sale Showcase",
+      "category": "Business",
+      "description": "Quick product changes with bold zoom transitions.",
+      "color": "#fd9e8e",
+      "bpm": 128,
+      "beats": [
+        4,
+        4,
+        4,
+        2,
+        2,
+        4,
+        4,
+        8
+      ],
+      "look": "pop",
+      "motion": "pulse",
+      "intensity": 0.45,
+      "effect": "zoom-through",
+      "music": "drive"
+    },
+    "bytes": 537467
+  },
+  "morning-routine": {
+    "duration": 8,
+    "excerptStart": 3.454545454545454,
+    "photos": [
+      "coffee",
+      "flowers",
+      "food",
+      "lake"
+    ],
+    "recipe": {
+      "id": "morning-routine",
+      "name": "Morning Routine",
+      "category": "Lifestyle",
+      "description": "Soft morning colours and relaxed rhythm.",
+      "color": "#efd49a",
+      "bpm": 88,
+      "beats": [
+        8,
+        4,
+        4,
+        8,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.2,
+      "effect": "light-leak",
+      "music": "sunrise"
+    },
+    "bytes": 350597
+  },
+  "food-journal": {
+    "duration": 8,
+    "excerptStart": 2.4444444444444446,
+    "photos": [
+      "food",
+      "coffee",
+      "food",
+      "coffee"
+    ],
+    "recipe": {
+      "id": "food-journal",
+      "name": "Food Journal",
+      "category": "Lifestyle",
+      "description": "Appetising close-ups with gentle focus moves.",
+      "color": "#e8a079",
+      "bpm": 108,
+      "beats": [
+        8,
+        4,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.35,
+      "effect": "digital-zoom",
+      "music": "minimal"
+    },
+    "bytes": 459994
+  },
+  "fitness-drive": {
+    "duration": 8,
+    "excerptStart": 1.4285714285714284,
+    "photos": [
+      "fitness",
+      "mountain",
+      "fitness",
+      "mountain"
+    ],
+    "recipe": {
+      "id": "fitness-drive",
+      "name": "Fitness Drive",
+      "category": "Lifestyle",
+      "description": "Punchy training montage with a strong final hold.",
+      "color": "#a3e878",
+      "bpm": 140,
+      "beats": [
+        8,
+        4,
+        2,
+        2,
+        4,
+        4,
+        8
+      ],
+      "look": "cool",
+      "motion": "pulse",
+      "intensity": 0.65,
+      "effect": "zoom-through",
+      "music": "drive"
+    },
+    "bytes": 858905
+  },
+  "slow-sunday": {
+    "duration": 8,
+    "excerptStart": 4.666666666666667,
+    "photos": [
+      "flowers",
+      "coffee",
+      "lake",
+      "interior"
+    ],
+    "recipe": {
+      "id": "slow-sunday",
+      "name": "Slow Sunday",
+      "category": "Lifestyle",
+      "description": "Long peaceful holds and understated lighting.",
+      "color": "#bbafdc",
+      "bpm": 72,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "cinema",
+      "motion": "push",
+      "intensity": 0.15,
+      "effect": "light-leak",
+      "music": "dream"
+    },
+    "bytes": 247734
+  },
+  "daily-diary": {
+    "duration": 8,
+    "excerptStart": 2.8,
+    "photos": [
+      "coffee",
+      "food",
+      "fitness",
+      "flowers"
+    ],
+    "recipe": {
+      "id": "daily-diary",
+      "name": "Daily Diary",
+      "category": "Lifestyle",
+      "description": "A warm visual journal for everyday moments.",
+      "color": "#d6b49c",
+      "bpm": 100,
+      "beats": [
+        8,
+        4,
+        4,
+        8,
+        8
+      ],
+      "look": "clean",
+      "motion": "push",
+      "intensity": 0.3,
+      "effect": "digital-zoom",
+      "music": "sunrise"
+    },
+    "bytes": 453501
+  },
+  "beat-montage": {
+    "duration": 8,
+    "excerptStart": 0,
+    "photos": [
+      "camera",
+      "music",
+      "office",
+      "camera"
+    ],
+    "recipe": {
+      "id": "beat-montage",
+      "name": "Beat Montage",
+      "category": "Creator",
+      "description": "A quick hook followed by escalating beat cuts.",
+      "color": "#b5a2ff",
+      "bpm": 128,
+      "beats": [
+        4,
+        4,
+        4,
+        2,
+        2,
+        4,
+        4,
+        8
+      ],
+      "look": "pop",
+      "motion": "pulse",
+      "intensity": 0.5,
+      "effect": "zoom-through",
+      "music": "drive"
+    },
+    "bytes": 567916
+  },
+  "before-after": {
+    "duration": 8,
+    "excerptStart": 6,
+    "photos": [
+      "office",
+      "interior"
+    ],
+    "recipe": {
+      "id": "before-after",
+      "name": "Before / After",
+      "category": "Creator",
+      "description": "Two long reveals with a zoom at the change.",
+      "color": "#7fd5e7",
+      "bpm": 120,
+      "beats": [
+        16,
+        16
+      ],
+      "look": "clean",
+      "motion": "push",
+      "intensity": 0.3,
+      "effect": "zoom-through",
+      "music": "minimal"
+    },
+    "bytes": 390768
+  },
+  "portfolio-reel": {
+    "duration": 8,
+    "excerptStart": 2.615384615384615,
+    "photos": [
+      "camera",
+      "music",
+      "office",
+      "camera"
+    ],
+    "recipe": {
+      "id": "portfolio-reel",
+      "name": "Portfolio Reel",
+      "category": "Creator",
+      "description": "Five cinematic highlights with controlled focus.",
+      "color": "#94accc",
+      "bpm": 104,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "cinema",
+      "motion": "push",
+      "intensity": 0.35,
+      "effect": "spotlight",
+      "music": "minimal"
+    },
+    "bytes": 275287
+  },
+  "behind-scenes": {
+    "duration": 8,
+    "excerptStart": 2.2857142857142856,
+    "photos": [
+      "camera",
+      "music",
+      "office",
+      "camera"
+    ],
+    "recipe": {
+      "id": "behind-scenes",
+      "name": "Behind the Scenes",
+      "category": "Creator",
+      "description": "A lively process reel ending on your finished work.",
+      "color": "#e8c06a",
+      "bpm": 112,
+      "beats": [
+        8,
+        4,
+        4,
+        2,
+        2,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "pulse",
+      "intensity": 0.3,
+      "effect": "digital-zoom",
+      "music": "sunrise"
+    },
+    "bytes": 364870
+  },
+  "monthly-recap": {
+    "duration": 8,
+    "excerptStart": 0,
+    "photos": [
+      "camera",
+      "music",
+      "office",
+      "camera"
+    ],
+    "recipe": {
+      "id": "monthly-recap",
+      "name": "Monthly Recap",
+      "category": "Creator",
+      "description": "Eight favourite moments on a consistent beat.",
+      "color": "#cc9bd6",
+      "bpm": 120,
+      "beats": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "look": "pop",
+      "motion": "push",
+      "intensity": 0.35,
+      "effect": "light-leak",
+      "music": "celebrate"
+    },
+    "bytes": 311694
+  },
+  "outfit-check": {
+    "duration": 8,
+    "excerptStart": 2,
+    "photos": [
+      "fashion",
+      "clothes",
+      "flowers",
+      "fashion"
+    ],
+    "recipe": {
+      "id": "outfit-check",
+      "name": "Outfit Check",
+      "category": "Fashion",
+      "description": "A full look followed by quick detail reveals.",
+      "color": "#f1aac4",
+      "bpm": 120,
+      "beats": [
+        8,
+        4,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "clean",
+      "motion": "push",
+      "intensity": 0.4,
+      "effect": "zoom-through",
+      "music": "runway"
+    },
+    "bytes": 402242
+  },
+  "editorial-noir": {
+    "duration": 8,
+    "excerptStart": 3,
+    "photos": [
+      "fashion",
+      "clothes",
+      "flowers",
+      "fashion"
+    ],
+    "recipe": {
+      "id": "editorial-noir",
+      "name": "Editorial Noir",
+      "category": "Fashion",
+      "description": "Monochrome frames with dramatic spotlight accents.",
+      "color": "#b8bdc9",
+      "bpm": 96,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "noir",
+      "motion": "push",
+      "intensity": 0.3,
+      "effect": "spotlight",
+      "music": "runway"
+    },
+    "bytes": 269750
+  },
+  "beauty-details": {
+    "duration": 8,
+    "excerptStart": 2.8,
+    "photos": [
+      "flowers",
+      "fashion",
+      "flowers",
+      "clothes"
+    ],
+    "recipe": {
+      "id": "beauty-details",
+      "name": "Beauty Details",
+      "category": "Fashion",
+      "description": "Soft light and close-up focus for beauty looks.",
+      "color": "#e5c1d9",
+      "bpm": 100,
+      "beats": [
+        8,
+        4,
+        8,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.2,
+      "effect": "light-leak",
+      "music": "dream"
+    },
+    "bytes": 280558
+  },
+  "runway-cuts": {
+    "duration": 8,
+    "excerptStart": 1.6363636363636362,
+    "photos": [
+      "fashion",
+      "clothes",
+      "flowers",
+      "fashion"
+    ],
+    "recipe": {
+      "id": "runway-cuts",
+      "name": "Runway Cuts",
+      "category": "Fashion",
+      "description": "Fast outfit changes and a final hero frame.",
+      "color": "#a98bdf",
+      "bpm": 132,
+      "beats": [
+        8,
+        2,
+        2,
+        4,
+        4,
+        4,
+        8
+      ],
+      "look": "cool",
+      "motion": "pulse",
+      "intensity": 0.5,
+      "effect": "zoom-through",
+      "music": "runway"
+    },
+    "bytes": 537222
+  },
+  "jewellery-glow": {
+    "duration": 8,
+    "excerptStart": 3.454545454545454,
+    "photos": [
+      "fashion",
+      "flowers",
+      "clothes",
+      "fashion"
+    ],
+    "recipe": {
+      "id": "jewellery-glow",
+      "name": "Jewellery Glow",
+      "category": "Fashion",
+      "description": "Golden detail shots with slow focus and light.",
+      "color": "#e6c77b",
+      "bpm": 88,
+      "beats": [
+        8,
+        8,
+        4,
+        4,
+        8
+      ],
+      "look": "warm",
+      "motion": "push",
+      "intensity": 0.2,
+      "effect": "spotlight",
+      "music": "dream"
+    },
+    "bytes": 269441
+  }
+}

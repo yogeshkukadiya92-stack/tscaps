@@ -162,3 +162,11 @@
   .studio-inspector { padding: 20px; }
   .studio-preview-stage { flex-basis: 180px; min-height: 180px; }
 }
+
+/* Let the mobile studio scroll as one column. Tall sample cards must not be
+   squeezed under the monitor controls by the workbench's desktop flex sizing. */
+@media (max-width: 760px) {
+  .studio-workbench { flex: 0 0 auto; }
+  .studio-workbench > * { flex-shrink: 0; }
+  .studio-inspector { overflow: visible; }
+}
