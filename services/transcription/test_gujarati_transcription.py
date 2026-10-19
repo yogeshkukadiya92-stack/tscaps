@@ -22,7 +22,7 @@ def test_openai_transcript_is_forced_aligned_instead_of_whisper_prompt(monkeypat
     expected = [{'word': 'ડિઝાઇનરની', 'start': .8, 'end': 1.5},
                 {'word': 'જોબ', 'start': 1.5, 'end': 2.0}]
     def align(pcm, reference):
-        assert len(pcm) == 5 * 16000
+        assert len(pcm) == 8 * 16000
         assert reference == 'ડિઝાઇનરની જોબ'
         return expected
     monkeypatch.setattr('gujarati_alignment.align_reference', align)
@@ -30,25 +30,38 @@ def test_openai_transcript_is_forced_aligned_instead_of_whisper_prompt(monkeypat
         calls.append(request.url.host)
         assert request.url.host == 'api.openai.com'
         assert request.headers['authorization'] == 'Bearer openai-test'
-        assert b'gpt-4o-transcribe' in request.content
+        assert b'gpt-transcribe' in request.content
+        assert b'languages[]' in request.content
+        assert b'name="language"' not in request.content
         return httpx.Response(200, json={'text': 'ડિઝાઇનરની જોબ'})
     result = transcribe_groq(np.zeros(8 * 16000), 'gu', httpx.MockTransport(handle))
-    assert calls == ['api.openai.com'] * 2
-    assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in expected] + [{'text': w['word'], 'start': w['start'] + 3, 'end': w['end'] + 3} for w in expected if w['start'] + 3 >= 4]
+    assert calls == ['api.openai.com']
+    assert result['words'] == [{'text': w['word'], 'start': w['start'], 'end': w['end']} for w in expected]
     assert result['transcription']['alignment'] == 'whisper-attention'
 
 
-def test_short_windows_keep_absolute_times_and_own_boundary_words(monkeypatch):
-    monkeypatch.setattr('gujarati_alignment.align_reference', lambda *_: [
-        {'word': 'વાત', 'start': 1, 'end': 1.4},
-        {'word': 'છે', 'start': 2, 'end': 2.4}])
+def test_full_reel_keeps_sentence_context(monkeypatch):
+    monkeypatch.setattr('gujarati_alignment.align_reference', lambda pcm, _: [
+        {'word': 'એમ્બ્રોઇડરીવાળા', 'start': 4.9, 'end': 5.6},
+        {'word': 'છે', 'start': 55, 'end': 55.3}])
     calls = []
     def handle(request):
         calls.append(request.url.host)
-        return httpx.Response(200, json={'text': 'વાત છે'})
-    result = transcribe_groq(np.zeros(32 * 16000), 'gu', httpx.MockTransport(handle))
-    assert calls == ['api.openai.com'] * 8
-    assert [w['start'] for w in result['words']] == [1, 2] + [t for offset in range(3, 28, 4) for t in (offset + 1, offset + 2)]
+        return httpx.Response(200, json={'text': 'એમ્બ્રોઇડરીવાળા છે'})
+    result = transcribe_groq(np.zeros(60 * 16000), 'gu', httpx.MockTransport(handle))
+    assert calls == ['api.openai.com']
+    assert [w['start'] for w in result['words']] == [4.9, 55]
+
+
+def test_long_recording_splits_near_quiet_audio_without_lost_samples():
+    from gujarati_alignment import audio_windows
+    pcm = np.ones(602 * 16000, dtype=np.float32)
+    pcm[598 * 16000:599 * 16000] = 0
+    windows = list(audio_windows(pcm))
+    assert windows[0][0] == 0 and windows[-1][1] == len(pcm)
+    assert windows[0][1] == windows[1][0]
+    assert 598 <= windows[0][1] / 16000 < 599
+    assert all(b - a <= 600 * 16000 for a, b in windows)
 
 
 @pytest.mark.parametrize('items', [
@@ -142,3 +155,29 @@ def test_wrong_mel_configuration_fails_before_serving(monkeypatch, tmp_path):
     with pytest.raises(RuntimeError, match='does not match'):
         gujarati_alignment.alignment_model()
     gujarati_alignment.alignment_model.cache_clear()
+
+
+def test_aligner_cannot_silently_drop_a_spoken_word(monkeypatch):
+    import gujarati_alignment
+    class Result:
+        def to_dict(self):
+            return {'segments': [{'words': [{'word': 'વાત', 'start': 0, 'end': .4}]}]}
+    class Model:
+        def align(self, *_args, **kwargs):
+            assert kwargs['remove_instant_words'] is False
+            return Result()
+    monkeypatch.setattr(gujarati_alignment, 'alignment_model', lambda: Model())
+    with pytest.raises(HTTPException):
+        gujarati_alignment.align_reference(np.zeros(16000), 'વાત છે')
+
+
+def test_legacy_openai_model_uses_singular_language_hint(monkeypatch):
+    from gujarati_transcription import audio_reference
+    monkeypatch.setenv('GUJARATI_TRANSCRIPTION_MODEL', 'gpt-4o-transcribe')
+    def handle(request):
+        assert b'gpt-4o-transcribe' in request.content
+        assert b'name="language"' in request.content
+        assert b'languages[]' not in request.content
+        return httpx.Response(200, json={'text': 'વાત છે'})
+    with httpx.Client(transport=httpx.MockTransport(handle)) as client:
+        assert audio_reference(client, b'audio', 10) == 'વાત છે'

@@ -51,21 +51,35 @@ API reference used: https://developers.openai.com/api/docs/guides/structured-out
 
 ### Gujarati caption accuracy and timing
 
-When `GUJARATI_AUDIO_ASSIST=auto` (default) and `OPENAI_API_KEY` is present,
-Gujarati transcription uses `gpt-4o-transcribe` for the actual text, followed
-by local Whisper attention forced alignment of that text against the audio.
-The current transcript must never be supplied as Whisper's previous-text prompt:
-that can omit the opening speech. Spelling-only replacement cannot recover omissions.
+With `GUJARATI_AUDIO_ASSIST=auto` (default) and `OPENAI_API_KEY`, Gujarati
+uses OpenAI `gpt-transcribe` with Gujarati and English language hints, then
+local acoustic forced alignment. Full reels are transcribed intact: fixed
+four-second cuts lose context for loanwords and can omit words at boundaries.
+Recordings over ten minutes split near a quiet audio frame; every original
+sample belongs to exactly one chunk, each below the provider's 25 MB limit.
 
-`Dockerfile.api` includes a pinned CPU alignment runtime and a pinned multilingual
-Large v3 Turbo model snapshot at `/models/aligner`. `GUJARATI_ALIGNMENT_MODEL`
-can override that local directory. The model loads once before the service is ready;
-there are no model downloads during requests. English and other languages retain
-the Groq path. Gujarati OpenAI usage retains its independent monthly budget.
+`GUJARATI_TRANSCRIPTION_MODEL=gpt-4o-transcribe` is an explicit compatibility
+option. Models are not silently substituted or retried after a paid failure.
+Each model reserves twice its documented audio-minute estimate against the
+existing independent OpenAI monthly budget. Current model/schema/rates:
+https://developers.openai.com/api/docs/guides/speech-to-text
+https://developers.openai.com/api/docs/pricing
 
-The response includes `transcription.provider`, `model`, `alignment`, and `version`
-for verification, without credentials or audio. Health exposes
-`gujarati_alignment_version: 3`. Alignment uses the original audio time axis,
-four-second cores with one-second context overlap, and rejects invalid, reversed, or >3-second word
-spans instead of manufacturing timings. Words with no acoustic duration are
-removed by the aligner (for example an unspoken ending on a clipped video).
+`Dockerfile.api` includes a pinned CPU alignment runtime and multilingual Large
+v3 Turbo snapshot at `/models/aligner`. `GUJARATI_ALIGNMENT_MODEL` overrides the
+local directory. Startup validates the required 128-mel preprocessing asset and
+loads the model once. Requests never download models. Other languages retain
+Groq transcription.
+
+Forced alignment preserves the complete OpenAI transcript, including short
+Gujarati words. It does not discard zero-duration words, silently remove an
+unaligned tail, or allocate guessed time evenly through gaps. Missing words,
+invalid/reversed/zero timestamps, or >3-second word spans fail without replacing
+the user's captions. The current transcript is never a Whisper prefix prompt.
+
+Responses identify provider, model, alignment and protocol version 4 for live
+verification. Health exposes `gujarati_alignment_version: 4` and non-content
+failure diagnostics. Audio is held in request memory only. Successful HTTP status
+and valid timing bounds do not establish perfect speech-recognition accuracy:
+compare the full video with the generated words, including technical terms,
+short function words, long pauses and the ending.

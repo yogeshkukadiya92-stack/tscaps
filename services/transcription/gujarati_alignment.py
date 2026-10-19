@@ -35,11 +35,15 @@ def align_reference(pcm, reference):
     try:
         result = alignment_model().align(
             pcm, reference, language='gu', verbose=None, regroup=False,
-            remove_instant_words=True, failure_threshold=0.2,
+            remove_instant_words=False, failure_threshold=0.02, token_step=400,
         )
         if result is None:
             raise ValueError(f'Alignment rejected transcript ({len(reference.split())} words)')
-        return [word for segment in result.to_dict()['segments'] for word in segment['words']]
+        aligned = [word for segment in result.to_dict()['segments'] for word in segment['words']]
+        from gujarati_transcription import normalized
+        if normalized(' '.join(word['word'] for word in aligned)) != normalized(reference):
+            raise ValueError('Alignment omitted transcript words')
+        return aligned
     except Exception as error:
         import traceback
         frame = traceback.extract_tb(error.__traceback__)[-1]
@@ -50,17 +54,31 @@ def align_reference(pcm, reference):
         raise HTTPException(503, 'Gujarati word alignment failed; please retry later') from error
 
 
+def audio_windows(pcm):
+    """Keep full reels intact; split long audio near a quiet frame below 25 MB."""
+    import numpy as np
+    size = len(pcm)
+    start = 0
+    maximum = 600 * 16000
+    frame = 3200  # 200 ms; use the quietest frame near the maximum duration.
+    while start < size:
+        end = min(size, start + maximum)
+        if end < size:
+            search = pcm[end - 5 * 16000:end]
+            energy = np.mean(search.reshape(-1, frame) ** 2, axis=1)
+            end = end - len(search) + int(np.argmin(energy)) * frame + frame // 2
+        yield start, end
+        start = end
+
+
 def transcribe_gujarati(pcm, transport=None):
     from groq_provider import as_wave
-    from gujarati_transcription import audio_reference
-    duration = len(pcm) / 16000
+    from gujarati_transcription import audio_reference, transcription_model
     words = []
     with httpx.Client(timeout=180, follow_redirects=False, transport=transport) as client:
-        # Independent short contexts prevent one sentence from hiding later speech.
-        for core_start in range(0, math.ceil(duration), 4):
-            core_end = min(duration, core_start + 4)
-            start, end = max(0, core_start - 1), min(duration, core_end + 1)
-            chunk = pcm[int(start * 16000):int(end * 16000)]
+        for begin, finish in audio_windows(pcm):
+            start, end = begin / 16000, finish / 16000
+            chunk = pcm[begin:finish]
             reference = audio_reference(client, as_wave(chunk), end - start)
             if not reference:
                 continue
@@ -79,10 +97,8 @@ def transcribe_gujarati(pcm, transport=None):
                     previous_end = b
                 except (KeyError, TypeError, ValueError, AttributeError) as error:
                     raise HTTPException(503, 'Invalid GPU transcription response') from error
-                absolute_start = round(start + a, 3)
-                if core_start <= absolute_start < core_end:
-                    words.append({'text': text, 'start': absolute_start,
-                                  'end': round(min(end, start + b), 3)})
+                words.append({'text': text, 'start': round(start + a, 3),
+                              'end': round(min(end, start + b), 3)})
     return {'words': words, 'language': 'gu',
-            'transcription': {'provider': 'openai', 'model': 'gpt-4o-transcribe',
-                              'alignment': 'whisper-attention', 'version': 3}}
+            'transcription': {'provider': 'openai', 'model': transcription_model(),
+                              'alignment': 'whisper-attention', 'version': 4}}

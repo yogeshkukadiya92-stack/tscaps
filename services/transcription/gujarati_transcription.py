@@ -16,22 +16,34 @@ def enabled():
     return setting != 'false' and bool(os.getenv('OPENAI_API_KEY'))
 
 
+MODELS = {'gpt-transcribe': 0.54, 'gpt-4o-transcribe': 0.72}
+
+
+def transcription_model():
+    model = os.getenv('GUJARATI_TRANSCRIPTION_MODEL', 'gpt-transcribe')
+    if model not in MODELS:
+        raise HTTPException(503, 'Unsupported Gujarati transcription model')
+    return model
+
+
 def audio_reference(client, audio, seconds):
     from groq_provider import reserve_budget
-    # Conservative reservation (2x the model's estimated audio-minute cost),
-    # independent from Groq and AI-edit credits. Never retry paid calls silently.
-    reserve_budget(seconds, 'gpt-4o-transcribe', provider='openai', rate=0.72)
+    model = transcription_model()
+    # 2x the published audio-minute estimate, independent from Groq/edit credits.
+    reserve_budget(seconds, model, provider='openai', rate=MODELS[model])
+    # A recording's context is useful; task instructions and a current transcript
+    # prefix can bias recognition and cause omissions. Let ASR hear whole clauses.
+    fields = {'model': model, 'response_format': 'json',
+              'prompt': 'ગુજરાતી વાતચીત, જેમાં રોજિંદા English શબ્દો અને નામો પણ બોલાય છે. ગુજરાતી લિપિ.'}
+    if model == 'gpt-transcribe':
+        fields['languages[]'] = ['gu', 'en']
+    else:
+        fields['language'] = 'gu'
+        fields['temperature'] = '0'
     try:
         response = client.post('https://api.openai.com/v1/audio/transcriptions',
             headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY']},
-            data={'model': 'gpt-4o-transcribe', 'language': 'gu', 'response_format': 'json',
-                  'temperature': '0', 'prompt':
-                  'Transcribe ALL speech from the beginning to the end of this Gujarati recording. '
-                  'Write every clause and repetition, not just the first sentence. '
-                  'Use Gujarati script for Gujarati speech and naturally pronounced loanwords. '
-                  'Preserve English names and acronyms. Do not translate or summarize. '
-                  'Do not invent words in silence or complete a cut-off ending.'},
-            files={'file': ('audio.wav', audio, 'audio/wav')})
+            data=fields, files={'file': ('audio.wav', audio, 'audio/wav')})
     except httpx.HTTPError as error:
         raise HTTPException(503, 'Gujarati audio assistance temporarily unavailable') from error
     if response.status_code != 200:
@@ -39,7 +51,7 @@ def audio_reference(client, audio, seconds):
                             'Gujarati audio assistance failed; please retry later')
     try:
         text = response.json()['text']
-        if not isinstance(text, str) or len(text) > 8000:
+        if not isinstance(text, str) or len(text) > 120000:
             raise ValueError('Invalid reference')
         return text.strip()
     except (ValueError, KeyError, TypeError) as error:
