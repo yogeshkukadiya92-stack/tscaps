@@ -4,7 +4,7 @@ import type { AppError } from '@core/errors/domain/AppError';
 import type { FailureReason } from '@core/errors/domain/FailureReason';
 import { useUtils } from '@ui/_shared/contexts/modules/UtilsContext';
 import { useErrors } from '@ui/_shared/contexts/modules/ErrorsContext';
-import { SUPPORT_EMAIL } from '@ui/_shared/supportEmail';
+import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_PHONE_HREF } from '@ui/_shared/supportEmail';
 import type { UnsupportedAudioCodecError } from '@core/videos/domain/errors/UnsupportedAudioCodecError';
 import type { UnsupportedVideoCodecError } from '@core/videos/domain/errors/UnsupportedVideoCodecError';
 import type { ProjectVideoStoreFailedError } from '@core/projects/domain/errors/ProjectVideoStoreFailedError';
@@ -829,9 +829,11 @@ function ErrorBody({
 
 function SupportLink(): ReactElement {
   return (
-    <a className="underline" href={`mailto:${SUPPORT_EMAIL}`}>
-      {SUPPORT_EMAIL}
-    </a>
+    <>
+      <a className="underline break-all" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+      {' or call '}
+      <a className="underline" href={SUPPORT_PHONE_HREF}>{SUPPORT_PHONE}</a>
+    </>
   );
 }
 

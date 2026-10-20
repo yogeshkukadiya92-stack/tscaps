@@ -140,3 +140,5 @@
   .public-auth-story { display: none; }
   .public-auth-form { justify-items: center; padding: 40px 24px; }
 }
+
+.public-support { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; overflow-wrap: anywhere; }

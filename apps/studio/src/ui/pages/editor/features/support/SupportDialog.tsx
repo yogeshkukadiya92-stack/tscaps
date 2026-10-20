@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_PHONE_HREF } from '@ui/_shared/supportEmail';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Coffee, Copy, ExternalLink, HeartHandshake, Mail, Share2, Star } from 'lucide-react';
 import { AppDialog } from '@ui/_shared/components/Dialog/AppDialog';
@@ -8,7 +9,7 @@ const GITHUB_REPO_URL = 'https://github.com/francozanardi/tscaps';
 const GITHUB_SPONSOR_URL = 'https://github.com/sponsors/francozanardi';
 const BUY_ME_A_COFFEE_URL = 'https://www.buymeacoffee.com/francozanardi';
 const TRUSTPILOT_URL = 'https://www.trustpilot.com/review/tscaps.io';
-const FEEDBACK_EMAIL = 'franco@tscaps.io';
+const FEEDBACK_EMAIL = SUPPORT_EMAIL;
 const SHARE_URL = window.location.origin;
 const SHARE_TITLE = 'ReelStudio';
 const SHARE_TEXT = 'Animated subtitles in your browser. Open source.';
@@ -41,6 +42,11 @@ export function SupportDialog({ open, onClose }: SupportDialogProps) {
       showCloseButton
     >
       <div className="flex flex-col gap-6">
+        <section className="flex flex-col gap-3">
+          <h3 className={SECTION_TITLE}>Contact support</h3>
+          <a className="text-sm text-fg-primary underline break-all" href={SUPPORT_PHONE_HREF}>{SUPPORT_PHONE}</a>
+          <a className="text-sm text-fg-primary underline break-all" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+        </section>
         <FreeSection />
         <PaidSection />
         <p className={CLOSING_LINE}>Whatever you pick, thanks.</p>
