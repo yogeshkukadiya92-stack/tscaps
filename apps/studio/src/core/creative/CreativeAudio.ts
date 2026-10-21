@@ -1,3 +1,4 @@
+import { enhanceVoice, limitAudio, type VoiceEnhancement, type HumRemoval } from '@core/creative/VoiceEnhancement';
 import { AudioBufferSink, type Input } from 'mediabunny';
 import type { CreativeProject, CreativeSpan } from '@core/creative/CreativeProject';
 
@@ -30,7 +31,8 @@ export async function decodeCreativeAudio(input: Input, signal?: AbortSignal): P
 }
 
 /** Rumble filter + downward noise gate, followed by optional bounded peak normalization. */
-export function cleanVoice(pcm: PCM, cleanup: boolean, normalize: boolean): PCM {
+export function cleanVoice(pcm: PCM, cleanup: boolean, normalize: boolean, enhancement: VoiceEnhancement = 'off', hum: HumRemoval = 'off'): PCM {
+  if (enhancement !== 'off' || hum !== 'off') return enhanceVoice(pcm, enhancement, hum, cleanup, normalize);
   const channels = pcm.channels.map(source => source.slice());
   if (cleanup) {
     const alpha = Math.exp(-2 * Math.PI * 90 / pcm.sampleRate);
@@ -88,10 +90,11 @@ export function mixCreativeAudio(project: CreativeProject, spans: readonly Creat
       const musicFade = Math.min(1, time / 0.04, (duration - time) / 0.08);
       for (let c = 0; c < 2; c++) {
         const mixed = voice[c]! + sample(music, c, musicTime) * project.settings.musicVolume * duck * musicFade;
-        channels[c]![i] = Math.max(-0.98, Math.min(0.98, mixed));
+        channels[c]![i] = mixed;
       }
     }
   }
+  limitAudio(channels, AUDIO_RATE);
   return { channels, sampleRate: AUDIO_RATE };
 }
 export function toAudioBuffer(pcm: PCM, start = 0, length = pcm.channels[0]!.length): AudioBuffer {

@@ -1,3 +1,4 @@
+import { CreativeBackgroundPainter } from '@core/creative/CreativeBackground';
 import { paintMotionEffects } from '@core/creative/MotionEffects';
 import { ALL_FORMATS, AudioBufferSource, BlobSource, BufferTarget, CanvasSink, CanvasSource, Input, Mp4OutputFormat, Output, StreamTarget, WebMOutputFormat, getFirstEncodableAudioCodec, getFirstEncodableVideoCodec } from 'mediabunny';
 import type { CaptionsOverlayFramePainterFactory, RenderOutputChunk } from '@tscaps/engine';
@@ -26,6 +27,7 @@ export class CreativeSession {
   private readonly effectScratch = document.createElement('canvas');
   private readonly media = new Map<string, Media>();
   private painter: Painter | null = null;
+  private background: CreativeBackgroundPainter | null = null;
   private previousSourceTime = -1;
   private audio: PCM | null = null;
   private closed = false;
@@ -76,6 +78,10 @@ export class CreativeSession {
       this.request.project.overlays.forEach(overlay => assets.set(overlay.asset.id, overlay.asset));
       if (this.request.project.music) assets.set(this.request.project.music.id, this.request.project.music);
       const repository = new CreativeAssetRepository();
+      if (this.request.project.background && this.request.project.background.mode !== 'original') {
+        this.background = new CreativeBackgroundPainter(this.request.project.background);
+        await this.background.open(asset => repository.get(asset), signal);
+      }
       for (const asset of assets.values()) {
         await this.addMedia(asset.id, await repository.get(asset));
         signal?.throwIfAborted();
@@ -114,7 +120,7 @@ export class CreativeSession {
     const sources = new Map<string, PCM | null>();
     for (const id of sourceIds) {
       const pcm = await decodeCreativeAudio(this.media.get(id === 'original' && this.request.previewOriginal ? 'original-audio' : id)!.input, signal);
-      sources.set(id, pcm ? cleanVoice(pcm, this.request.project.settings.cleanup, this.request.project.settings.normalize) : null);
+      sources.set(id, pcm ? cleanVoice(pcm, this.request.project.settings.cleanup, this.request.project.settings.normalize, this.request.project.settings.voiceEnhancement, this.request.project.settings.humRemoval) : null);
     }
     const musicId = this.request.project.music?.id;
     const music = musicId ? await decodeCreativeAudio(this.media.get(musicId)!.input, signal) : null;
@@ -148,7 +154,8 @@ export class CreativeSession {
     if (!source) throw new Error('A video frame could not be decoded.');
     const base = this.base.getContext('2d')!;
     base.fillStyle = '#000'; base.fillRect(0, 0, this.base.width, this.base.height);
-    this.fit(base, source.canvas, 0, 0, this.base.width, this.base.height);
+    if (this.background) this.background.paint(this.base, source.canvas);
+    else this.fit(base, source.canvas, 0, 0, this.base.width, this.base.height);
     // Looks and camera motion affect the picture; text and captions stay crisp.
     paintFrame(this.canvas, this.base, { ...this.request.project.settings, text: '' }, time);
     const ctx = this.canvas.getContext('2d')!;
@@ -185,6 +192,7 @@ export class CreativeSession {
     this.closed = true;
     void this.pending.then(async () => {
       this.painter?.end(); this.painter = null;
+      this.background?.close(); this.background = null;
       for (const media of this.media.values()) {
         try { await media.sequence?.return(); } catch { /* input disposal below still releases the decoder */ }
         media.input.dispose();

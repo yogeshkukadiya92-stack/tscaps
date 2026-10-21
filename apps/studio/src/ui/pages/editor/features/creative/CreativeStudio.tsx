@@ -1,3 +1,5 @@
+import { DEFAULT_BACKGROUND, type CreativeBackground } from '@core/creative/CreativeBackground';
+import { analyzeReelColors } from '@core/creative/AutoColorGrade';
 import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { ContentFormatGallery } from '@ui/pages/editor/features/creative/ContentFormatGallery';
 import '@ui/pages/editor/features/creative/CreativeStudio.css';
@@ -87,6 +89,9 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
   const [libraryHost, setLibraryHost] = useState<HTMLDivElement | null>(null);
   const [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  const [grading, setGrading] = useState(false);
+  const gradeAbort = useRef<AbortController | null>(null);
+  useEffect(() => () => gradeAbort.current?.abort(), []);
   const [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false), [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false), [playing, setPlaying] = useState(false), [progress, setProgress] = useState(0);
   const [time, setTime] = useState(() => { const saved = previewPositions.get(editor.store); return saved?.projectId === state.projectId ? saved.time : 0; }), [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
@@ -116,6 +121,8 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
   const projectId = state.projectId!;
   useEffect(() => () => { previewPositions.set(editor.store, { projectId, time: timeRef.current }); }, [editor.store, projectId]);
   const settings = project.settings;
+  const background = project.background ?? DEFAULT_BACKGROUND;
+  function setBackground(values: Partial<CreativeBackground>) { change({ ...project, background: { ...background, ...values } }); }
   const cuts = useMemo(() => state.cuts.list().map(r => ({ start: r.startSec, end: r.endSec })), [state.cuts]);
   const spans = useMemo(() => compositionSpans(viewProject, cuts), [viewProject, cuts]);
   const duration = spans.at(-1)?.outputEnd ?? 0;
@@ -132,6 +139,34 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     editor.store.commit(key); editor.store.patch({ creative: next });
   }
   function patch(values: Partial<CreativeSettings>) { change({ ...project, settings: { ...settings, ...values } }, `creative:${Object.keys(values).join(',')}`); }
+  async function uploadBackground(selected: File | undefined) {
+    if (!selected) return;
+    setUploading(true); setError('');
+    const base = editor.store.snapshot();
+    try {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(selected.type) || selected.size > 10 * 1024 * 1024) throw new Error('Choose a JPG, PNG or WebP image under 10 MB.');
+      const image = await createImageBitmap(selected);
+      try { if (image.width * image.height > 16000000) throw new Error('Choose a background image under 16 megapixels.'); } finally { image.close(); }
+      const asset = await new CreativeAssetRepository().put(selected, 1, projectId);
+      if (!sameAutoEditInputs(base, editor.store.snapshot())) throw new Error('Your edit changed. Choose the background again.');
+      setBackground({ mode: 'image', image: asset });
+    } catch (cause) { setError(errorText(cause)); }
+    finally { setUploading(false); }
+  }
+  async function autoColorGrade() {
+    if (gradeAbort.current) return;
+    const abort = new AbortController(); gradeAbort.current = abort;
+    const base = editor.store.snapshot();
+    stop(); setGrading(true); setError(''); setNotice('');
+    try {
+      const values = await analyzeReelColors(file, project, cuts, asset => new CreativeAssetRepository().get(asset), abort.signal);
+      abort.signal.throwIfAborted();
+      if (!sameAutoEditInputs(base, editor.store.snapshot())) throw new Error('Your edit changed. Run color analysis again.');
+      patch(values);
+      setNotice('Auto color grading applied. Preview the result, adjust the sliders and save when ready.');
+    } catch (cause) { if (!abort.signal.aborted) setError(errorText(cause)); }
+    finally { gradeAbort.current = null; if (!abort.signal.aborted) setGrading(false); }
+  }
   async function save() {
     setSaving(true); setError('');
     const operation = saveChain.current.catch(() => {}).then(async () => {
@@ -346,7 +381,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     setComparison(draft ? { draft, base: editor.store.snapshot() } : null); setComparisonSide('after');
     if (draft) requestAnimationFrame(() => comparisonHost.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
   }
-  const locked = busy || uploading || saving || analyzing;
+  const locked = busy || uploading || saving || analyzing || grading;
   const editingLocked = locked || !!validComparison;
   useEffect(() => {
     onDraftPreviewChange(!!validComparison);
@@ -356,7 +391,7 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
     <div className="studio-title"><Clapperboard size={20} className="text-accent" /><div><h2 className="text-base font-semibold m-0"><UiText text="Edit your reel" /></h2><p className="text-xs text-fg-muted m-0"><UiText text="Choose an edit below. Preview it on your reel." /></p></div></div>
     <div className="studio-workbench">
       <nav aria-label={t("Creative tools")} className="studio-tool-rail">
-        {([{ id: 'Templates', label: 'Templates', icon: Clapperboard }, { id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Captions', label: 'Captions', icon: Captions }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} data-tool={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span><UiText text={label} /></span></button>)}
+        {([{ id: 'Templates', label: 'Templates', icon: Clapperboard }, { id: 'Auto', label: 'Auto Edit', icon: Sparkles }, { id: 'Captions', label: 'Captions', icon: Captions }, { id: 'Effects', label: 'Effects', icon: Wand2 }, { id: 'Clips', label: 'Clips', icon: Film }, { id: 'B-roll', label: 'B-roll', icon: Layers }, { id: 'Audio', label: 'Audio', icon: Music2 }, { id: 'Background', label: 'Background', icon: Layers }, { id: 'Look', label: 'Look', icon: Palette }, { id: 'Timing', label: 'Timing', icon: Timer }]).map(({ id, label, icon: Icon }) => <button type="button" key={id} data-tool={id} aria-pressed={activeTool === id} onClick={() => setActiveTool(id)}><Icon size={18} /><span><UiText text={label} /></span></button>)}
       </nav>
       <div className="studio-monitor">
         <div className="studio-monitor-heading"><span><UiText text="Your reel" /></span><span>{viewProject.settings.portrait ? t('9:16 portrait') : t('Original ratio')}<UiText text=" · 30 fps" /></span></div>
@@ -433,18 +468,51 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         <section hidden={activeTool !== 'Audio'} id="creative-Audio" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0"><UiText text="Voice & music" /></h3>
           <label className="text-xs"><UiText text="Upload music" /><input aria-label={t("Upload music")} type="file" accept="audio/*" className="block w-full text-xs" onChange={event => { void upload(event.target.files, 'music'); event.target.value = ''; }} /></label>
           {project.music && <><span className="text-xs break-words">{project.music.name}</span><button className={BTN_SECONDARY} onClick={() => change({ ...project, music: null })}><UiText text="Remove music" /></button><NumberField label={t("Music start offset")} value={project.musicOffset} max={project.music.duration} change={musicOffset => change({ ...project, musicOffset })} /></>}
+          <div className="flex flex-col gap-2" data-ui="voice-enhancement">
+            <h4 className="font-semibold m-0"><UiText text="Enhance voice" /></h4>
+            <p className="text-xs text-fg-muted m-0"><UiText text="Reduce rumble and quiet background noise, balance speech levels and keep peaks under control. Music stays separate." /></p>
+            <button type="button" className={BTN_PRIMARY} onClick={() => patch({ voiceEnhancement: 'natural', cleanup: true, normalize: true, ducking: true })}><UiText text="Enhance audio" /></button>
+            <label className="text-xs"><UiText text="Voice enhancement" /><select className={INPUT} aria-label={t('Voice enhancement')} value={settings.voiceEnhancement ?? 'off'} onChange={event => patch({ voiceEnhancement: event.target.value as 'off' | 'natural' | 'strong', ...(event.target.value !== 'off' ? { cleanup: true, normalize: true } : {}) })}>
+              <option value="off"><UiText text="Off" /></option><option value="natural"><UiText text="Natural voice" /></option><option value="strong"><UiText text="Stronger cleanup" /></option>
+            </select></label>
+            <label className="text-xs"><UiText text="Electric hum removal" /><select className={INPUT} aria-label={t('Electric hum removal')} value={settings.humRemoval ?? 'off'} onChange={event => patch({ humRemoval: event.target.value as 'off' | '50' | '60' })}>
+              <option value="off"><UiText text="Off" /></option><option value="50">50 Hz</option><option value="60">60 Hz</option>
+            </select></label>
+            <button type="button" className={BTN_SECONDARY} onClick={() => patch({ voiceEnhancement: 'off', humRemoval: 'off', cleanup: false, normalize: false })}><UiText text="Restore original voice" /></button>
+          </div>
           <Slider label={t("Original audio")} value={settings.sourceVolume} min={0} max={1} step={0.05} onChange={sourceVolume => patch({ sourceVolume })} />
           <Slider label={t("Music volume")} value={settings.musicVolume} min={0} max={1} step={0.05} onChange={musicVolume => patch({ musicVolume })} />
           <label className="text-sm"><input type="checkbox" checked={settings.ducking} onChange={event => patch({ ducking: event.target.checked })} /><UiText text=" Lower music during speech" /></label>
           <label className="text-sm"><input type="checkbox" checked={settings.cleanup} onChange={event => patch({ cleanup: event.target.checked })} /><UiText text=" Voice cleanup · rumble filter & noise gate" /></label>
           <label className="text-sm"><input type="checkbox" checked={settings.normalize} onChange={event => patch({ normalize: event.target.checked })} /><UiText text=" Normalize voice level" /></label>
         </section>
+        <section hidden={activeTool !== 'Background'} id="creative-Background" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4">
+          <h3 className="font-semibold m-0"><UiText text="Change background" /></h3>
+          <p className="text-xs text-fg-muted"><UiText text="Keep people in front and replace the background in your clips. Works best with a clearly visible person. B-roll stays unchanged." /></p>
+          <p className="text-xs text-fg-muted"><UiText text="The first use downloads the person model. Preview and export may take longer." /></p>
+          <label className="text-xs"><UiText text="Background style" /><select className={INPUT} aria-label={t('Background style')} value={background.mode} onChange={event => setBackground({ mode: event.target.value as CreativeBackground['mode'] })}>
+            <option value="original"><UiText text="Original background" /></option>
+            <option value="blur"><UiText text="Blur background" /></option>
+            <option value="color"><UiText text="Solid color" /></option>
+            <option value="image" disabled={!background.image}><UiText text="Photo background" /></option>
+          </select></label>
+          {background.mode === 'color' && <label className="text-xs"><UiText text="Background color" /><input aria-label={t('Background color')} type="color" value={background.color} onChange={event => setBackground({ color: event.target.value })} /></label>}
+          {background.mode === 'blur' && <Slider label={t('Background blur')} value={background.blur} min={0} max={40} step={1} onChange={blur => setBackground({ blur })} />}
+          <label className="text-xs"><UiText text="Upload background photo" /><input aria-label={t('Upload background photo')} type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { void uploadBackground(event.target.files?.[0]); event.target.value = ''; }} /></label>
+          {background.image && <p className="text-xs break-words">{background.image.name}</p>}
+          <button type="button" className={BTN_SECONDARY} onClick={() => setBackground({ mode: 'original' })}><UiText text="Restore original background" /></button>
+        </section>
         <section hidden={activeTool !== 'Look'} id="creative-Look" className="flex flex-col gap-3 rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2"><h3 className="font-semibold m-0"><UiText text="Look & motion" /></h3>
+          <div className="flex flex-col gap-2" data-ui="auto-color-grading">
+            <p className="text-xs text-fg-muted m-0"><UiText text="Analyze your clips to balance brightness, contrast and saturation with a natural look. Applies to the whole reel." /></p>
+            <button type="button" className={BTN_PRIMARY} disabled={editingLocked} onClick={() => void autoColorGrade()}>{grading ? t('Analyzing colors…') : t('Auto color grading')}</button>
+            <button type="button" className={BTN_SECONDARY} disabled={editingLocked} onClick={() => patch({ look: 'clean', brightness: 1, contrast: 1, saturation: 1 })}><UiText text="Reset colors" /></button>
+          </div>
           <label className="text-sm"><input type="checkbox" checked={settings.portrait} onChange={event => patch({ portrait: event.target.checked })} /><UiText text=" Portrait canvas · 1080 × 1920" /></label>
           <div className="flex flex-wrap gap-2">{LOOKS.map(look => <button key={look.id} aria-pressed={settings.look === look.id} className={settings.look === look.id ? BTN_PRIMARY : BTN_SECONDARY} onClick={() => patch({ look: look.id })}>{look.name}</button>)}</div>
-          <Slider label={t("Brightness")} value={settings.brightness} min={0.5} max={1.5} step={0.05} onChange={brightness => patch({ brightness })} />
-          <Slider label={t("Contrast")} value={settings.contrast} min={0.5} max={1.5} step={0.05} onChange={contrast => patch({ contrast })} />
-          <Slider label={t("Saturation")} value={settings.saturation} min={0} max={2} step={0.05} onChange={saturation => patch({ saturation })} />
+          <Slider label={t("Brightness")} value={settings.brightness} min={0.5} max={1.5} step={0.01} onChange={brightness => patch({ brightness })} />
+          <Slider label={t("Contrast")} value={settings.contrast} min={0.5} max={1.5} step={0.01} onChange={contrast => patch({ contrast })} />
+          <Slider label={t("Saturation")} value={settings.saturation} min={0} max={2} step={0.01} onChange={saturation => patch({ saturation })} />
           <label className="text-xs"><UiText text="Motion" /><select aria-label={t("Motion")} className={INPUT} value={settings.motion} onChange={event => patch({ motion: event.target.value as Motion })}><option value="none"><UiText text="None" /></option><option value="push"><UiText text="Slow zoom" /></option><option value="pulse"><UiText text="Beat zoom" /></option><option value="shake"><UiText text="Shake" /></option><option value="flash"><UiText text="Beat flash" /></option></select></label>
           <Slider label={t("Intensity")} value={settings.intensity} min={0} max={1} step={0.05} onChange={intensity => patch({ intensity })} />
           <Slider label={t("BPM")} value={settings.bpm} min={40} max={240} step={1} onChange={bpm => patch({ bpm })} />

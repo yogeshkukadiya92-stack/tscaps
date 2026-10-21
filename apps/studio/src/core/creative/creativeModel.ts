@@ -1,3 +1,4 @@
+import type { VoiceEnhancement, HumRemoval } from '@core/creative/VoiceEnhancement';
 export interface EditRange { start: number; end: number }
 export type Motion = 'none' | 'push' | 'pulse' | 'shake' | 'flash';
 export interface CreativeSettings {
@@ -20,10 +21,13 @@ export interface CreativeSettings {
   beatCuts: boolean;
   ducking: boolean;
   cleanup: boolean;
+  voiceEnhancement?: VoiceEnhancement;
+  humRemoval?: HumRemoval;
   normalize: boolean;
   portrait: boolean;
 }
 export const DEFAULT_SETTINGS: CreativeSettings = {
+  voiceEnhancement: 'off', humRemoval: 'off',
   look: 'clean', motion: 'none', intensity: 0.4,
   brightness: 1, contrast: 1, saturation: 1, speed: 1,
   sourceVolume: 1, musicVolume: 0.25, text: '', textColor: '#ffffff',

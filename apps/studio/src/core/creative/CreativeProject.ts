@@ -1,3 +1,4 @@
+import type { CreativeBackground } from '@core/creative/CreativeBackground';
 import { readContentFormatState, recoverContentFormatState, type ContentFormatState } from '@core/creative/ContentFormats';
 import { readAutoEditGeneration, type AutoEditGeneration } from '@core/creative/AutoEditGeneration';
 import { isReelPresetId, type ReelPresetId } from '@core/creative/ReelPresets';
@@ -34,6 +35,7 @@ export interface BRoll {
 }
 export interface CreativeProject {
   version: 1;
+  background?: CreativeBackground;
   /** Present after one Auto Edit pass; all resulting edits remain ordinary editable values. */
   autoEdit?: { style: 'clean' | 'energetic' | 'professional'; preset?: ReelPresetId; generation?: AutoEditGeneration };
   effects?: MotionEffect[];
@@ -105,9 +107,16 @@ export function readCreativeProject(value: unknown): CreativeProject | null {
     || !finite(settings.intensity, 0, 1) || !finite(settings.textSize, 2, 15) || !finite(settings.textY, 0, 100)
     || typeof settings.text !== 'string' || settings.text.length > 300 || !/^#[0-9a-f]{6}$/i.test(settings.textColor)
     || !['none', 'push', 'pulse', 'shake', 'flash'].includes(settings.motion)) throw new Error('Invalid creative settings.');
+  if (!['off', 'natural', 'strong'].includes(settings.voiceEnhancement ?? 'off') || !['off', '50', '60'].includes(settings.humRemoval ?? 'off')) throw new Error('Invalid voice enhancement settings.');
   const assetValid = (asset: CreativeAsset) => asset && typeof asset.id === 'string' && typeof asset.name === 'string'
     && typeof asset.key === 'string' && /^[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\/creative\/[a-zA-Z0-9-]+$/.test(asset.key)
     && typeof asset.remote === 'boolean' && typeof asset.mimeType === 'string' && finite(asset.duration, 0.001, 1800);
+  if (project.background !== undefined) {
+    const bg = project.background;
+    if (!bg || !['original', 'blur', 'color', 'image'].includes(bg.mode) || !/^#[0-9a-f]{6}$/i.test(bg.color)
+      || !finite(bg.blur, 0, 40) || (bg.image !== null && !assetValid(bg.image))
+      || (bg.mode === 'image' && !bg.image)) throw new Error('Invalid creative background.');
+  }
   if (project.music && !assetValid(project.music)) throw new Error('Invalid music reference.');
   for (const clip of project.clips) {
     if (!clip || typeof clip.id !== 'string' || (clip.asset !== null && !assetValid(clip.asset)) || !finite(clip.start, 0)

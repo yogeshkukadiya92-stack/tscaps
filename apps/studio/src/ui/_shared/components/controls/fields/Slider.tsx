@@ -42,6 +42,7 @@ export const Slider = memo(function Slider({
       <span className={labelClass}><UiText text={label} /></span>
       <input
         type="range"
+        aria-label={label}
         className="flex-1 min-w-0 h-[3px] cursor-pointer accent-accent"
         min={min}
         max={max}
