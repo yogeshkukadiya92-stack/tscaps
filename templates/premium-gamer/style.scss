@@ -1,6 +1,6 @@
 @use '../_lib/premium-caption' as *;
 
 @include premium-caption(
-  $mode: script-hero, $motion: pop, $font: 'Inter Variable', $size: 3.8cqh,
-  $weight: 600, $case: none, $ink: #ffffff, $accent: #f581c4, $paper: #151515
+  $mode: gamer, $motion: pop, $font: 'Nunito Variable', $size: 3.8cqh,
+  $weight: 900, $case: none, $ink: #ffffff, $accent: #14adff, $paper: #151515
 );

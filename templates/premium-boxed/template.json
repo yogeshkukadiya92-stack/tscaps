@@ -22,7 +22,7 @@
     },
     {
       "id": "highlight-color",
-      "default": "#151515",
+      "default": "#c5ff66",
       "label": "Accent",
       "type": "color",
       "group": "style",
@@ -93,7 +93,7 @@
     {
       "label": "Original",
       "overrides": {
-        "highlight-color": "#151515"
+        "highlight-color": "#c5ff66"
       }
     },
     {

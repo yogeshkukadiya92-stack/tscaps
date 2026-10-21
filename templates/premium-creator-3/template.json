@@ -3,13 +3,13 @@
   "category": "premium-captions",
   "addedOn": "2026-10-16",
   "typography": {
-    "fontStack": "montserrat",
-    "fontSize": 3.4,
-    "fontWeight": 800,
+    "fontStack": "dm-serif-display",
+    "fontSize": 3.6,
+    "fontWeight": 400,
     "textCase": "none",
     "textAlign": "center",
     "wordSpacing": 0.08,
-    "lineSpacing": 0.12
+    "lineSpacing": 0.04
   },
   "styleControls": [
     {
@@ -22,7 +22,7 @@
     },
     {
       "id": "highlight-color",
-      "default": "#d7f784",
+      "default": "#8cff00",
       "label": "Accent",
       "type": "color",
       "group": "style",
@@ -30,8 +30,8 @@
     },
     {
       "id": "big-word-font-family",
-      "default": "montserrat",
-      "label": "Hero font",
+      "default": "dancing-script",
+      "label": "Accent font",
       "type": "font",
       "group": "style",
       "subgroup": "appearance"
@@ -53,8 +53,8 @@
   ],
   "lineSplitter": {
     "type": "isolated-word",
-    "minLetters": 3,
-    "minSecondsOnScreen": 0.3,
+    "minLetters": 2,
+    "minSecondsOnScreen": 0.45,
     "fallbackMinSecondsOnScreen": 0.15
   },
   "alignment": {
@@ -73,7 +73,7 @@
     {
       "label": "Original",
       "overrides": {
-        "highlight-color": "#d7f784"
+        "highlight-color": "#8cff00"
       }
     },
     {

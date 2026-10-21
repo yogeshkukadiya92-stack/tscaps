@@ -14,8 +14,8 @@ test('premium styles preview Gujarati and Hindi with narration motion', async ({
   const languages = page.getByRole('group', { name: 'Caption preview language' });
   await languages.getByRole('button', { name: 'ગુજરાતી Gujarati' }).click();
   await expect(languages.getByRole('button', { name: 'ગુજરાતી Gujarati' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: /View all 58/ }).click();
-  await expect(page.locator('[class*=tscaps-preview-premium-] [lang=gu]')).toHaveCount(58);
+  await page.getByRole('button', { name: /View all 60/ }).click();
+  await expect(page.locator('[class*=tscaps-preview-premium-] [lang=gu]')).toHaveCount(60);
   await page.getByPlaceholder('Search templates').fill('Crazy');
   const crazy = page.getByRole('button', { name: 'Crazy', exact: true });
   await expect(crazy.locator('[lang=gu]')).toContainText('તમારા');

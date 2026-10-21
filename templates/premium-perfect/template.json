@@ -3,7 +3,7 @@
   "category": "premium-captions",
   "addedOn": "2026-10-16",
   "typography": {
-    "fontStack": "inter",
+    "fontStack": "montserrat",
     "fontSize": 3.4,
     "fontWeight": 800,
     "textCase": "none",
@@ -43,6 +43,14 @@
       "type": "color",
       "group": "style",
       "subgroup": "colors"
+    },
+    {
+      "id": "big-word-font-family",
+      "default": "montserrat",
+      "label": "Hero font",
+      "type": "font",
+      "group": "style",
+      "subgroup": "appearance"
     }
   ],
   "segmentSplitters": [
@@ -52,7 +60,7 @@
     },
     {
       "type": "limit_by_words",
-      "maxWords": 4
+      "maxWords": 5
     },
     {
       "type": "boundary_score_limit_by_chars",
@@ -60,10 +68,10 @@
     }
   ],
   "lineSplitter": {
-    "type": "balanced-pixel-width",
-    "minLines": 1,
-    "maxLines": 2,
-    "maxWidthRatio": 0.78
+    "type": "isolated-word",
+    "minLetters": 2,
+    "minSecondsOnScreen": 0.45,
+    "fallbackMinSecondsOnScreen": 0.15
   },
   "alignment": {
     "verticalAlign": "top",

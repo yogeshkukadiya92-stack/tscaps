@@ -36,7 +36,7 @@
     },
     {
       "type": "limit_by_words",
-      "maxWords": 1
+      "maxWords": 5
     },
     {
       "type": "boundary_score_limit_by_chars",
@@ -44,10 +44,9 @@
     }
   ],
   "lineSplitter": {
-    "type": "balanced-pixel-width",
-    "minLines": 1,
-    "maxLines": 2,
-    "maxWidthRatio": 0.78
+    "type": "fixed-tail",
+    "tailWordCount": 2,
+    "minWordsToSplit": 3
   },
   "alignment": {
     "verticalAlign": "top",

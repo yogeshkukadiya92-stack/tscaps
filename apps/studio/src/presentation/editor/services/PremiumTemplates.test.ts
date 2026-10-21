@@ -6,7 +6,7 @@ import { BuiltinTemplateAssetsBuilder } from '@core/templates/infrastructure/Bui
 
 // Read the actual build artifacts: Vitest's CSS transform stubs CSS imports.
 const templateRoot = resolve('../../templates');
-const folders = readdirSync(templateRoot).filter((id) => id.startsWith('premium-'));
+const folders = readdirSync(templateRoot).filter((id) => id.startsWith('premium-') || id.startsWith('dynamic-'));
 const modules = (file: string, json = false) => Object.fromEntries(folders.flatMap((id) => {
   const path = resolve(templateRoot, id, file);
   if (!existsSync(path)) return [];
@@ -44,14 +44,14 @@ const ids = Object.keys(BUILTIN_TEMPLATE_ASSETS).filter((id) => id.startsWith('p
 
 describe('premium caption library', () => {
   it('loads all presets through the editor loader and groups them into one tile gallery', async () => {
-    expect(ids).toHaveLength(58);
+    expect(ids).toHaveLength(60);
     const templates = await Promise.all(ids.map((id) => loader.load(id)));
     const sections = new TemplateGalleryLayout().build({
       builtins: templates, userTemplates: [], favoriteIds: new Set(),
     });
     expect(sections).toHaveLength(1);
     expect(sections[0]?.id).toBe('premium-captions');
-    expect(sections[0]?.templates).toHaveLength(58);
+    expect(sections[0]?.templates).toHaveLength(60);
     for (const id of ids) {
       const config = BUILTIN_TEMPLATE_ASSETS[id]!.config;
       expect(fonts.knows(config.typography!.fontStack!), id).toBe(true);
@@ -61,5 +61,18 @@ describe('premium caption library', () => {
 
   it('uses the bundled Hind face for Devanagari', () => {
     expect(fonts.stackFor('hind').familyFor('devanagari')).toBe('Hind');
+  });
+
+  it('loads all eight phrase-driven layouts in the Dynamic gallery', async () => {
+    const dynamicIds = folders.filter(id => id.startsWith('dynamic-'));
+    expect(dynamicIds).toHaveLength(8);
+    const templates = await Promise.all(dynamicIds.map(id => loader.load(id)));
+    const sections = new TemplateGalleryLayout().build({
+      builtins: templates, userTemplates: [], favoriteIds: new Set(),
+    });
+    expect(sections.map(section => [section.id, section.templates.length])).toEqual([['dynamic', 8]]);
+    for (const id of dynamicIds) {
+      expect(BUILTIN_TEMPLATE_ASSETS[id]!.css).toContain('--segment-index');
+    }
   });
 });

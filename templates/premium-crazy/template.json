@@ -9,7 +9,7 @@
     "textCase": "none",
     "textAlign": "center",
     "wordSpacing": 0.08,
-    "lineSpacing": 0.12
+    "lineSpacing": 0.04
   },
   "styleControls": [
     {
@@ -31,7 +31,7 @@
     {
       "id": "big-word-font-family",
       "default": "montserrat",
-      "label": "Hero font",
+      "label": "Accent font",
       "type": "font",
       "group": "style",
       "subgroup": "appearance"
@@ -53,8 +53,8 @@
   ],
   "lineSplitter": {
     "type": "isolated-word",
-    "minLetters": 3,
-    "minSecondsOnScreen": 0.3,
+    "minLetters": 2,
+    "minSecondsOnScreen": 0.45,
     "fallbackMinSecondsOnScreen": 0.15
   },
   "alignment": {

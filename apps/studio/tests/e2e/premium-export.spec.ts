@@ -8,7 +8,7 @@ import { bootEditorWithCaptions } from './support/editorBoot';
 const enabled = process.env['PREMIUM_EXPORT_QC'] === '1';
 const templatesRoot = resolve('../../templates');
 const output = process.env['PREMIUM_EXPORT_QC_DIR'] ?? '/tmp/reelstudio-premium-export-qc';
-const ids = (await readdir(templatesRoot)).filter(id => id.startsWith('premium-')).sort();
+const ids = (await readdir(templatesRoot)).filter(id => id.startsWith('premium-') || id.startsWith('dynamic-')).sort();
 test.beforeAll(async () => {
   if (!enabled) return;
   await mkdir(output, { recursive: true });

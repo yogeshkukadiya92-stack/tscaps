@@ -1,0 +1,6 @@
+@use '../_lib/premium-caption' as *;
+
+@include premium-caption(
+  $mode: handwritten, $motion: rise, $font: 'Caveat Variable', $size: 3.8cqh,
+  $weight: 700, $case: none, $ink: #ffffff, $accent: #4375ff, $paper: #151515
+);

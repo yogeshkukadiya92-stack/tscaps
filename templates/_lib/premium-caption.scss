@@ -14,13 +14,129 @@
     $treatment: $base, $motion: $motion, $hero-font: $font
   );
 
+  // Mixed type must use registered script-aware stacks: raw Latin family names
+  // otherwise fall back unpredictably for Hindi and in exported frames.
+  @if $mode == spark or $mode == gold-hero or $mode == discipline or $mode == creator-script or $mode == cursive-mix {
+    .line { line-height: 1.25; }
+    .first-line-in-segment + .line {
+      font-size: clamp(1em, calc(10em / max(var(--line-char-count, 1), 1)), 1.9em);
+      color: var(--tscaps-highlight-color, $accent);
+      font-weight: 900;
+      text-transform: none;
+    }
+    .word-being-narrated { color: inherit; }
+  }
+  @if $mode == spark {
+    .first-line-in-segment + .line {
+      font-family: var(--tscaps-big-word-font-family, #{font-stack('dm-serif-display')});
+      text-shadow: 0 0 0.2em var(--tscaps-highlight-color, $accent), 0 0.04em 0.1em #0009;
+    }
+  }
+  @if $mode == gold-hero {
+    .first-line-in-segment, .line:nth-child(3) { font-style: italic; }
+    .first-line-in-segment + .line {
+      font-family: var(--tscaps-big-word-font-family, #{font-stack('montserrat')});
+    }
+    .first-line-in-segment + .line .word {
+      background: linear-gradient(180deg, #fff4ad, var(--tscaps-highlight-color, $accent) 65%, #ff9235);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 0.07em 0.15em #e27a3040);
+    }
+  }
+  @if $mode == creator-script {
+    .first-line-in-segment {
+      color: var(--tscaps-highlight-color, $accent);
+      text-shadow: 0 0 0.28em var(--tscaps-highlight-color, $accent);
+    }
+    .first-line-in-segment + .line {
+      font-family: var(--tscaps-big-word-font-family, #{font-stack('dancing-script')});
+      color: var(--tscaps-primary-color, $ink);
+      font-weight: 500;
+      font-size: 1.4em;
+    }
+  }
+  @if $mode == discipline or $mode == cursive-mix {
+    .first-line-in-segment + .line {
+      font-family: var(--tscaps-big-word-font-family, #{font-stack('dancing-script')});
+      font-weight: 600;
+    }
+    @if $mode == discipline {
+      .first-line-in-segment { font-weight: 900; }
+    }
+  }
+  @if $mode == story-serif {
+    .word-being-narrated { font-style: italic; }
+    .line { line-height: 1.35; }
+  }
+  @if $mode == creator-subtitle {
+    .first-line-in-segment { color: var(--tscaps-highlight-color, $accent); font-style: italic; }
+    .line + .line { font-size: 0.6em; font-weight: 400; }
+    .word-being-narrated { color: inherit; }
+  }
+  @if $mode == handwritten {
+    .word-being-narrated::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -0.1em;
+      border-bottom: 0.06em solid var(--tscaps-highlight-color, $accent);
+      border-radius: 50%; rotate: -3deg;
+    }
+  }
+  @if $mode == doctor {
+    .segment { text-transform: uppercase; }
+    .first-line-in-segment { color: var(--tscaps-highlight-color, $accent); font-size: 1.5em; }
+    .line + .line { background: #101410; padding: 0.12em 0.25em; color: var(--tscaps-highlight-color, $accent); }
+  }
+  @if $mode == shadow-3d or $mode == gamer {
+    .word {
+      text-shadow: 0.025em 0.025em 0 #17314e, 0.05em 0.05em 0 #17314e,
+        0.075em 0.075em 0 #17314e, 0.1em 0.1em 0 #101c31, 0 0.12em 0.15em #0009;
+    }
+    @if $mode == gamer {
+      .word { color: var(--tscaps-highlight-color, $accent); }
+    }
+    @else {
+      .first-line-in-segment + .line { font-size: 1.8em; color: var(--tscaps-highlight-color, $accent); }
+      .line:nth-child(3) { font-family: font-stack('caveat'); font-weight: 400; }
+    }
+  }
+  @if $mode == smooth-hero {
+    .first-line-in-segment { text-align: left; }
+    .first-line-in-segment + .line {
+      font-size: clamp(1em, calc(10em / max(var(--line-char-count, 1), 1)), 2em);
+      font-weight: 900; color: var(--tscaps-highlight-color, $accent);
+      text-shadow: 0 0 0.2em var(--tscaps-highlight-color, $accent);
+    }
+    .line:nth-child(3) { text-align: right; }
+    .word-being-narrated { color: inherit; }
+  }
+  @if $mode == simple-plate {
+    .segment { background: #14141c; border-radius: 0.4em; padding: 0.3em 0.5em; font-weight: 900; }
+    .first-line-in-segment { font-size: 1.45em; }
+  }
+  @if $mode == punch-mix {
+    .line + .line {
+      font-family: font-stack('playfair-display'); font-style: italic;
+      font-size: 0.65em; text-transform: none; color: #fff;
+    }
+  }
+  @if $mode == guide-box {
+    .segment { border: 0.035em solid var(--tscaps-highlight-color, $accent); padding: 0.35em 0.65em; }
+    .line + .line { font-family: font-stack('playfair-display'); font-style: italic; font-size: 1.4em; }
+    .segment::before, .segment::after {
+      content: ''; position: absolute; inset: -0.18em; pointer-events: none;
+      border-inline: 0.025em solid var(--tscaps-highlight-color, $accent);
+    }
+    .segment { position: relative; }
+    .segment::after { inset: 0.15em -0.3em; border-inline: 0; border-block: 0.025em solid var(--tscaps-highlight-color, $accent); }
+  }
+
   @if $mode == hidden {
     // Deliberately suppress the complete overlay, including decorations.
     .segment { visibility: hidden; }
   }
   @if $mode == red-wipe or $mode == script-hero {
     .first-line-in-segment + .line {
-      font-family: var(--tscaps-big-word-font-family, 'Playfair Display Variable');
+      font-family: var(--tscaps-big-word-font-family, #{font-stack('playfair-display')});
       font-style: italic;
       text-transform: none;
     }

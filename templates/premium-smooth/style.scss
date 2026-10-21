@@ -1,6 +1,6 @@
 @use '../_lib/premium-caption' as *;
 
 @include premium-caption(
-  $mode: highlight, $motion: rise, $font: 'Inter Variable', $size: 3.6cqh,
-  $weight: 600, $case: none, $ink: #ffffff, $accent: #ffffff, $paper: #151515
+  $mode: smooth-hero, $motion: rise, $font: 'Montserrat Variable', $size: 3.4cqh,
+  $weight: 800, $case: none, $ink: #ffffff, $accent: #ff525e, $paper: #151515
 );

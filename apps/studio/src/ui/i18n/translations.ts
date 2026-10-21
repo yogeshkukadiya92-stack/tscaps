@@ -1410,9 +1410,9 @@ export const translations: Record<string, { hi: string; gu: string }> = {
     "hi": "कैप्शन प्रीव्यू की भाषा",
     "gu": "કૅપ્શન પ્રીવ્યૂની ભાષા"
   },
-  "Preview all 58 premium styles in your language. Hover to see motion.": {
-    "hi": "अपनी भाषा में सभी 58 प्रीमियम शैलियाँ देखें। मोशन देखने के लिए पॉइंटर रखें।",
-    "gu": "તમારી ભાષામાં બધી 58 પ્રીમિયમ શૈલીઓ જુઓ. મોશન જોવા પોઇન્ટર રાખો."
+  "Preview premium styles in your language. Hover to see motion.": {
+    "hi": "अपनी भाषा में प्रीमियम शैलियाँ देखें। मोशन देखने के लिए पॉइंटर रखें।",
+    "gu": "તમારી ભાષામાં પ્રીમિયમ શૈલીઓ જુઓ. મોશન જોવા પોઇન્ટર રાખો."
   },
   "No templates match.": {
     "hi": "कोई टेम्पलेट नहीं मिला।",

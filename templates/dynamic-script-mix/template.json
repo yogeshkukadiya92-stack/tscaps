@@ -1,0 +1,92 @@
+{
+  "name": "Dynamic Script Mix",
+  "category": "dynamic",
+  "addedOn": "2026-10-21",
+  "typography": {
+    "fontStack": "inter",
+    "fontSize": 3.6,
+    "fontWeight": 700,
+    "textCase": "none",
+    "textAlign": "center",
+    "wordSpacing": 0.08,
+    "lineSpacing": 0.04
+  },
+  "styleControls": [
+    {
+      "id": "primary-color",
+      "default": "#ffffff",
+      "label": "Text",
+      "type": "color",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "highlight-color",
+      "default": "#ffdbb7",
+      "label": "Accent",
+      "type": "color",
+      "group": "style",
+      "subgroup": "colors"
+    },
+    {
+      "id": "big-word-font-family",
+      "default": "dancing-script",
+      "label": "Accent font",
+      "type": "font",
+      "group": "style",
+      "subgroup": "appearance"
+    }
+  ],
+  "segmentSplitters": [
+    {
+      "type": "boundary",
+      "mode": "clause"
+    },
+    {
+      "type": "limit_by_words",
+      "maxWords": 5
+    },
+    {
+      "type": "boundary_score_limit_by_chars",
+      "maxChars": 30
+    }
+  ],
+  "lineSplitter": {
+    "type": "isolated-word",
+    "minLetters": 2,
+    "minSecondsOnScreen": 0.45,
+    "fallbackMinSecondsOnScreen": 0.15
+  },
+  "alignment": {
+    "verticalAlign": "top",
+    "verticalOffset": 0.5,
+    "horizontalAlign": "center",
+    "horizontalOffset": 0.5
+  },
+  "effects": [
+    {
+      "type": "gap_free",
+      "enabled": true
+    }
+  ],
+  "variants": [
+    {
+      "label": "Original",
+      "overrides": {
+        "highlight-color": "#ffdbb7"
+      }
+    },
+    {
+      "label": "Ice",
+      "overrides": {
+        "highlight-color": "#7fd3ff"
+      }
+    },
+    {
+      "label": "Rose",
+      "overrides": {
+        "highlight-color": "#ff8fc7"
+      }
+    }
+  ]
+}

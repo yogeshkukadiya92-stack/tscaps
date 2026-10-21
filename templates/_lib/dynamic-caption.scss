@@ -1,0 +1,14 @@
+// Vary composition by the engine's stable phrase index, not a wall clock.
+// Preview, seeking, and offline export therefore choose the same arrangement.
+@mixin dynamic-caption {
+  .segment {
+    --phrase-phase: mod(var(--segment-index, 0), 3);
+    translate: 0 calc((var(--phrase-phase) - 1) * 7cqh);
+  }
+  .first-line-in-segment {
+    font-size: calc(0.9em + var(--phrase-phase) * 0.1em);
+  }
+  .line:nth-child(3) {
+    font-size: calc(1.1em - var(--phrase-phase) * 0.1em);
+  }
+}

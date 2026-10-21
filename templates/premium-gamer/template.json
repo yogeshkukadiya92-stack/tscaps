@@ -3,9 +3,9 @@
   "category": "premium-captions",
   "addedOn": "2026-10-16",
   "typography": {
-    "fontStack": "inter",
+    "fontStack": "nunito",
     "fontSize": 3.8,
-    "fontWeight": 600,
+    "fontWeight": 900,
     "textCase": "none",
     "textAlign": "center",
     "wordSpacing": 0.08,
@@ -22,19 +22,11 @@
     },
     {
       "id": "highlight-color",
-      "default": "#f581c4",
+      "default": "#14adff",
       "label": "Accent",
       "type": "color",
       "group": "style",
       "subgroup": "colors"
-    },
-    {
-      "id": "big-word-font-family",
-      "default": "playfair-display",
-      "label": "Hero font",
-      "type": "font",
-      "group": "style",
-      "subgroup": "appearance"
     }
   ],
   "segmentSplitters": [
@@ -73,7 +65,7 @@
     {
       "label": "Original",
       "overrides": {
-        "highlight-color": "#f581c4"
+        "highlight-color": "#14adff"
       }
     },
     {

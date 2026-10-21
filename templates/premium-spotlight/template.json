@@ -3,8 +3,8 @@
   "category": "premium-captions",
   "addedOn": "2026-10-16",
   "typography": {
-    "fontStack": "inter",
-    "fontSize": 3.7,
+    "fontStack": "montserrat",
+    "fontSize": 3.4,
     "fontWeight": 800,
     "textCase": "none",
     "textAlign": "center",
@@ -22,7 +22,7 @@
     },
     {
       "id": "highlight-color",
-      "default": "#ffffff",
+      "default": "#96faff",
       "label": "Accent",
       "type": "color",
       "group": "style",
@@ -44,10 +44,10 @@
     }
   ],
   "lineSplitter": {
-    "type": "balanced-pixel-width",
-    "minLines": 1,
-    "maxLines": 2,
-    "maxWidthRatio": 0.78
+    "type": "isolated-word",
+    "minLetters": 2,
+    "minSecondsOnScreen": 0.45,
+    "fallbackMinSecondsOnScreen": 0.15
   },
   "alignment": {
     "verticalAlign": "top",
@@ -65,7 +65,7 @@
     {
       "label": "Original",
       "overrides": {
-        "highlight-color": "#ffffff"
+        "highlight-color": "#96faff"
       }
     },
     {

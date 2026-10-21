@@ -1,0 +1,8 @@
+@use '../_lib/premium-caption' as *;
+@use '../_lib/dynamic-caption' as *;
+
+@include premium-caption(
+  $mode: hero, $motion: rise, $font: 'Montserrat Variable', $size: 3.6cqh,
+  $weight: 700, $case: none, $ink: #ffffff, $accent: #fff4af, $paper: #151515
+);
+@include dynamic-caption;

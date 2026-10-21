@@ -3,9 +3,9 @@
   "category": "premium-captions",
   "addedOn": "2026-10-16",
   "typography": {
-    "fontStack": "anton",
-    "fontSize": 3.6,
-    "fontWeight": 400,
+    "fontStack": "montserrat",
+    "fontSize": 3.4,
+    "fontWeight": 800,
     "textCase": "uppercase",
     "textAlign": "center",
     "wordSpacing": 0.08,
@@ -22,7 +22,7 @@
     },
     {
       "id": "highlight-color",
-      "default": "#ffdf69",
+      "default": "#21b8ff",
       "label": "Accent",
       "type": "color",
       "group": "style",
@@ -35,6 +35,14 @@
       "type": "color",
       "group": "style",
       "subgroup": "colors"
+    },
+    {
+      "id": "big-word-font-family",
+      "default": "montserrat",
+      "label": "Hero font",
+      "type": "font",
+      "group": "style",
+      "subgroup": "appearance"
     }
   ],
   "segmentSplitters": [
@@ -44,7 +52,7 @@
     },
     {
       "type": "limit_by_words",
-      "maxWords": 4
+      "maxWords": 5
     },
     {
       "type": "boundary_score_limit_by_chars",
@@ -52,10 +60,10 @@
     }
   ],
   "lineSplitter": {
-    "type": "balanced-pixel-width",
-    "minLines": 1,
-    "maxLines": 2,
-    "maxWidthRatio": 0.78
+    "type": "isolated-word",
+    "minLetters": 2,
+    "minSecondsOnScreen": 0.45,
+    "fallbackMinSecondsOnScreen": 0.15
   },
   "alignment": {
     "verticalAlign": "top",
@@ -73,7 +81,7 @@
     {
       "label": "Original",
       "overrides": {
-        "highlight-color": "#ffdf69"
+        "highlight-color": "#21b8ff"
       }
     },
     {

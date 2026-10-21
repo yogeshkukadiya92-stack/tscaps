@@ -188,7 +188,7 @@ export const TemplateSelector = memo(function TemplateSelector({
             {language.label}
           </button>
         ))}
-        <p className="w-full text-xs text-fg-muted"><UiText text="Preview all 58 premium styles in your language. Hover to see motion." /></p>
+        <p className="w-full text-xs text-fg-muted"><UiText text="Preview premium styles in your language. Hover to see motion." /></p>
       </div>
 
       {query.trim() !== '' ? (

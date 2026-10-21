@@ -3,13 +3,13 @@
   "category": "premium-captions",
   "addedOn": "2026-10-16",
   "typography": {
-    "fontStack": "inter",
+    "fontStack": "playfair-display",
     "fontSize": 3.2,
     "fontWeight": 500,
     "textCase": "none",
     "textAlign": "center",
     "wordSpacing": 0.08,
-    "lineSpacing": 0.12
+    "lineSpacing": 0.04
   },
   "styleControls": [
     {
@@ -27,14 +27,6 @@
       "type": "color",
       "group": "style",
       "subgroup": "colors"
-    },
-    {
-      "id": "big-word-font-family",
-      "default": "playfair-display",
-      "label": "Hero font",
-      "type": "font",
-      "group": "style",
-      "subgroup": "appearance"
     }
   ],
   "segmentSplitters": [
@@ -52,10 +44,10 @@
     }
   ],
   "lineSplitter": {
-    "type": "isolated-word",
-    "minLetters": 3,
-    "minSecondsOnScreen": 0.3,
-    "fallbackMinSecondsOnScreen": 0.15
+    "type": "balanced-pixel-width",
+    "minLines": 2,
+    "maxLines": 2,
+    "maxWidthRatio": 0.78
   },
   "alignment": {
     "verticalAlign": "top",
