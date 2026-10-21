@@ -56,6 +56,14 @@ export class CreativeSession {
     if (this.duration < 0.1) throw new Error('Keep at least 0.1 seconds of video.');
     if (this.duration > 600) throw new Error('Keep the edited reel under 10 minutes for browser audio mixing.');
     try {
+      if (this.request.project.effects?.some(effect => effect.kind === 'content-card')) {
+        await Promise.all([
+          document.fonts.load('800 48px "Noto Sans Gujarati Variable"', 'ગુજરાતી'),
+          document.fonts.load('600 48px "Noto Sans Gujarati Variable"', 'ગુજરાતી'),
+          document.fonts.load('800 48px "Noto Sans Devanagari Variable"', 'हिन्दी'),
+          document.fonts.load('600 48px "Noto Sans Devanagari Variable"', 'हिन्दी'),
+        ]);
+      }
       await this.addMedia('original', this.request.previewOriginal ?? this.request.original);
       if (this.request.previewOriginal) await this.addMedia('original-audio', this.request.original);
       signal?.throwIfAborted();

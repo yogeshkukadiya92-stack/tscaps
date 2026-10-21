@@ -1,3 +1,4 @@
+import { ContentFormatGallery } from '@ui/pages/editor/features/creative/ContentFormatGallery';
 import '@ui/pages/editor/features/creative/CreativeStudio.css';
 import { ReadyMadeReels } from '@ui/pages/editor/features/creative/ReadyMadeReels';
 import { assembleReelTemplate, type ReelTemplate } from '@core/creative/ReelTemplates';
@@ -388,7 +389,12 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
       <div hidden={activeTool !== 'Auto'}>
       <AutoEditPanel libraryHost={libraryHost} file={file} state={state} locked={locked} onStart={stop} onBusy={setAnalyzing} onApply={applyAutoEdit} onPreview={compare} />
       </div>
-      <div hidden={activeTool !== 'Templates'}>{activeTool === 'Templates' && <ReadyMadeReels locked={editingLocked} onBuild={buildTemplate} onSamplePreview={stop} />}</div>
+      <div hidden={activeTool !== 'Templates'}><ContentFormatGallery locked={editingLocked} duration={duration} onApply={effects => {
+        const retained = (project.effects ?? []).filter(effect => effect.kind !== 'content-card');
+        if (retained.length + effects.length > 40) throw new Error('Remove some effects before applying a content format (maximum 40).');
+        change({ ...project, effects: [...retained, ...effects] });
+        timeRef.current = 0; setTime(0);
+      }} />{activeTool === 'Templates' && <ReadyMadeReels locked={editingLocked} onBuild={buildTemplate} onSamplePreview={stop} />}</div>
       <fieldset disabled={editingLocked} className="flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
         <section hidden={activeTool !== 'Captions'} aria-label="Customize captions" className="rounded-lg border border-edge-medium bg-surface-1 p-4 min-w-0">{activeTool === 'Captions' && captionControls}</section>
         <div hidden={activeTool !== 'Effects'} id="creative-Effects" className="rounded-lg border border-edge-medium bg-surface-1 p-4 scroll-mt-2">

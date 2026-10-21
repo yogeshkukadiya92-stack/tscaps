@@ -1,5 +1,6 @@
 /** Output-timeline effects. Rendering depends only on time, never playback history. */
 export const MOTION_EFFECTS = [
+  { kind: 'content-card', name: 'Content Card', hint: 'Readable hook, point or call to action', icon: '▤' },
   { kind: 'light-leak', name: 'Light Leak', hint: 'A soft wash of coloured light', icon: '☀' },
   { kind: 'spotlight', name: 'Spotlight', hint: 'Soft light with shaded edges', icon: '◉' },
   { kind: 'digital-zoom', name: 'Digital Zoom', hint: 'Smooth focus on a detail', icon: '↗' },
@@ -79,6 +80,46 @@ export function paintMotionEffects(canvas: HTMLCanvasElement, scratch: HTMLCanva
     };
     ctx.save();
     switch (effect.kind) {
+      case 'content-card': {
+        const family = '"Noto Sans Gujarati Variable", "Noto Sans Devanagari Variable", sans-serif';
+        const width = w * 0.84, padding = unit * 0.035;
+        const wrap = (value: string, size: number) => {
+          ctx.font = `700 ${size}px ${family}`;
+          const result: string[] = [];
+          // Segment graphemes so Indic vowel signs stay with their consonants.
+          const segments = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+          for (const paragraph of value.split('\n')) {
+            let line = '';
+            for (const word of paragraph.split(/\s+/)) {
+              const candidate = line ? `${line} ${word}` : word;
+              if (ctx.measureText(candidate).width <= width - padding * 2) { line = candidate; continue; }
+              if (line) result.push(line);
+              line = '';
+              for (const { segment } of segments.segment(word)) {
+                if (line && ctx.measureText(line + segment).width > width - padding * 2) { result.push(line); line = ''; }
+                line += segment;
+              }
+            }
+            if (line) result.push(line);
+          }
+          return result;
+        };
+        let size = unit * 0.048;
+        let titleLines = wrap(effect.title, size), bodyLines = wrap(effect.lines, size * 0.82);
+        const heightFor = () => padding * 2 + titleLines.length * size * 1.5 + bodyLines.length * size * 1.25;
+        while (heightFor() > h * 0.55 && size > unit * 0.022) {
+          size *= 0.9; titleLines = wrap(effect.title, size); bodyLines = wrap(effect.lines, size * 0.82);
+        }
+        const height = heightFor(), x = (w - width) / 2, y = Math.min(h * 0.87 - height, h * effect.y);
+        ctx.globalAlpha = ease((time - effect.start) / 0.18) * ease((effect.end - time) / 0.18);
+        box(x, y, width, height, '#101827ee');
+        box(x, y, unit * 0.006, height, effect.color, 0);
+        let baseline = y + padding;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        for (const line of titleLines) { ctx.font = `800 ${size}px ${family}`; ctx.fillStyle = effect.color; ctx.fillText(line, x + padding, baseline); baseline += size * 1.5; }
+        for (const line of bodyLines) { ctx.font = `600 ${size * 0.82}px ${family}`; ctx.fillStyle = '#ffffff'; ctx.fillText(line, x + padding, baseline); baseline += size * 1.25; }
+        break;
+      }
       case 'light-leak': {
         ctx.globalCompositeOperation = 'screen';
         ctx.globalAlpha = envelope * effect.intensity * 0.65;
