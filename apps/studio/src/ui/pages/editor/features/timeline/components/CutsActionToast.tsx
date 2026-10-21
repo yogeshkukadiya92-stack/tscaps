@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { Scissors } from 'lucide-react';
 import { Toast, TOAST_AUTO_DISMISS_MS } from '@ui/_shared/components/Toast/Toast';
 
@@ -26,6 +27,7 @@ interface CutsActionToastProps {
  * answer to "what did that do" is the difference it left behind.
  */
 export function CutsActionToast({ state, onDismiss }: CutsActionToastProps) {
+  const { t } = useTranslation();
   if (state === null) return null;
 
   const { removedSec, resultingSec } = state;
@@ -46,8 +48,8 @@ export function CutsActionToast({ state, onDismiss }: CutsActionToastProps) {
       title={title}
       description={
         changed
-          ? `The video now runs ${formatDuration(resultingSec)}.`
-          : 'Every one of those stretches was already cut.'
+          ? t("The video now runs {0}.", { 0: formatDuration(resultingSec) })
+          : t('Every one of those stretches was already cut.')
       }
       duration={TOAST_AUTO_DISMISS_MS}
       onDismiss={onDismiss}

@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import type { ExportProgressStore } from '@core/export/store/ExportProgressStore';
@@ -40,23 +41,23 @@ function ExportingScreenCopy({ phase }: { readonly phase: ExportingScreenPhase }
   if (phase === 'awaiting-original') {
     return (
       <>
-        <p className="text-base text-fg-primary m-0">Fetching your original video.</p>
-        <p className="text-sm text-fg-muted m-0">We need the source bytes before rendering can start.</p>
+        <p className="text-base text-fg-primary m-0"><UiText text="Fetching your original video." /></p>
+        <p className="text-sm text-fg-muted m-0"><UiText text="We need the source bytes before rendering can start." /></p>
       </>
     );
   }
   if (phase === 'running') {
     return (
       <>
-        <p className="text-base text-fg-primary m-0">Burning subtitles into your video.</p>
-        <p className="text-sm text-fg-muted m-0">Keep this tab open until it finishes.</p>
+        <p className="text-base text-fg-primary m-0"><UiText text="Burning subtitles into your video." /></p>
+        <p className="text-sm text-fg-muted m-0"><UiText text="Keep this tab open until it finishes." /></p>
       </>
     );
   }
   return (
     <>
-      <p className="text-base text-fg-primary m-0">Your video is ready.</p>
-      <p className="text-sm text-fg-muted m-0">Saved to disk.</p>
+      <p className="text-base text-fg-primary m-0"><UiText text="Your video is ready." /></p>
+      <p className="text-sm text-fg-muted m-0"><UiText text="Saved to disk." /></p>
     </>
   );
 }

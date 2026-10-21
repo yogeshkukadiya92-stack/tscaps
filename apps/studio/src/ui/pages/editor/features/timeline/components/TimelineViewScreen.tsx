@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 import { Check, RectangleHorizontal, WholeWord } from 'lucide-react';
 import type { TimelineView } from '@core/timeline/domain/TimelineView';
@@ -36,11 +38,12 @@ interface TimelineViewScreenProps {
  * the panel redraws behind it.
  */
 export function TimelineViewScreen({ view, onViewChange }: TimelineViewScreenProps) {
+  const { t } = useTranslation();
   const { back } = usePopoverNav();
   return (
     <div className={SCREEN_CLASS}>
-      <PopoverHeader title="Edit by" />
-      <div role="radiogroup" aria-label="Edit by" className="flex flex-col gap-1">
+      <PopoverHeader title={t("Edit by")} />
+      <div role="radiogroup" aria-label={t("Edit by")} className="flex flex-col gap-1">
         {TIMELINE_VIEW_OPTIONS.map((option) => {
           const isChosen = view === option.id;
           return (
@@ -53,7 +56,7 @@ export function TimelineViewScreen({ view, onViewChange }: TimelineViewScreenPro
               onClick={() => { onViewChange(option.id); back(); }}
             >
               {option.icon}
-              <span className={LABEL_CLASS}>{option.label}</span>
+              <span className={LABEL_CLASS}><UiText text={option.label} /></span>
               {isChosen && <Check className={CHECK_CLASS} size={ICON_SIZE_PX} />}
             </button>
           );

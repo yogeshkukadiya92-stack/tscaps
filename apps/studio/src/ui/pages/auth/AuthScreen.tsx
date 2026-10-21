@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, Eye, EyeOff, LockKeyhole } from 'lucide-react';
@@ -7,6 +8,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 type Mode = 'signin' | 'signup' | 'reset';
 const INPUT = 'w-full rounded-md border border-edge-medium bg-surface-1 text-fg-primary p-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
 export function AuthScreen({ initialError, recovering, onRecovered, initialMode = 'signin' }: { initialError: string; recovering: boolean; onRecovered: () => void; initialMode?: Mode }) {
+  const { t } = useTranslation();
   const { client } = useCloudAuth();
   const emailEnabled = window.__REELSTUDIO_CONFIG__?.emailEnabled !== false;
   const navigate = useNavigate();
@@ -60,35 +62,35 @@ export function AuthScreen({ initialError, recovering, onRecovered, initialMode 
 
   return <section className="public-auth bg-surface-0 text-fg-primary flex flex-col">
 
-    <div className="public-auth-layout"><aside className="public-auth-story"><span className="public-eyebrow">THE CREATOR’S WORKSPACE</span><h2>Your next great reel<br />starts with one upload.</h2><p>Turn your footage into a story with animated captions, precise edits and a style that’s yours.</p><div className="public-caption-demo"><span>Make every</span><strong>word count.</strong><small>YOUR FOOTAGE. YOUR VOICE. YOUR STYLE.</small></div><Link to="/features">Explore the editing tools <ArrowRight size={16} /></Link></aside><div className="public-auth-form">
+    <div className="public-auth-layout"><aside className="public-auth-story"><span className="public-eyebrow"><UiText text="THE CREATOR’S WORKSPACE" /></span><h2><UiText text="Your next great reel" /><br /><UiText text="starts with one upload." /></h2><p><UiText text="Turn your footage into a story with animated captions, precise edits and a style that’s yours." /></p><div className="public-caption-demo"><span><UiText text="Make every" /></span><strong><UiText text="word count." /></strong><small><UiText text="YOUR FOOTAGE. YOUR VOICE. YOUR STYLE." /></small></div><Link to="/features"><UiText text="Explore the editing tools " /><ArrowRight size={16} /></Link></aside><div className="public-auth-form">
       <div className="w-full max-w-[420px] flex flex-col gap-6">
-        <div><h1 className="text-3xl font-semibold tracking-tight m-0">{title}</h1>
-          <p className="text-sm text-fg-secondary mt-3 leading-relaxed">{recovering || mode === 'reset' ? 'Get back to creating your next reel.' : 'Your reels, captions and edits — saved to your account, ready on any device.'}</p></div>
+        <div><h1 className="text-3xl font-semibold tracking-tight m-0"><UiText text={title} /></h1>
+          <p className="text-sm text-fg-secondary mt-3 leading-relaxed">{recovering || mode === 'reset' ? t('Get back to creating your next reel.') : t('Your reels, captions and edits — saved to your account, ready on any device.')}</p></div>
         {!recovering && mode !== 'reset' && <div className="grid grid-cols-2 rounded-md bg-surface-1 border border-edge-subtle p-1 gap-1">
           {(['signin', 'signup'] as const).map(value => <button type="button" key={value} aria-pressed={mode === value} disabled={pending}
             className={`rounded-sm p-2 text-sm ${mode === value ? 'bg-surface-3 text-accent font-semibold' : 'text-fg-muted'}`}
-            onClick={() => switchMode(value)}>{value === 'signin' ? 'Sign in' : 'Sign up'}</button>)}
+            onClick={() => switchMode(value)}>{value === 'signin' ? t('Sign in') : t('Sign up')}</button>)}
         </div>}
         <form onSubmit={event => void submit(event)} className="flex flex-col gap-4" aria-busy={pending}>
-          {mode === 'signup' && !recovering && <label className="text-sm text-fg-secondary flex flex-col gap-2">Your name<input className={INPUT} autoComplete="name" maxLength={80} required value={name} onChange={e => setName(e.target.value)} disabled={pending} /></label>}
-          {!recovering && <label className="text-sm text-fg-secondary flex flex-col gap-2">Email<input className={INPUT} type="email" autoComplete="email" maxLength={254} required value={email} onChange={e => setEmail(e.target.value)} disabled={pending} /></label>}
+          {mode === 'signup' && !recovering && <label className="text-sm text-fg-secondary flex flex-col gap-2"><UiText text="Your name" /><input className={INPUT} autoComplete="name" maxLength={80} required value={name} onChange={e => setName(e.target.value)} disabled={pending} /></label>}
+          {!recovering && <label className="text-sm text-fg-secondary flex flex-col gap-2"><UiText text="Email" /><input className={INPUT} type="email" autoComplete="email" maxLength={254} required value={email} onChange={e => setEmail(e.target.value)} disabled={pending} /></label>}
           {(mode !== 'reset' || recovering) && <>
-            <label className="text-sm text-fg-secondary flex flex-col gap-2">{recovering ? 'New password' : 'Password'}
-              <div className="relative"><input className={`${INPUT} pr-12`} aria-label={recovering ? 'New password' : 'Password'} type={show ? 'text' : 'password'}
+            <label className="text-sm text-fg-secondary flex flex-col gap-2">{recovering ? t('New password') : t('Password')}
+              <div className="relative"><input className={`${INPUT} pr-12`} aria-label={recovering ? t('New password') : t('Password')} type={show ? 'text' : 'password'}
                 autoComplete={mode === 'signup' || recovering ? 'new-password' : 'current-password'} minLength={mode === 'signup' || recovering ? 10 : 1} maxLength={128}
                 required value={password} onChange={e => setPassword(e.target.value)} disabled={pending} />
-                <button type="button" aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} disabled={pending} onClick={() => setShow(v => !v)} className="absolute right-1 top-1 flex h-10 w-10 items-center justify-center rounded-md text-fg-muted hover:text-fg-primary">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
+                <button type="button" aria-label={show ? t('Hide password') : t('Show password')} aria-pressed={show} disabled={pending} onClick={() => setShow(v => !v)} className="absolute right-1 top-1 flex h-10 w-10 items-center justify-center rounded-md text-fg-muted hover:text-fg-primary">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
             </label>
-            {(mode === 'signup' || recovering) && <label className="text-sm text-fg-secondary flex flex-col gap-2">Confirm password<input aria-label="Confirm password" className={INPUT} type={show ? 'text' : 'password'} autoComplete="new-password" required value={confirmation} onChange={e => setConfirmation(e.target.value)} disabled={pending} />
-              <span className="text-xs text-fg-muted">Use at least 10 characters.</span></label>}
+            {(mode === 'signup' || recovering) && <label className="text-sm text-fg-secondary flex flex-col gap-2"><UiText text="Confirm password" /><input aria-label={t("Confirm password")} className={INPUT} type={show ? 'text' : 'password'} autoComplete="new-password" required value={confirmation} onChange={e => setConfirmation(e.target.value)} disabled={pending} />
+              <span className="text-xs text-fg-muted"><UiText text="Use at least 10 characters." /></span></label>}
           </>}
-          {error && <p className="text-sm text-danger m-0" role="alert">{error}</p>}
-          {notice && <p className="text-sm text-accent m-0" role="status">{notice}</p>}
-          <button className={BTN_PRIMARY} type="submit" disabled={pending}>{pending ? 'Please wait…' : recovering ? 'Save new password' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}<ArrowRight size={16} /></button>
+          {error && <p className="text-sm text-danger m-0" role="alert"><UiText text={error} /></p>}
+          {notice && <p className="text-sm text-accent m-0" role="status"><UiText text={notice} /></p>}
+          <button className={BTN_PRIMARY} type="submit" disabled={pending}>{pending ? t('Please wait…') : recovering ? t('Save new password') : mode === 'signup' ? t('Create account') : mode === 'reset' ? t('Send reset link') : t('Sign in')}<ArrowRight size={16} /></button>
         </form>
-        {!recovering && emailEnabled && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? 'Back to sign in' : 'Forgot password?'}</button>}
-        {!client && <Link to="/projects" className="text-sm text-accent">Open local studio →</Link>}
-        <p className="flex items-center justify-center gap-2 text-xs text-fg-muted m-0"><LockKeyhole size={14} />Your projects and source videos are private.</p>
+        {!recovering && emailEnabled && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? t('Back to sign in') : t('Forgot password?')}</button>}
+        {!client && <Link to="/projects" className="text-sm text-accent"><UiText text="Open local studio →" /></Link>}
+        <p className="flex items-center justify-center gap-2 text-xs text-fg-muted m-0"><LockKeyhole size={14} /><UiText text="Your projects and source videos are private." /></p>
       </div>
     </div></div>
   </section>;

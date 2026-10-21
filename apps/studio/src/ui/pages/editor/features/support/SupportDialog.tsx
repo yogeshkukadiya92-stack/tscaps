@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_PHONE_HREF } from '@ui/_shared/supportEmail';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Coffee, Copy, ExternalLink, HeartHandshake, Mail, Share2, Star } from 'lucide-react';
@@ -32,48 +33,47 @@ interface SupportDialogProps {
  * hits an external site opens in a new tab with `noopener`.
  */
 export function SupportDialog({ open, onClose }: SupportDialogProps) {
+  const { t } = useTranslation();
   return (
     <AppDialog
       open={open}
       onClose={onClose}
       size="lg"
-      title="Support ReelStudio"
-      description="ReelStudio is built on the open-source Tscaps editor. Share ReelStudio or support the original project below."
+      title={t("Support ReelStudio")}
+      description={t("ReelStudio is built on the open-source Tscaps editor. Share ReelStudio or support the original project below.")}
       showCloseButton
     >
       <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-3">
-          <h3 className={SECTION_TITLE}>Contact support</h3>
+          <h3 className={SECTION_TITLE}><UiText text="Contact support" /></h3>
           <a className="text-sm text-fg-primary underline break-all" href={SUPPORT_PHONE_HREF}>{SUPPORT_PHONE}</a>
           <a className="text-sm text-fg-primary underline break-all" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
         </section>
         <FreeSection />
         <PaidSection />
-        <p className={CLOSING_LINE}>Whatever you pick, thanks.</p>
+        <p className={CLOSING_LINE}><UiText text="Whatever you pick, thanks." /></p>
       </div>
     </AppDialog>
   );
 }
 
 function FreeSection() {
+  const { t } = useTranslation();
   return (
     <section className="flex flex-col gap-3">
-      <h3 className={SECTION_TITLE}>Free</h3>
-      <p className={SECTION_NOTE}>
-        Any of these helps more people find tscaps. That gets me closer to making a living
-        from it.
-      </p>
+      <h3 className={SECTION_TITLE}><UiText text="Free" /></h3>
+      <p className={SECTION_NOTE}><UiText text="Any of these helps more people find tscaps. That gets me closer to making a living from it." /></p>
       <div className="flex flex-col gap-2">
         <ShareRow />
         <ExternalRow
           icon={<Star size={18} strokeWidth={1.75} />}
-          title="Star on GitHub"
+          title={t("Star on GitHub")}
           subtitle="Stars help the repo show up more on GitHub."
           href={GITHUB_REPO_URL}
         />
         <ExternalRow
           icon={<Star size={18} strokeWidth={1.75} />}
-          title="Leave a Trustpilot review"
+          title={t("Leave a Trustpilot review")}
           subtitle="Reviews help tscaps get seen and trusted."
           href={TRUSTPILOT_URL}
         />
@@ -84,22 +84,21 @@ function FreeSection() {
 }
 
 function PaidSection() {
+  const { t } = useTranslation();
   return (
     <section className="flex flex-col gap-3">
-      <h3 className={SECTION_TITLE}>Paid</h3>
-      <p className={SECTION_NOTE}>
-        Any of these pays for the time I spend on tscaps.
-      </p>
+      <h3 className={SECTION_TITLE}><UiText text="Paid" /></h3>
+      <p className={SECTION_NOTE}><UiText text="Any of these pays for the time I spend on tscaps." /></p>
       <div className="flex flex-col gap-2">
         <ExternalRow
           icon={<Coffee size={18} strokeWidth={1.75} />}
-          title="Buy me a coffee"
+          title={t("Buy me a coffee")}
           subtitle="A one-time donation of any amount."
           href={BUY_ME_A_COFFEE_URL}
         />
         <ExternalRow
           icon={<HeartHandshake size={18} strokeWidth={1.75} />}
-          title="Sponsor on GitHub"
+          title={t("Sponsor on GitHub")}
           subtitle="A monthly donation through GitHub Sponsors."
           href={GITHUB_SPONSOR_URL}
         />
@@ -131,7 +130,7 @@ function RowLayout({ icon, title, subtitle, hint }: RowLayoutProps) {
     <>
       <span className={ROW_ICON}>{icon}</span>
       <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <span className={ROW_TITLE}>{title}</span>
+        <span className={ROW_TITLE}><UiText text={title} /></span>
         <span className={ROW_SUBTITLE}>{subtitle}</span>
       </span>
       {hint !== undefined && <span className={ROW_HINT}>{hint}</span>}
@@ -165,6 +164,7 @@ function ExternalRow({ icon, title, subtitle, href }: ExternalRowProps) {
 }
 
 function ShareRow() {
+  const { t } = useTranslation();
   const sharer = useMemo(() => new LinkSharer(new TextClipboard()), []);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -183,7 +183,7 @@ function ShareRow() {
     <button type="button" className={ROW} onClick={handleShare}>
       <RowLayout
         icon={<Share2 size={18} strokeWidth={1.75} />}
-        title="Share ReelStudio"
+        title={t("Share ReelStudio")}
         subtitle={subtitle}
       />
     </button>
@@ -191,6 +191,7 @@ function ShareRow() {
 }
 
 function EmailCopyRow() {
+  const { t } = useTranslation();
   const clipboard = useMemo(() => new TextClipboard(), []);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -207,7 +208,7 @@ function EmailCopyRow() {
     <button type="button" className={ROW} onClick={handleCopy}>
       <RowLayout
         icon={<Mail size={18} strokeWidth={1.75} />}
-        title="Send me feedback"
+        title={t("Send me feedback")}
         subtitle={subtitle}
         hint={<Copy size={14} strokeWidth={1.75} />}
       />

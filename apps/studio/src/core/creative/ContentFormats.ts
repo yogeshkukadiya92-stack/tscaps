@@ -1,4 +1,4 @@
-import { newMotionEffect, type MotionEffect } from './MotionEffects';
+import { newMotionEffect, type MotionEffect } from '@core/creative/MotionEffects';
 export const CONTENT_LANGUAGES = { en: 'English', hi: 'हिन्दी', gu: 'ગુજરાતી' } as const;
 export type ContentLanguage = keyof typeof CONTENT_LANGUAGES;
 export const CONTENT_FORMATS = ['talking-head', 'listicle', 'myth-fact', 'comment-reply', 'before-after', 'breakdown'] as const;
@@ -20,8 +20,8 @@ export const CONTENT_COPY = {
   hi: {
     heading: 'कॉन्टेंट फ़ॉर्मेट', language: 'भाषा', topic: 'विषय', topicDefault: 'बेहतर रील्स', hook: 'शुरुआती हुक', cta: 'अंतिम संदेश', point: 'बिंदु', apply: 'रील पर लागू करें', sample: 'उदाहरण भरें', preview: 'स्टोरीबोर्ड प्रीव्यू', duration: 'दृश्य की अवधि (सेकंड)',
     intro: 'फ़ॉर्मेट चुनें, अपना संदेश लिखें और मौजूदा क्लिप पर समय के अनुसार कार्ड जोड़ें।',
-    note: 'कार्ड मौजूदा वीडियो और क्लिप के क्रम पर लगेंगे। Clips में वीडियो जोड़ें या बदलें। कैप्शन अलग से बदलें। लागू करने पर पिछले फ़ॉर्मेट कार्ड बदलेंगे; Undo से वापस आएँगे।',
-    short: 'दृश्यों का समय रील से अधिक है। समय घटाएँ या Clips में वीडियो जोड़ें।', done: 'फ़ॉर्मेट लागू हो गया। प्रीव्यू चलाएँ, फिर रील रेंडर करें।',
+    note: 'कार्ड मौजूदा वीडियो और क्लिप के क्रम पर लगेंगे। क्लिप में वीडियो जोड़ें या बदलें। कैप्शन अलग से बदलें। लागू करने पर पिछले फ़ॉर्मेट कार्ड बदलेंगे; पूर्ववत करें से वापस आएँगे।',
+    short: 'दृश्यों का समय रील से अधिक है। समय घटाएँ या क्लिप में वीडियो जोड़ें।', done: 'फ़ॉर्मेट लागू हो गया। प्रीव्यू चलाएँ, फिर रील रेंडर करें।',
     names: ['कैमरे पर बातचीत', 'नंबर वाली सूची', 'मिथक बनाम तथ्य', 'कमेंट का जवाब', 'पहले / बाद में', 'चरणों में समझाएँ'],
     hints: ['कैमरे पर एक विचार समझाएँ।', 'तीन सुझाव, एक-एक करके।', 'मान्यता बताएँ, फिर सही जानकारी दें।', 'दर्शक का सवाल और अपना जवाब दिखाएँ।', 'पहले वाली क्लिप, फिर बदलाव का नतीजा दिखाएँ।', 'प्रक्रिया को तीन चरणों में समझाएँ।'],
     labels: [['मुख्य विचार', 'उदाहरण'], ['सुझाव 1', 'सुझाव 2', 'सुझाव 3'], ['मिथक', 'तथ्य'], ['दर्शक का कमेंट', 'आपका जवाब'], ['पहले', 'बाद में'], ['चरण 1', 'चरण 2', 'चरण 3']],
@@ -32,8 +32,8 @@ export const CONTENT_COPY = {
   gu: {
     heading: 'કન્ટેન્ટ ફોર્મેટ', language: 'ભાષા', topic: 'વિષય', topicDefault: 'વધુ સારી રીલ્સ', hook: 'શરૂઆતનું હુક', cta: 'અંતિમ સંદેશ', point: 'મુદ્દો', apply: 'રીલ પર લાગુ કરો', sample: 'ઉદાહરણ ભરો', preview: 'સ્ટોરીબોર્ડ પ્રીવ્યૂ', duration: 'દૃશ્યનો સમય (સેકન્ડ)',
     intro: 'ફોર્મેટ પસંદ કરો, તમારું લખાણ બદલો અને હાલની ક્લિપ્સ પર સમય પ્રમાણે કાર્ડ ઉમેરો.',
-    note: 'કાર્ડ હાલના વિડિયો અને ક્લિપના ક્રમ પર લાગશે. Clipsમાં વિડિયો ઉમેરો કે બદલો. કેપ્શન અલગથી બદલો. લાગુ કરવાથી અગાઉના ફોર્મેટ કાર્ડ બદલાશે; Undoથી પાછા આવશે.',
-    short: 'દૃશ્યોનો સમય રીલ કરતાં વધારે છે. સમય ઘટાડો અથવા Clipsમાં વિડિયો ઉમેરો.', done: 'ફોર્મેટ લાગુ થઈ ગયું. પ્રીવ્યૂ ચલાવો, પછી રીલ રેન્ડર કરો.',
+    note: 'કાર્ડ હાલના વિડિયો અને ક્લિપના ક્રમ પર લાગશે. ક્લિપમાં વિડિયો ઉમેરો કે બદલો. કેપ્શન અલગથી બદલો. લાગુ કરવાથી અગાઉના ફોર્મેટ કાર્ડ બદલાશે; પૂર્વવત્ કરવાથી પાછા આવશે.',
+    short: 'દૃશ્યોનો સમય રીલ કરતાં વધારે છે. સમય ઘટાડો અથવા ક્લિપમાં વિડિયો ઉમેરો.', done: 'ફોર્મેટ લાગુ થઈ ગયું. પ્રીવ્યૂ ચલાવો, પછી રીલ રેન્ડર કરો.',
     names: ['કેમેરા સામે વાત', 'નંબરવાળી યાદી', 'માન્યતા સામે હકીકત', 'કમેન્ટનો જવાબ', 'પહેલાં / પછી', 'પગલાંમાં સમજાવો'],
     hints: ['કેમેરા સામે એક વિચાર સમજાવો.', 'ત્રણ સૂચનો, એક પછી એક.', 'માન્યતા બતાવો અને સાચી માહિતી આપો.', 'દર્શકનો સવાલ અને તમારો જવાબ બતાવો.', 'પહેલાંની ક્લિપ પછી બદલાવનું પરિણામ બતાવો.', 'પ્રક્રિયાને ત્રણ સ્પષ્ટ પગલાંમાં સમજાવો.'],
     labels: [['મુખ્ય વિચાર', 'ઉદાહરણ'], ['સૂચન 1', 'સૂચન 2', 'સૂચન 3'], ['માન્યતા', 'હકીકત'], ['દર્શકની કમેન્ટ', 'તમારો જવાબ'], ['પહેલાં', 'પછી'], ['પગલું 1', 'પગલું 2', 'પગલું 3']],
@@ -64,4 +64,69 @@ export function buildContentEffects(format: ContentFormat, language: ContentLang
     start = end;
     return effect;
   });
+}
+
+/** Editable authoring state is separate from the effects already applied to the video. */
+export interface ContentFormatState {
+  language: ContentLanguage;
+  format: ContentFormat;
+  topics: Partial<Record<ContentLanguage, string>>;
+  drafts: Record<string, { draft: ContentDraft; timings: number[] }>;
+}
+export function newContentFormatState(language: ContentLanguage = 'en'): ContentFormatState {
+  return { language, format: 'talking-head', topics: {}, drafts: {} };
+}
+export function readContentFormatState(value: unknown): ContentFormatState | undefined {
+  if (value === undefined) return undefined;
+  const fail = (): never => { throw new Error('Invalid content format draft.'); };
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return fail();
+  const state = value as ContentFormatState;
+  const languages = Object.keys(CONTENT_LANGUAGES);
+  if (!languages.includes(state.language) || !CONTENT_FORMATS.includes(state.format)
+    || !state.topics || typeof state.topics !== 'object' || Array.isArray(state.topics)
+    || !state.drafts || typeof state.drafts !== 'object' || Array.isArray(state.drafts)) return fail();
+  const text = (v: unknown, max: number) => typeof v === 'string' && v.length <= max;
+  for (const [language, topic] of Object.entries(state.topics)) {
+    if (!languages.includes(language) || !text(topic, 40)) return fail();
+  }
+  const allowed = CONTENT_FORMATS.flatMap(format => languages.map(language => `${format}:${language}`));
+  for (const [key, entry] of Object.entries(state.drafts)) {
+    if (!allowed.includes(key) || !entry || typeof entry !== 'object') return fail();
+    const { draft, timings } = entry;
+    const [format, language] = key.split(':') as [ContentFormat, ContentLanguage];
+    const count = contentExample(format, language, '').points.length;
+    if (!draft || !text(draft.hook, 80) || !text(draft.cta, 80) || !Array.isArray(draft.points)
+      || draft.points.length !== count || !draft.points.every(p => text(p, 240))
+      || !Array.isArray(timings) || timings.length !== count + 2
+      || !timings.every(t => typeof t === 'number' && Number.isFinite(t))) return fail();
+  }
+  return state;
+}
+
+/** Recover older saved recipes only when their original labels and timing are unambiguous. */
+export function recoverContentFormatState(effects: readonly MotionEffect[] | undefined): ContentFormatState | undefined {
+  const cards = effects?.filter(effect => effect.kind === 'content-card').sort((a, b) => a.start - b.start) ?? [];
+  if (cards.length < 4 || cards[0]?.start !== 0 || cards[0].lines || cards.at(-1)?.lines) return undefined;
+  if (cards.some((card, i) => card.end - card.start < 1 || card.end - card.start > 120
+    || card.lines.length > 240 || (i > 0 && Math.abs(card.start - cards[i - 1]!.end) > 0.001))) return undefined;
+  for (const language of Object.keys(CONTENT_LANGUAGES) as ContentLanguage[]) {
+    for (const [index, format] of CONTENT_FORMATS.entries()) {
+      const labels = CONTENT_COPY[language].labels[index]!;
+      if (cards.length !== labels.length + 2 || !labels.every((label, i) => cards[i + 1]!.title === label)) continue;
+      const state = newContentFormatState(language);
+      state.format = format;
+      const hook = cards[0]!.title;
+      const [prefix, suffix] = CONTENT_COPY[language].hooks[index]!.split('{topic}');
+      if (prefix !== undefined && suffix !== undefined && hook.startsWith(prefix) && hook.endsWith(suffix)) {
+        const topic = hook.slice(prefix.length, suffix ? -suffix.length : undefined);
+        if (topic.length <= 40) state.topics[language] = topic;
+      }
+      state.drafts[`${format}:${language}`] = {
+        draft: { hook, cta: cards.at(-1)!.title, points: cards.slice(1, -1).map(card => card.lines) },
+        timings: cards.map(card => card.end - card.start),
+      };
+      return state;
+    }
+  }
+  return undefined;
 }

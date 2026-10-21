@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import type { AlignmentConfig } from '@tscaps/engine';
 import { Section } from '@ui/_shared/components/controls/sections/Section';
@@ -46,6 +47,7 @@ export const PositionSection = memo(function PositionSection({
   onChange,
   hideTitle,
 }: PositionSectionProps) {
+  const { t } = useTranslation();
   const { x: dotX, y: dotY } = anchorPointOnBlock(
     config.horizontalAlign,
     config.verticalAlign,
@@ -54,9 +56,9 @@ export const PositionSection = memo(function PositionSection({
   const verticalPercent = Math.round(config.verticalOffset * 100);
   const anchorTag = `(${config.horizontalAlign}, ${config.verticalAlign})`;
   return (
-    <Section title={hideTitle ? undefined : 'Position'}>
+    <Section title={hideTitle ? undefined : t('Position')}>
       <Slider
-        label="Vertical"
+        label={t("Vertical")}
         value={config.verticalOffset}
         min={0}
         max={1}
@@ -64,7 +66,7 @@ export const PositionSection = memo(function PositionSection({
         onChange={(v) => onChange({ verticalOffset: v })}
       />
       <Slider
-        label="Horizontal"
+        label={t("Horizontal")}
         value={config.horizontalOffset}
         min={0}
         max={1}
@@ -72,12 +74,12 @@ export const PositionSection = memo(function PositionSection({
         onChange={(v) => onChange({ horizontalOffset: v })}
       />
       <div className="flex flex-col gap-2 mt-1">
-        <span className="text-xs text-fg-muted">Anchor</span>
+        <span className="text-xs text-fg-muted"><UiText text="Anchor" /></span>
         <div className="flex items-center gap-3">
           <div
             className="grid grid-cols-[repeat(3,18px)] grid-rows-[repeat(3,18px)] gap-[3px] shrink-0"
             role="radiogroup"
-            aria-label="Anchor"
+            aria-label={t("Anchor")}
           >
             {VERTICAL_ALIGNS.flatMap((v) =>
               HORIZONTAL_ALIGNS.map((h) => {
@@ -138,19 +140,14 @@ export const PositionSection = memo(function PositionSection({
             />
           </div>
         </div>
-        <p className="text-2xs text-fg-faint leading-snug m-0">
-          The{' '}
-          <span className="font-mono text-fg-muted">{anchorTag}</span> point of
-          the block sits at{' '}
+        <p className="text-2xs text-fg-faint leading-snug m-0"><UiText text="The" />{' '}
+          <span className="font-mono text-fg-muted">{anchorTag}</span><UiText text=" point of the block sits at" />{' '}
           <span className="font-mono tabular-nums text-fg-muted">
             {horizontalPercent}%
-          </span>{' '}
-          from left and{' '}
+          </span>{' '}<UiText text="from left and" />{' '}
           <span className="font-mono tabular-nums text-fg-muted">
             {verticalPercent}%
-          </span>{' '}
-          from top.
-        </p>
+          </span>{' '}<UiText text="from top." /></p>
       </div>
     </Section>
   );

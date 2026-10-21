@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Scissors } from 'lucide-react';
 import type { Document } from '@tscaps/engine';
@@ -396,9 +397,7 @@ function TimelineBody({
       <div className={CARD_CLASS}>
         <div className={EMPTY_BODY_CLASS}>
           <Scissors size={32} className="text-fg-faint" />
-          <p className="text-sm text-fg-muted m-0">
-            Load a video to start cutting silences and bad takes.
-          </p>
+          <p className="text-sm text-fg-muted m-0"><UiText text="Load a video to start cutting silences and bad takes." /></p>
         </div>
       </div>
     );

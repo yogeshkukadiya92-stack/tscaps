@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import type { ReactElement, ReactNode } from 'react';
 import { Anchor, Mic, Mountain, Plus } from 'lucide-react';
 import type { SheetCreationOption } from '@core/sheets/domain/SheetCreationOption';
@@ -74,6 +76,7 @@ interface AddSheetMenuScreenProps {
 }
 
 function AddSheetMenuScreen({ creationOptions, onCreateFromOption, onPickCustom }: AddSheetMenuScreenProps) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   return (
     <div className={MENU_SHAPE}>
@@ -88,7 +91,7 @@ function AddSheetMenuScreen({ creationOptions, onCreateFromOption, onPickCustom 
       ))}
       <MenuItem
         icon={<Plus size={13} />}
-        label="Custom…"
+        label={t("Custom…")}
         legend="A sheet you name and assign yourself."
         onPick={() => { close(); onPickCustom(); }}
       />
@@ -112,7 +115,7 @@ function MenuItem({ icon, label, legend, onPick }: MenuItemProps) {
     <button type="button" className={ITEM} onClick={onPick}>
       <span className={ITEM_ICON}>{icon}</span>
       <span className="flex flex-col gap-0.5 min-w-0">
-        <span className={ITEM_LABEL}>{label}</span>
+        <span className={ITEM_LABEL}><UiText text={label} /></span>
         <span className={ITEM_LEGEND}>{legend}</span>
       </span>
     </button>

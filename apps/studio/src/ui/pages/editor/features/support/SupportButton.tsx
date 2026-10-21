@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -15,6 +16,7 @@ const BUTTON =
  * open/close state — parent only decides whether to render it.
  */
 export function SupportButton() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const telemetry = useTelemetry();
 
@@ -30,7 +32,7 @@ export function SupportButton() {
           type="button"
           className={BUTTON}
           onClick={handleOpen}
-          aria-label="Support ReelStudio"
+          aria-label={t("Support ReelStudio")}
         >
           <Heart size={16} strokeWidth={1.75} />
         </button>

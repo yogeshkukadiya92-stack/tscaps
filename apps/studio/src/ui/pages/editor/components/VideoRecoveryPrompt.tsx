@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { AlertTriangle } from 'lucide-react';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { VideoBlobMissReason } from '@core/videos/domain/VideoBlobLookup';
@@ -42,6 +43,7 @@ export function VideoRecoveryPrompt({
   onSelect,
   onCancel,
 }: VideoRecoveryPromptProps) {
+  const { t } = useTranslation();
   const isMobile = useUtils().userAgentInspector.isMobile();
   const platformBullets = useEngineFallbackBullets(isMobile);
   const browserTookTheBytes = reason === 'stored-bytes-gone' || reason === 'held-file-gone';
@@ -56,10 +58,7 @@ export function VideoRecoveryPrompt({
     >
       <div className="flex flex-col gap-2">
         <p className="text-sm text-fg-secondary leading-normal m-0">{explain(reason)}</p>
-        <p className="text-sm text-fg-secondary leading-normal m-0 [overflow-wrap:anywhere]">
-          Re-select <strong className="text-fg-primary">{videoFileName}</strong> to keep editing — your
-          captions and styles are intact.
-        </p>
+        <p className="text-sm text-fg-secondary leading-normal m-0 [overflow-wrap:anywhere]"><UiText text="Re-select " /><strong className="text-fg-primary">{videoFileName}</strong><UiText text=" to keep editing — your captions and styles are intact." /></p>
         {browserTookTheBytes && platformBullets.length > 0 && (
           <ul className="text-sm text-fg-secondary leading-normal m-0 pl-5">
             {platformBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
@@ -73,11 +72,9 @@ export function VideoRecoveryPrompt({
           className={BTN_SECONDARY_SM}
           onClick={onCancel}
           disabled={recovering}
-        >
-          Back to dashboard
-        </button>
+        ><UiText text="Back to dashboard" /></button>
         <VideoFilePickerButton
-          label={recovering ? 'Recovering…' : 'Re-select video'}
+          label={recovering ? t('Recovering…') : t('Re-select video')}
           className={BTN_PRIMARY_SM}
           autoFocus
           disabled={recovering}
@@ -113,7 +110,7 @@ function RejectedFileNotice({ error }: { readonly error: AppError }) {
     >
       <AlertTriangle size={16} strokeWidth={2.5} className="text-danger shrink-0 mt-0.5" aria-hidden="true" />
       <p className="text-sm text-fg-secondary leading-normal m-0">
-        <span className="text-fg-primary">{getAppErrorTitle(error)}.</span> {description}
+        <span className="text-fg-primary">{getAppErrorTitle(error)}.</span> <UiText text={description} />
       </p>
     </div>
   );

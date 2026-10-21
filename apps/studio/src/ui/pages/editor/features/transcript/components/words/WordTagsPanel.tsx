@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { Check, HelpCircle, Minus } from 'lucide-react';
 import { TAG_METADATA, type UserFacingTagName } from '@core/tagging/domain/TagName';
 import { PopoverHeader } from '@ui/_shared/components/Popover/PopoverHeader';
@@ -40,9 +41,10 @@ const HELP_WRAPPER = 'shrink-0';
  * per click, so an undo lands in one step per toggle.
  */
 export function WordTagsPanel({ rows, onToggle }: WordTagsPanelProps) {
+  const { t } = useTranslation();
   return (
     <div className="p-2 flex flex-col gap-1 w-[220px] box-border">
-      <PopoverHeader title="Word tags" />
+      <PopoverHeader title={t("Word tags")} />
       {rows.map((row) => (
         <TagRow key={row.name} row={row} onToggle={onToggle} />
       ))}
@@ -56,6 +58,7 @@ interface TagRowProps {
 }
 
 function TagRow({ row, onToggle }: TagRowProps) {
+  const { t } = useTranslation();
   const meta = TAG_METADATA[row.name];
   const checked = row.checked === true;
   return (
@@ -77,7 +80,7 @@ function TagRow({ row, onToggle }: TagRowProps) {
           <button
             type="button"
             className={HELP_BTN}
-            aria-label={`About ${meta.label}`}
+            aria-label={t("About {0}", { 0: meta.label })}
             onClick={(e) => e.stopPropagation()}
           >
             <HelpCircle size={12} />

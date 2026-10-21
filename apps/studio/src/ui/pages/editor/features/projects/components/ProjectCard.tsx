@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { Play } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
@@ -56,7 +57,7 @@ export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete
         <div className="workspace-project-thumbnail relative aspect-video bg-black flex items-center justify-center overflow-hidden">
           {thumbUrl
             ? <img src={thumbUrl} alt="" className="w-full h-full object-cover block" />
-            : <div className="font-mono text-2xs uppercase tracking-[0.08em] text-fg-faint">No preview</div>
+            : <div className="font-mono text-2xs uppercase tracking-[0.08em] text-fg-faint"><UiText text="No preview" /></div>
           }
           <span className="workspace-project-play" aria-hidden="true"><Play size={19} fill="currentColor" /></span>
           {project.video.duration > 0 && (
@@ -66,7 +67,7 @@ export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete
         <div className="workspace-project-details px-3 pt-2.5 pb-2 flex flex-col gap-1 min-w-0">
           <div className="workspace-project-name text-sm font-medium text-fg-primary truncate" title={project.name}>{project.name}</div>
           <div className="flex items-center gap-2 text-2xs text-fg-faint">
-            <span className="tabular-nums flex-1 truncate">Edited {formatDate(project.updatedAt)}</span>
+            <span className="tabular-nums flex-1 truncate"><UiText text="Edited " />{formatDate(project.updatedAt)}</span>
             <div onClick={(e) => e.stopPropagation()}>
               <ProjectActionsMenu
                 projectId={project.id}

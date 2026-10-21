@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { Copy, Link, Pencil, RotateCcw, Unlink } from 'lucide-react';
 import type { Sheet } from '@core/sheets/domain/Sheet';
 import { MAIN_SHEET_ID } from '@core/sheets/domain/Sheet';
@@ -53,6 +54,7 @@ export function SheetSettingsPopover(props: SheetSettingsPopoverProps) {
 }
 
 function SheetMenuScreen({ sheet, sheets, onRequestRename, onUnlink, onResetToTemplateDefaults }: SheetSettingsPopoverProps) {
+  const { t } = useTranslation();
   const { navigate, close } = usePopoverNav();
   const hasOtherSheets = sheets.length > 1;
   const isLinked = sheet.linkGroupId !== null;
@@ -63,49 +65,45 @@ function SheetMenuScreen({ sheet, sheets, onRequestRename, onUnlink, onResetToTe
         className={ITEM}
         onClick={() => { close(); onRequestRename(); }}
       >
-        <Pencil size={13} /> Rename…
-      </button>
+        <Pencil size={13} /><UiText text=" Rename…" /></button>
       <button
         type="button"
         className={ITEM}
         onClick={() => navigate('copyStylesPicker')}
         disabled={!hasOtherSheets}
-        title={hasOtherSheets ? undefined : 'Create at least one more sheet to copy styles from.'}
+        title={hasOtherSheets ? undefined : t('Create at least one more sheet to copy styles from.')}
       >
-        <Copy size={13} /> Copy styles from…
-      </button>
+        <Copy size={13} /><UiText text=" Copy styles from…" /></button>
       {isLinked ? (
         <button
           type="button"
           className={ITEM}
           onClick={() => { close(); onUnlink(); }}
         >
-          <Unlink size={13} /> Unlink from group
-        </button>
+          <Unlink size={13} /><UiText text=" Unlink from group" /></button>
       ) : (
         <button
           type="button"
           className={ITEM}
           onClick={() => navigate('linkTargetPicker')}
           disabled={!hasOtherSheets}
-          title={hasOtherSheets ? undefined : 'Create at least one more sheet to link this one.'}
+          title={hasOtherSheets ? undefined : t('Create at least one more sheet to link this one.')}
         >
-          <Link size={13} /> Link to…
-        </button>
+          <Link size={13} /><UiText text=" Link to…" /></button>
       )}
       <button
         type="button"
         className={ITEM}
         onClick={() => { close(); onResetToTemplateDefaults(); }}
-        title="Clear every edit on this sheet, including per-scene and per-word styles, back to the template's defaults."
+        title={t("Clear every edit on this sheet, including per-scene and per-word styles, back to the template's defaults.")}
       >
-        <RotateCcw size={13} /> Reset to template default
-      </button>
+        <RotateCcw size={13} /><UiText text=" Reset to template default" /></button>
     </div>
   );
 }
 
 function CopyStylesSourcePickerScreen({ sheets, sheet, onCopyStylesFromSheet }: SheetSettingsPopoverProps) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   const candidates = sheets.filter((s) => s.id !== sheet.id);
 
@@ -116,7 +114,7 @@ function CopyStylesSourcePickerScreen({ sheets, sheet, onCopyStylesFromSheet }: 
 
   return (
     <div className={MENU_SHAPE}>
-      <PopoverHeader title="Copy styles from" />
+      <PopoverHeader title={t("Copy styles from")} />
       {candidates.map((s) => (
         <SheetPickerRow key={s.id} sheet={s} onPick={() => handlePick(s.id)} />
       ))}
@@ -125,6 +123,7 @@ function CopyStylesSourcePickerScreen({ sheets, sheet, onCopyStylesFromSheet }: 
 }
 
 function LinkTargetPickerScreen({ sheets, sheet, onLinkTo }: SheetSettingsPopoverProps) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   const candidates = sheets.filter((s) => s.id !== sheet.id);
 
@@ -135,7 +134,7 @@ function LinkTargetPickerScreen({ sheets, sheet, onLinkTo }: SheetSettingsPopove
 
   return (
     <div className={MENU_SHAPE}>
-      <PopoverHeader title="Link to" />
+      <PopoverHeader title={t("Link to")} />
       {candidates.map((s) => (
         <SheetPickerRow key={s.id} sheet={s} onPick={() => handlePick(s.id)} />
       ))}

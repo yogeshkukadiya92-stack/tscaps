@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 
 interface DisclosureSectionProps {
@@ -34,7 +35,7 @@ export function DisclosureSection({ title, open, onToggle, children }: Disclosur
         >
           <path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        {title}
+        <UiText text={title} />
       </button>
       {open && <div className="mt-3 animate-fade-in">{children}</div>}
     </div>

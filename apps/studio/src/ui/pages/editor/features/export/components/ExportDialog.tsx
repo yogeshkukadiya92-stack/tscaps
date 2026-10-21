@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useState, type ReactNode } from 'react';
 import type { ExportVideoOptions } from '@core/export/actions/ExportVideoAction';
 import type { ExportSubtitlesOptions } from '@core/export/actions/ExportSubtitlesAction';
@@ -72,6 +73,7 @@ export function ExportDialog({
   onClose,
   userAgentInspector,
 }: ExportDialogProps) {
+  const { t } = useTranslation();
   const [kind, setKind] = useState<ExportKind>('video');
   const [wasOpen, setWasOpen] = useState(open);
 
@@ -145,7 +147,7 @@ export function ExportDialog({
           {awaitsAnotherVideoFile(error) && (
             <AppDialogActions>
               <VideoFilePickerButton
-                label="Select video"
+                label={t("Select video")}
                 className={BTN_PRIMARY_SM}
                 autoFocus
                 onSelect={onSelectOriginalVideo}

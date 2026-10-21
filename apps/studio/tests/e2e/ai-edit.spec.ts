@@ -32,7 +32,7 @@ async function setup(page: Page, respond: () => { status?: number; json: unknown
   await setDocumentJson(page, doc);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await page.getByText('AI custom instructions · Credits', { exact: true }).click();
   return { requests: () => requests };
 }
@@ -143,6 +143,7 @@ test('ready editing skills prepare and apply without a prompt or paid AI calls',
   await expect(page.getByLabel('Clip 1 start', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Split', exact: true }).click();
   await expect(page.getByTestId('creative-clip')).toHaveCount(2);
+  await page.locator('.studio-timeline-disclosure > summary').click();
   await expect(page.getByRole('region', { name: 'Creative timeline' })).toContainText('2 video segments');
   await tools.getByRole('button', { name: 'Audio', exact: true }).click();
   await page.getByLabel('Normalize voice level', { exact: true }).check();

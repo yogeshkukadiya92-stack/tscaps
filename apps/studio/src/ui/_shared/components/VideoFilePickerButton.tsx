@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useRef, type ReactElement } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 
@@ -40,7 +41,7 @@ export function VideoFilePickerButton({
         disabled={!isInteractive}
       >
         {loading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-        <span>{label}</span>
+        <span><UiText text={label} /></span>
       </button>
       <input ref={inputRef} type="file" accept="video/*" onChange={handleChange} hidden />
     </>

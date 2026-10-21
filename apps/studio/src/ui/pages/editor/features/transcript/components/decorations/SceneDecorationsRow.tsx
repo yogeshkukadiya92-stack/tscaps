@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useMemo, useState } from 'react';
 import { SmilePlus } from 'lucide-react';
 import type { Segment, Word } from '@tscaps/engine';
@@ -105,6 +106,7 @@ interface SceneEmojiChipProps {
 }
 
 function SceneEmojiChip({ segment, word, sheet, decorationOverrides }: SceneEmojiChipProps) {
+  const { t } = useTranslation();
   const captions = useCaptions();
   const [open, setOpen] = useState(false);
 
@@ -120,7 +122,7 @@ function SceneEmojiChip({ segment, word, sheet, decorationOverrides }: SceneEmoj
       open={open}
       onOpenChange={setOpen}
       trigger={
-        <button type="button" className={CHIP_CLASS} aria-label={`Edit emoji ${decoration.glyph}`}>
+        <button type="button" className={CHIP_CLASS} aria-label={t("Edit emoji {0}", { 0: decoration.glyph })}>
           <span>{decoration.glyph}</span>
         </button>
       }
@@ -138,6 +140,7 @@ interface AddEmojiButtonProps {
 }
 
 function AddEmojiButton({ segment }: AddEmojiButtonProps) {
+  const { t } = useTranslation();
   const captions = useCaptions();
   const [open, setOpen] = useState(false);
 
@@ -157,7 +160,7 @@ function AddEmojiButton({ segment }: AddEmojiButtonProps) {
       initialScreen="picker"
       triggerTooltip="Add emoji"
       trigger={
-        <button type="button" className={ADD_CHIP_CLASS} aria-label="Add emoji">
+        <button type="button" className={ADD_CHIP_CLASS} aria-label={t("Add emoji")}>
           <SmilePlus size={14} />
         </button>
       }

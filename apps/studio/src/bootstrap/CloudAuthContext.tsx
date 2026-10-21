@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { PublicSite } from '@ui/pages/marketing/PublicSite';
@@ -48,7 +49,7 @@ export function CloudAuthGate({ modules, children }: { modules: AppModules; chil
   }, [client, modules.editor.store, modules.projects.cloudRepository]);
 
   return <CloudAuthContext.Provider value={{ client, session }}>
-    {!ready ? <div className="h-dvh grid place-items-center bg-surface-0 text-fg-muted" role="status">Opening your account…</div>
+    {!ready ? <div className="h-dvh grid place-items-center bg-surface-0 text-fg-muted" role="status"><UiText text="Opening your account…" /></div>
        : recovering ? <AuthScreen initialError={error} recovering onRecovered={() => setRecovering(false)} />
       : publicPath ? (authPath && session ? <Navigate to={typeof location.state?.returnTo === 'string' && location.state.returnTo.startsWith('/') && !location.state.returnTo.startsWith('//') ? location.state.returnTo : modules.routing.routes.projectsList()} replace /> : <PublicSite initialError={error} />)
       : client && !session ? <Navigate to="/signin" state={{ returnTo: location.pathname + location.search }} replace />

@@ -1,3 +1,5 @@
+import { useTranslation } from '@ui/i18n/Locale';
+import { UiText } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import { NumericValueChip } from '@ui/_shared/components/controls/fields/NumericValueChip';
 
@@ -30,13 +32,14 @@ export const Slider = memo(function Slider({
   compact,
   onChange,
 }: SliderProps) {
+  const { t } = useTranslation();
   const labelClass = compact
     ? 'text-xs text-fg-muted min-w-[70px] shrink-0'
     : 'text-xs text-fg-muted min-w-[90px] shrink-0';
 
   return (
     <div className="flex items-center gap-2">
-      <span className={labelClass}>{label}</span>
+      <span className={labelClass}><UiText text={label} /></span>
       <input
         type="range"
         className="flex-1 min-w-0 h-[3px] cursor-pointer accent-accent"
@@ -54,7 +57,7 @@ export const Slider = memo(function Slider({
         step={step}
         unit={unit}
         disabled={disabled}
-        ariaLabel={`${label} value`}
+        ariaLabel={t("{0} value", { 0: label })}
         onChange={onChange}
       />
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { RotateCcw } from 'lucide-react';
 import type { ElementKind } from '@core/elements/domain/ElementKind';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -45,6 +46,7 @@ export function ElementStyleScreen({
   sheet,
   ancestorIds,
 }: ElementStyleScreenProps) {
+  const { t } = useTranslation();
   const elements = useElements();
   const { elementStyles } = useEditorState();
 
@@ -55,8 +57,8 @@ export function ElementStyleScreen({
     <button
       type="button"
       className={ICON_BTN}
-      title="Reset this element"
-      aria-label="Reset this element"
+      title={t("Reset this element")}
+      aria-label={t("Reset this element")}
       onClick={() => elements.actions.clearStyle.execute(elementId)}
     >
       <RotateCcw size={11} />

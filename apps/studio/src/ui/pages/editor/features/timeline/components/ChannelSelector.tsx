@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useState } from 'react';
 import { Check, Layers } from 'lucide-react';
 import type { TimelineChannel } from '@presentation/timeline/services/TimelineChannelResolver';
@@ -49,6 +50,7 @@ interface ChannelSelectorProps {
  * emptiness is the truth about that track, not a gap to be closed.
  */
 export function ChannelSelector({ channels, selectedId, onSelect }: ChannelSelectorProps) {
+  const { t } = useTranslation();
   const [isOpen, setOpen] = useState(false);
   if (channels.length < 2) return null;
 
@@ -64,7 +66,7 @@ export function ChannelSelector({ channels, selectedId, onSelect }: ChannelSelec
       onOpenChange={setOpen}
       align="start"
       trigger={(
-        <button type="button" className={TRIGGER_CLASS} title="Text channel">
+        <button type="button" className={TRIGGER_CLASS} title={t("Text channel")}>
           <Layers size={ICON_SIZE_PX} />
           <span className={TRIGGER_NAME_CLASS}>{selected.name}</span>
         </button>
@@ -72,7 +74,7 @@ export function ChannelSelector({ channels, selectedId, onSelect }: ChannelSelec
       screens={{
         list: (
           <div className={SCREEN_CLASS}>
-            <PopoverHeader title="Text channel" />
+            <PopoverHeader title={t("Text channel")} />
             {channels.map((channel) => {
               const isSelected = channel.id === selected.id;
               return (

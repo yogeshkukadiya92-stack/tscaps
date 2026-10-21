@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
 
@@ -10,7 +11,7 @@ interface ExportButtonProps {
 export const ExportButton = memo(function ExportButton({ disabled, label, onClick }: ExportButtonProps) {
   return (
     <button type="button" className={BTN_PRIMARY_SM} onClick={onClick} disabled={disabled}>
-      {label}
+      <UiText text={label} />
     </button>
   );
 });

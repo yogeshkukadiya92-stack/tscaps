@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { Popover } from '@ui/_shared/components/Popover/Popover';
 import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
 import { PrecisePreviewButton } from '@ui/pages/editor/features/timeline/components/PrecisePreviewButton';
@@ -44,6 +45,7 @@ export function PrecisePreviewPopover({
   canGenerate,
   onGenerate,
 }: PrecisePreviewPopoverProps) {
+  const { t } = useTranslation();
   return (
     <Popover
       open={open}
@@ -52,32 +54,22 @@ export function PrecisePreviewPopover({
       screens={{
         main: (
           <div className="w-72 p-3 flex flex-col gap-2">
-            <p className="text-sm font-medium text-fg-primary m-0">Fast preview mode</p>
+            <p className="text-sm font-medium text-fg-primary m-0"><UiText text="Fast preview mode" /></p>
             <p className="text-xs text-fg-secondary m-0">
-              {openingLine(reason)} It plays in fast mode instead: cut edits can look
-              a frame or two off on screen, and templates that place captions behind
-              the subject are not available. Your export is always frame-perfect.
-            </p>
+              {openingLine(reason)}<UiText text=" It plays in fast mode instead: cut edits can look a frame or two off on screen, and templates that place captions behind the subject are not available. Your export is always frame-perfect." /></p>
             {phase === 'generating' ? (
               <GenerationProgress percent={percent} />
             ) : (
               <>
-                <p className="text-xs text-fg-secondary m-0">
-                  Want exact cuts and the behind-subject effect? Generate a precise
-                  preview. It takes a few minutes, and you can keep editing while it runs.
-                </p>
+                <p className="text-xs text-fg-secondary m-0"><UiText text="Want exact cuts and the behind-subject effect? Generate a precise preview. It takes a few minutes, and you can keep editing while it runs." /></p>
                 {phase === 'failed' && (
-                  <p className="text-xs text-danger m-0">
-                    That didn't work. Your video still plays fine in fast mode.
-                  </p>
+                  <p className="text-xs text-danger m-0"><UiText text="That didn't work. Your video still plays fine in fast mode." /></p>
                 )}
                 {!canGenerate && (
-                  <p className="text-xs text-fg-faint m-0">
-                    Your original video is still downloading.
-                  </p>
+                  <p className="text-xs text-fg-faint m-0"><UiText text="Your original video is still downloading." /></p>
                 )}
                 <button type="button" className={BTN_PRIMARY_SM} disabled={!canGenerate} onClick={onGenerate}>
-                  {phase === 'failed' ? 'Try again' : 'Generate precise preview'}
+                  {phase === 'failed' ? t('Try again') : t('Generate precise preview')}
                 </button>
               </>
             )}
@@ -92,7 +84,7 @@ export function PrecisePreviewPopover({
 function GenerationProgress({ percent }: { percent: number }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="text-xs text-fg-secondary m-0">Generating precise preview... {percent}%</p>
+      <p className="text-xs text-fg-secondary m-0"><UiText text="Generating precise preview... " />{percent}%</p>
       <div className="h-1 rounded-full bg-surface-3 overflow-hidden">
         <div
           className="h-full bg-accent transition-[width] duration-quick ease-standard"

@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 import type { SelectOption } from '@core/templates/domain/definition/ControlField';
@@ -70,6 +71,7 @@ function failureMessage(failure: UploadUserFontFailure): string {
  * user-font row exposes a delete affordance on hover.
  */
 export const FontPicker = memo(function FontPicker({ value, onChange, disabled, forScript }: FontPickerProps) {
+  const { t } = useTranslation();
   const userFonts = useUserFonts();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -115,8 +117,8 @@ export const FontPicker = memo(function FontPicker({ value, onChange, disabled, 
       return (
         <button
           type="button"
-          title="Delete font"
-          aria-label={`Delete ${opt.label}`}
+          title={t("Delete font")}
+          aria-label={t("Delete {0}", { 0: opt.label })}
           className={DELETE_BTN}
           onMouseDown={(e) => {
             e.preventDefault();
@@ -157,9 +159,9 @@ export const FontPicker = memo(function FontPicker({ value, onChange, disabled, 
         cssValue: `'${family}'`,
         sample: forScript === 'latin' ? '' : label.sample,
       }));
-    if (options.length > 0) result.push({ id: forScript, label: label.name, options });
+    if (options.length > 0) result.push({ id: forScript, label: t(label.name), options });
     return result;
-  }, [userFonts.fonts, onDeleteClick, scriptFamilyResolver, forScript]);
+  }, [userFonts.fonts, onDeleteClick, scriptFamilyResolver, forScript, t]);
 
   const uploadHeader = (
     <button
@@ -175,7 +177,7 @@ export const FontPicker = memo(function FontPicker({ value, onChange, disabled, 
         <Plus size={14} strokeWidth={2.25} className="text-accent" />
       )}
       <span className="flex-1 text-left">
-        {isUploading ? 'Uploading font…' : 'Upload custom font'}
+        {isUploading ? t('Uploading font…') : t('Upload custom font')}
       </span>
     </button>
   );

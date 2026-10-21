@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css as cssLang } from '@codemirror/lang-css';
 import type { ElementStyle } from '@core/elements/domain/ElementStyles';
@@ -39,6 +40,7 @@ interface ElementCodePanelProps {
  * left open is sealed before it reaches the page.
  */
 export const ElementCodePanel = memo(function ElementCodePanel({ elementId, kind, fragment }: ElementCodePanelProps) {
+  const { t } = useTranslation();
   const elements = useElements();
   const { cssValidator, timingVariableResolver } = elements.services;
   const theme = useCurrentTheme();
@@ -94,7 +96,7 @@ export const ElementCodePanel = memo(function ElementCodePanel({ elementId, kind
   const timingVariable = timingVariableResolver.resolve(kind, ElementAnimationScope.SELF);
 
   return (
-    <Section title="CSS">
+    <Section title={t("CSS")}>
       <CodeEditorField
         value={draft}
         onChange={handleChange}
@@ -107,10 +109,8 @@ export const ElementCodePanel = memo(function ElementCodePanel({ elementId, kind
         placeholder={placeholderFor(timingVariable)}
         problems={problems}
       />
-      <p className="m-0 text-2xs text-fg-muted leading-snug">
-        Wins over the template. Animations need{' '}
-        <code className="font-mono">var({timingVariable})</code> as their delay.
-      </p>
+      <p className="m-0 text-2xs text-fg-muted leading-snug"><UiText text="Wins over the template. Animations need" />{' '}
+        <code className="font-mono"><UiText text="var(" />{timingVariable})</code><UiText text=" as their delay." /></p>
     </Section>
   );
 });

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useMemo } from 'react';
 import type { ControlField } from '@core/templates/domain/definition/ControlField';
 import { FieldsSection } from '@ui/_shared/components/controls/sections/FieldsSection';
@@ -22,6 +23,7 @@ const VARIANT_SECTION_TITLE = 'Preset';
 const VARIANT_FIELD_LABEL = 'Preset';
 
 export const StyleTab = memo(function StyleTab({ sheetScope }: StyleTabProps) {
+  const { t } = useTranslation();
   const sheets = useSheets();
   const activeSheet = sheetScope.activeSheet;
   const customizedIds = useCustomizedControlIds(activeSheet);
@@ -56,7 +58,7 @@ export const StyleTab = memo(function StyleTab({ sheetScope }: StyleTabProps) {
 
   return (
     <EditorTab
-      title="Style"
+      title={t("Style")}
       sheetScope={sheetScope}
       onResetToTemplate={() => sheets.actions.style.resetSlice.execute('style')}
     >
@@ -72,9 +74,7 @@ export const StyleTab = memo(function StyleTab({ sheetScope }: StyleTabProps) {
       )}
       {styleGroups.length === 0 ? (
         !showVariantPicker && (
-          <p className="py-6 text-center text-sm text-fg-faint">
-            This template has no style controls.
-          </p>
+          <p className="py-6 text-center text-sm text-fg-faint"><UiText text="This template has no style controls." /></p>
         )
       ) : (
         styleGroups.map(group => (

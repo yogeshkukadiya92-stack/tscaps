@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useRef, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
@@ -63,6 +64,7 @@ export const TemplateGallerySection = memo(function TemplateGallerySection({
   newTemplateIds,
   renderCard,
 }: TemplateGallerySectionProps) {
+  const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
   const columnCount = useGridColumnCount(gridRef);
 
@@ -75,14 +77,14 @@ export const TemplateGallerySection = memo(function TemplateGallerySection({
       <header className="flex items-baseline justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           <h3 className="font-mono text-2xs uppercase tracking-[0.08em] text-fg-muted m-0 truncate">
-            {label}
+            <UiText text={label} />
           </h3>
           {headerAdornment}
         </div>
         {hasMore && onViewAll && (
           <button type="button" onClick={() => onViewAll(id)} className={VIEW_ALL_CLASS}>
-            {hidesNew && <span className={HIDDEN_NEW_DOT} title="Includes new templates" />}
-            <span>View all {templates.length}</span>
+            {hidesNew && <span className={HIDDEN_NEW_DOT} title={t("Includes new templates")} />}
+            <span><UiText text="View all " />{templates.length}</span>
             <ChevronRight size={12} strokeWidth={2.5} />
           </button>
         )}

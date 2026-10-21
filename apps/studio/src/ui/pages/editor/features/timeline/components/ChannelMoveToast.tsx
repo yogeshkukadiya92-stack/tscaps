@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useRef, useState } from 'react';
 import { Layers } from 'lucide-react';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -42,6 +43,7 @@ interface ChannelMoveToastProps {
  * when they come back.
  */
 export function ChannelMoveToast({ channels, sheets, readChannelId, isActive }: ChannelMoveToastProps) {
+  const { t } = useTranslation();
   const watchedRef = useRef<Watched>({ channels, readChannelId });
   const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -71,7 +73,7 @@ export function ChannelMoveToast({ channels, sheets, readChannelId, isActive }: 
       position="bottom-right"
       tone="info"
       icon={<Layers size={16} strokeWidth={2.5} />}
-      title="Text moved to another channel"
+      title={t("Text moved to another channel")}
       description={toast?.description ?? ''}
       duration={TOAST_AUTO_DISMISS_MS}
       onDismiss={() => setToast(null)}

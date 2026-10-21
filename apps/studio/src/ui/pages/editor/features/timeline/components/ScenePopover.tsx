@@ -1,3 +1,5 @@
+import { useTranslation } from '@ui/i18n/Locale';
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactElement } from 'react';
 import { ChevronsLeft, ChevronsRight, Scissors, Sparkles, TextSelect, WholeWord } from 'lucide-react';
 import { Popover } from '@ui/_shared/components/Popover/Popover';
@@ -67,6 +69,7 @@ export function ScenePopover({
   onSelectOnward,
   onCutScene,
 }: ScenePopoverProps) {
+  const { t } = useTranslation();
   return (
     <Popover
       open={open}
@@ -84,19 +87,19 @@ export function ScenePopover({
             {...{ [SCENE_SURFACE_ATTRIBUTE]: '' }}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <PopoverHeader title={`Scene · ${durationSec.toFixed(2)}s`} />
+            <PopoverHeader title={t("Scene · {0}s", { 0: durationSec.toFixed(2) })} />
             {/* Shift-drag is written here, beside the other drags, and not
                 beside selecting the group: it moves the group, it selects
                 nothing. */}
-            <p className={HINT_CLASS}>Drag to move, ends to retime. Shift-drag moves all after.</p>
+            <p className={HINT_CLASS}><UiText text="Drag to move, ends to retime. Shift-drag moves all after." /></p>
             <button
               type="button"
               className={ACTION_BTN}
               onClick={() => { onOpenChange(false); onEditWords(); }}
             >
               <WholeWord size={14} />
-              <span className="flex-1">Edit words</span>
-              <span className={SHORTCUT_CLASS}>Double-click</span>
+              <span className="flex-1"><UiText text="Edit words" /></span>
+              <span className={SHORTCUT_CLASS}><UiText text="Double-click" /></span>
             </button>
             <button
               type="button"
@@ -104,7 +107,7 @@ export function ScenePopover({
               onClick={() => { onOpenChange(false); onSelectScene(); }}
             >
               <TextSelect size={14} />
-              <span className="flex-1">Select its range</span>
+              <span className="flex-1"><UiText text="Select its range" /></span>
             </button>
             <button
               type="button"
@@ -112,7 +115,7 @@ export function ScenePopover({
               onClick={() => { onOpenChange(false); onSelectBackward(); }}
             >
               <ChevronsLeft size={14} />
-              <span className="flex-1">Select this and all before</span>
+              <span className="flex-1"><UiText text="Select this and all before" /></span>
             </button>
             <button
               type="button"
@@ -120,7 +123,7 @@ export function ScenePopover({
               onClick={() => { onOpenChange(false); onSelectOnward(); }}
             >
               <ChevronsRight size={14} />
-              <span className="flex-1">Select this and all after</span>
+              <span className="flex-1"><UiText text="Select this and all after" /></span>
             </button>
             <button
               type="button"
@@ -128,7 +131,7 @@ export function ScenePopover({
               onClick={() => { onOpenChange(false); onRedistributeWords(); }}
             >
               <Sparkles size={14} />
-              <span className="flex-1">Redistribute its words</span>
+              <span className="flex-1"><UiText text="Redistribute its words" /></span>
             </button>
             <button
               type="button"
@@ -136,7 +139,7 @@ export function ScenePopover({
               onClick={() => { onOpenChange(false); onCutScene(); }}
             >
               <Scissors size={14} />
-              <span className="flex-1">Cut this scene</span>
+              <span className="flex-1"><UiText text="Cut this scene" /></span>
             </button>
           </div>
         ),

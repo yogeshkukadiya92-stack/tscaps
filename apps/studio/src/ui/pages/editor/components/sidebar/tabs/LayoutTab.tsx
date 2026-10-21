@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useMemo, useState } from 'react';
 import type { Document } from '@tscaps/engine';
 import type { ControlField, ControlValue } from '@core/templates/domain/definition/ControlField';
@@ -28,6 +29,7 @@ export const LayoutTab = memo(function LayoutTab({
   document,
   frozenSegments,
 }: LayoutTabProps) {
+  const { t } = useTranslation();
   const { segmentSplitters, lineSplitters } = useEngine();
   const sheets = useSheets();
   const captions = useCaptions();
@@ -102,14 +104,14 @@ export const LayoutTab = memo(function LayoutTab({
 
   return (
     <EditorTab
-      title="Layout"
+      title={t("Layout")}
       sheetScope={sheetScope}
       onResetToTemplate={() => sheets.actions.style.resetSlice.execute('layout')}
     >
       {sceneFields.length > 0 && (
         <FieldsSection
           scripts={scripts}
-          title="Scenes"
+          title={t("Scenes")}
           fields={sceneFields}
           values={sceneValues}
           onChange={(field, value) => {
@@ -122,7 +124,7 @@ export const LayoutTab = memo(function LayoutTab({
       {lineDescriptor.controlsSchema.length > 0 && (
         <FieldsSection
           scripts={scripts}
-          title="Lines"
+          title={t("Lines")}
           fields={lineDescriptor.controlsSchema}
           values={activeSheet.lineSplitterConfig as unknown as Record<string, ControlValue>}
           onChange={(field, value) =>

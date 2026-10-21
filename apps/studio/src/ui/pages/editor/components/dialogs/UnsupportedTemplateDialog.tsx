@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
 
@@ -13,13 +14,14 @@ interface UnsupportedTemplateDialogProps {
  * message.
  */
 export function UnsupportedTemplateDialog({ open, templateIds, onDismiss }: UnsupportedTemplateDialogProps) {
+  const { t } = useTranslation();
   const plural = templateIds.length !== 1;
   return (
     <AppDialog
       open={open}
       onClose={onDismiss}
       size="md"
-      title="This project uses a template your browser can't render"
+      title={t("This project uses a template your browser can't render")}
       description={
         `The following template${plural ? 's' : ''} won't display correctly here: ` +
         `${templateIds.join(', ')}. Open the project in a Chromium-based browser ` +
@@ -27,9 +29,7 @@ export function UnsupportedTemplateDialog({ open, templateIds, onDismiss }: Unsu
       }
     >
       <AppDialogActions>
-        <button type="button" className={BTN_PRIMARY_SM} onClick={onDismiss} autoFocus>
-          Back to dashboard
-        </button>
+        <button type="button" className={BTN_PRIMARY_SM} onClick={onDismiss} autoFocus><UiText text="Back to dashboard" /></button>
       </AppDialogActions>
     </AppDialog>
   );

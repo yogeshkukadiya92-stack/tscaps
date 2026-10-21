@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { RefObject } from 'react';
 
@@ -39,6 +40,7 @@ export function SegmentSearchInputBar({
   onPrev,
   onClose,
 }: SegmentSearchInputBarProps) {
+  const { t } = useTranslation();
   const hasMatches = matchCount > 0;
   return (
     <div className={CONTAINER_CLASS}>
@@ -54,7 +56,7 @@ export function SegmentSearchInputBar({
             if (e.shiftKey) onPrev(); else onNext();
           }
         }}
-        placeholder="Find in scenes…"
+        placeholder={t("Find in scenes…")}
         spellCheck={false}
         className={SEARCH_INPUT}
       />
@@ -66,7 +68,7 @@ export function SegmentSearchInputBar({
         className={ICON_BTN}
         onClick={onPrev}
         disabled={!hasMatches}
-        aria-label="Previous match"
+        aria-label={t("Previous match")}
       >
         <ChevronUp size={14} />
       </button>
@@ -75,7 +77,7 @@ export function SegmentSearchInputBar({
         className={ICON_BTN}
         onClick={onNext}
         disabled={!hasMatches}
-        aria-label="Next match"
+        aria-label={t("Next match")}
       >
         <ChevronDown size={14} />
       </button>
@@ -83,7 +85,7 @@ export function SegmentSearchInputBar({
         type="button"
         className={ICON_BTN}
         onClick={onClose}
-        aria-label="Close search"
+        aria-label={t("Close search")}
       >
         <X size={14} />
       </button>

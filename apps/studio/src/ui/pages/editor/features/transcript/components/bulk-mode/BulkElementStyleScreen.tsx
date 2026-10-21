@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { AuthoredElementControl } from '@core/elements/domain/ElementControl';
 import type { ElementKind } from '@core/elements/domain/ElementKind';
 import type { ElementControlValue } from '@core/elements/services/css/ElementControlCssWriter';
@@ -21,12 +22,11 @@ export function BulkElementStyleScreen({
   ancestorIds,
   onChange,
 }: BulkElementStyleScreenProps) {
+  const { t } = useTranslation();
   return (
     <div className="p-2 flex flex-col gap-2 w-[240px] box-border">
-      <PopoverHeader title="Style selection" />
-      <p className="m-0 text-2xs text-fg-faint leading-snug">
-        Values reflect the first selected item. Only fields you change are applied to the selection.
-      </p>
+      <PopoverHeader title={t("Style selection")} />
+      <p className="m-0 text-2xs text-fg-faint leading-snug"><UiText text="Values reflect the first selected item. Only fields you change are applied to the selection." /></p>
       <ElementFieldList
         elementId={representativeId}
         kind={kind}

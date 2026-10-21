@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import type { OriginalVideoDownloadStatus } from '@core/projects/domain/OriginalVideoDownloadStatus';
 import type { PreviewProxyDownloadStatus } from '@core/preview/store/PreviewProxyDownloadStore';
 import { StatusPill } from '@ui/_shared/components/StatusPill/StatusPill';
@@ -31,6 +32,7 @@ const CAPTION = 'text-sm text-fg-muted m-0';
  * throughout; only the progress and caption toggle on download state.
  */
 export function ProjectLoadingIndicator({ downloadStatus, proxyDownloadStatus }: ProjectLoadingIndicatorProps) {
+  const { t } = useTranslation();
   const blocking = proxyDownloadStatus.kind === 'downloading' ? proxyDownloadStatus : downloadStatus;
   const isDownloading = blocking.kind === 'downloading';
   const hasProgress = isDownloading && blocking.progress !== null;
@@ -40,8 +42,8 @@ export function ProjectLoadingIndicator({ downloadStatus, proxyDownloadStatus }:
   return (
     <div className={CLUSTER}>
       {hasProgress
-        ? <StatusPill label="Loading project" tone="info" active progress={blocking.progress * 100} />
-        : <StatusPill label="Loading project" tone="info" active />}
+        ? <StatusPill label={t("Loading project")} tone="info" active progress={blocking.progress * 100} />
+        : <StatusPill label={t("Loading project")} tone="info" active />}
       {isDownloading && (
         <p className={CAPTION}>{downloadingCaption}</p>
       )}

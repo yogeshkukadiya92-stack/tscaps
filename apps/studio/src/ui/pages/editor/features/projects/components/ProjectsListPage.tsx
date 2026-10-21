@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 import { memo, useRef, useState, type ReactNode } from 'react';
 import { Plus, Upload, FolderOpen, Film, Search, LayoutGrid, List, ArrowUpRight, Captions, Scissors, X } from 'lucide-react';
@@ -111,6 +112,7 @@ export const ProjectsListPage = memo(function ProjectsListPage({
   onImportProject,
   theme,
 }: ProjectsListPageProps) {
+  const { t } = useTranslation();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const newInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -157,30 +159,30 @@ export const ProjectsListPage = memo(function ProjectsListPage({
       </header>
 
       <div className={SHELL}>
-        {sideNav ?? <aside className="workspace-sidebar" aria-label="Workspace">
-          <span className="workspace-eyebrow">Workspace</span>
-          <a className="workspace-nav-active" href={homeHref} aria-current="page"><FolderOpen size={17} /> All projects <span>{count}</span></a>
-          <button className="workspace-nav" onClick={handleNewClick}><Plus size={17} /> Create project</button>
-          {onImportProject && <button className="workspace-nav" onClick={handleImportClick}><Upload size={17} /> Import project</button>}
-          <div className="workspace-sidebar-note"><Film size={20} /><strong>Your next reel starts here.</strong><p>Bring your footage. Make the cut. Add your captions.</p></div>
+        {sideNav ?? <aside className="workspace-sidebar" aria-label={t("Workspace")}>
+          <span className="workspace-eyebrow"><UiText text="Workspace" /></span>
+          <a className="workspace-nav-active" href={homeHref} aria-current="page"><FolderOpen size={17} /><UiText text=" All projects " /><span>{count}</span></a>
+          <button className="workspace-nav" onClick={handleNewClick}><Plus size={17} /><UiText text=" Create project" /></button>
+          {onImportProject && <button className="workspace-nav" onClick={handleImportClick}><Upload size={17} /><UiText text=" Import project" /></button>}
+          <div className="workspace-sidebar-note"><Film size={20} /><strong><UiText text="Your next reel starts here." /></strong><p><UiText text="Bring your footage. Make the cut. Add your captions." /></p></div>
         </aside>}
         <main className={MAIN}>
           <div className={PAGE_HEADER}>
             <div className="min-w-0">
-              <span className="workspace-eyebrow">Your creative workspace</span>
-              <h1 className={PAGE_TITLE}>{title}</h1>
+              <span className="workspace-eyebrow"><UiText text="Your creative workspace" /></span>
+              <h1 className={PAGE_TITLE}><UiText text={title} /></h1>
               {count > 0 && <p className={PAGE_SUBTITLE}>{subtitle(count)}</p>}
             </div>
             <div className="workspace-page-actions flex items-center gap-2 min-w-0">
               {onImportProject && (
                 <button type="button" className={BTN_SECONDARY} onClick={handleImportClick}>
                   <Upload size={14} />
-                  <span>Import .tscaps</span>
+                  <span><UiText text="Import .tscaps" /></span>
                 </button>
               )}
               <button type="button" className={BTN_PRIMARY} onClick={handleNewClick}>
                 <Plus size={14} />
-                <span>New project</span>
+                <span><UiText text="New project" /></span>
               </button>
               <input ref={newInputRef} type="file" accept={`${VIDEO_FILE_ACCEPT},image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp`} onChange={handleNewSelected} hidden />
               {onImportProject && (
@@ -189,15 +191,15 @@ export const ProjectsListPage = memo(function ProjectsListPage({
             </div>
           </div>
 
-          <section className={`workspace-start ${count > 0 ? 'workspace-start--compact' : ''}`} aria-label="Start editing">
-            <div className="workspace-start-copy"><span className="workspace-eyebrow">Your next reel</span><h2>A great reel starts with your video.</h2><p>Upload a video. Check your captions. Pick a style. Export.</p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /> New project <ArrowUpRight size={16} /></button><span className="workspace-drop-hint">or drop a video file anywhere</span></div>
-            <div className="workspace-film" aria-hidden="true"><div className="workspace-film-frame"><span>YOUR STORY.</span><strong>IN MOTION.</strong><span className="workspace-film-caption">Every word. Every frame.</span></div><div className="workspace-film-track"><Scissors size={13} /><i /><i /><i /><Captions size={14} /></div></div>
+          <section className={`workspace-start ${count > 0 ? 'workspace-start--compact' : ''}`} aria-label={t("Start editing")}>
+            <div className="workspace-start-copy"><span className="workspace-eyebrow"><UiText text="Your next reel" /></span><h2><UiText text="A great reel starts with your video." /></h2><p><UiText text="Upload a video. Check your captions. Pick a style. Export." /></p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /><UiText text=" New project " /><ArrowUpRight size={16} /></button><span className="workspace-drop-hint"><UiText text="or drop a video file anywhere" /></span></div>
+            <div className="workspace-film" aria-hidden="true"><div className="workspace-film-frame"><span><UiText text="YOUR STORY." /></span><strong><UiText text="IN MOTION." /></strong><span className="workspace-film-caption"><UiText text="Every word. Every frame." /></span></div><div className="workspace-film-track"><Scissors size={13} /><i /><i /><i /><Captions size={14} /></div></div>
           </section>
-          <div className="workspace-library-header"><div><h2>Project library <span>{count}</span></h2><p>Pick up where you left off.</p></div></div>
+          <div className="workspace-library-header"><div><h2><UiText text="Project library " /><span>{count}</span></h2><p><UiText text="Pick up where you left off." /></p></div></div>
           <div className="workspace-toolbar">
-            <label className="workspace-search"><Search size={16} /><input ref={searchInputRef} type="search" placeholder="Search projects…" aria-label="Search projects" value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label="Clear project search" onClick={() => { setQuery(''); searchInputRef.current?.focus(); }}><X size={16} /></button>}</label>
-            <select aria-label="Sort projects" value={sort} onChange={e => setSort(e.target.value)}><option value="recent">Last edited</option><option value="name">Name A–Z</option></select>
-            <div className="workspace-view"><button aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><LayoutGrid size={17} /></button><button aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List size={17} /></button></div>
+            <label className="workspace-search"><Search size={16} /><input ref={searchInputRef} type="search" placeholder={t("Search projects…")} aria-label={t("Search projects")} value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label={t("Clear project search")} onClick={() => { setQuery(''); searchInputRef.current?.focus(); }}><X size={16} /></button>}</label>
+            <select aria-label={t("Sort projects")} value={sort} onChange={e => setSort(e.target.value)}><option value="recent"><UiText text="Last edited" /></option><option value="name"><UiText text="Name A–Z" /></option></select>
+            <div className="workspace-view"><button aria-label={t("Grid view")} aria-pressed={view === 'grid'} onClick={() => setView('grid')}><LayoutGrid size={17} /></button><button aria-label={t("List view")} aria-pressed={view === 'list'} onClick={() => setView('list')}><List size={17} /></button></div>
           </div>
           {headerNote && <div className="workspace-library-actions">{headerNote}</div>}
 
@@ -207,17 +209,17 @@ export const ProjectsListPage = memo(function ProjectsListPage({
               <div className="text-fg-secondary">
                 <AppErrorMessage error={error} isMobile={isMobileDevice} />
               </div>
-              {onRetry && <button type="button" className={`${BTN_SECONDARY} mt-3`} disabled={isLoading} onClick={onRetry}>Try again</button>}
+              {onRetry && <button type="button" className={`${BTN_SECONDARY} mt-3`} disabled={isLoading} onClick={onRetry}><UiText text="Try again" /></button>}
             </div>
           )}
 
           {isLoading ? (
             <div className={EMPTY_STATE}>
-              <StatusPill label="Loading projects" tone="info" active />
+              <StatusPill label={t("Loading projects")} tone="info" active />
             </div>
           ) : count > 0 ? (
             <div className={`workspace-projects workspace-projects--${view}`}>
-              {visibleProjects.length === 0 && <p className="workspace-no-results" role="status">No projects match “{query}”. Try another name.</p>}
+              {visibleProjects.length === 0 && <p className="workspace-no-results" role="status"><UiText text="No projects match “" />{query}<UiText text="”. Try another name." /></p>}
               {visibleProjects.map((p) => (
                 <ProjectCard
                   key={p.id}

@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactElement } from 'react';
 import { ArrowUp, ArrowDown, Link2, Scissors, Trash2 } from 'lucide-react';
 import type { Document, Line } from '@tscaps/engine';
@@ -57,27 +58,22 @@ function LineSettingsMenu({
     <div className={POPOVER_MENU_SHAPE}>
       {lineIdx === 0 && !isFirstSegment && (
         <button className={POPOVER_ITEM_MOVE} onClick={() => { onApplyStructureEdit(documentEditor.moveLineToSegment(doc, segIdx, 0, segIdx - 1, doc.getSegments()[segIdx - 1]!.lines.length)); close(); }}>
-          <ArrowUp size={13} /> Move to previous scene
-        </button>
+          <ArrowUp size={13} /><UiText text=" Move to previous scene" /></button>
       )}
       {!isLastLine && (
         <button className={POPOVER_ITEM_MOVE} onClick={() => { onApplyStructureEdit(documentEditor.splitSegmentAfterLine(doc, segIdx, lineIdx)); close(); }}>
-          <Scissors size={13} /> Split scene after this line
-        </button>
+          <Scissors size={13} /><UiText text=" Split scene after this line" /></button>
       )}
       {!isLastLine && (
         <button className={POPOVER_ITEM} onClick={() => { onApplyStructureEdit(documentEditor.mergeLineWithNext(doc, segIdx, lineIdx)); close(); }}>
-          <Link2 size={13} /> Join with line below
-        </button>
+          <Link2 size={13} /><UiText text=" Join with line below" /></button>
       )}
       {isLastLine && !isLastSegment && (
         <button className={POPOVER_ITEM_MOVE} onClick={() => { onApplyStructureEdit(documentEditor.moveLineToSegment(doc, segIdx, lineIdx, segIdx + 1, 0)); close(); }}>
-          <ArrowDown size={13} /> Move to next scene
-        </button>
+          <ArrowDown size={13} /><UiText text=" Move to next scene" /></button>
       )}
       <button className={POPOVER_ITEM_DANGER} onClick={() => { onDeleteWords(line.words.map((w) => w.id)); close(); }}>
-        <Trash2 size={13} /> Delete line
-      </button>
+        <Trash2 size={13} /><UiText text=" Delete line" /></button>
     </div>
   );
 }

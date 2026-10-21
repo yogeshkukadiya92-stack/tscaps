@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useRef, useState } from 'react';
 import { Undo2, Redo2, ArrowLeft } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -66,6 +67,7 @@ export const EditorToolbar = memo(function EditorToolbar({
   canSave,
   onSave,
 }: EditorToolbarProps) {
+  const { t } = useTranslation();
   const uploading = false;
   const supportButton = <SupportButton />;
   const { store } = useEditor();
@@ -81,7 +83,7 @@ export const EditorToolbar = memo(function EditorToolbar({
               type="button"
               className={ICON_BTN}
               onClick={onBack}
-              aria-label="Back to dashboard"
+              aria-label={t("Back to dashboard")}
             >
               <ArrowLeft size={16} />
             </button>
@@ -102,7 +104,7 @@ export const EditorToolbar = memo(function EditorToolbar({
             className={ICON_BTN}
             onClick={() => store.undo()}
             disabled={!canUndo}
-            aria-label="Undo"
+            aria-label={t("Undo")}
           >
             <Undo2 size={16} />
           </button>
@@ -113,7 +115,7 @@ export const EditorToolbar = memo(function EditorToolbar({
             className={ICON_BTN}
             onClick={() => store.redo()}
             disabled={!canRedo}
-            aria-label="Redo"
+            aria-label={t("Redo")}
           >
             <Redo2 size={16} />
           </button>
@@ -137,14 +139,14 @@ export const EditorToolbar = memo(function EditorToolbar({
           className={SAVE_BTN}
           onClick={onSave}
           disabled={!dirty || saveStatus === 'saving'}
-          aria-label="Save project"
+          aria-label={t("Save project")}
         >
-          {saveStatus === 'saving' ? 'Saving…' : 'Save'}
+          {saveStatus === 'saving' ? t('Saving…') : t('Save')}
         </button>
       )}
 
       {showExport && !uploading && (
-        <ExportButton disabled={exportDisabled} label="Export" onClick={onOpenExportSettings} />
+        <ExportButton disabled={exportDisabled} label={t("Export")} onClick={onOpenExportSettings} />
       )}
     </div>
   );
@@ -167,6 +169,7 @@ interface NameInputProps {
  * `value` changes from the outside while the input is not focused.
  */
 function NameInput({ value, disabled, maxLength, onCommit, normalize }: NameInputProps) {
+  const { t } = useTranslation();
   const cancelCommit = useRef(false);
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
@@ -201,8 +204,8 @@ function NameInput({ value, disabled, maxLength, onCommit, normalize }: NameInpu
           (e.target as HTMLInputElement).blur();
         }
       }}
-      aria-label="Project name"
-      placeholder="Untitled"
+      data-ui="project-name" aria-label={t("Project name")}
+      placeholder={t("Untitled")}
     />
   );
 }
@@ -213,9 +216,10 @@ interface ProjectSaveStatusPillProps {
 }
 
 function ProjectSaveStatusPill({ dirty, status }: ProjectSaveStatusPillProps) {
-  if (status === 'saving') return <StatusPill label="Saving" tone="info" active />;
-  if (status === 'error') return <StatusPill label="Save failed" tone="danger" />;
-  if (status === 'saved' && !dirty) return <StatusPill label="Saved" tone="subtle" />;
-  if (dirty) return <StatusPill label="Unsaved changes" tone="warning" />;
+  const { t } = useTranslation();
+  if (status === 'saving') return <StatusPill label={t("Saving")} tone="info" active />;
+  if (status === 'error') return <StatusPill label={t("Save failed")} tone="danger" />;
+  if (status === 'saved' && !dirty) return <StatusPill label={t("Saved")} tone="subtle" />;
+  if (dirty) return <StatusPill label={t("Unsaved changes")} tone="warning" />;
   return null;
 }

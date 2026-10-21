@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, type ReactNode } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { type EditorModeId } from '@presentation/editor/stores/EditorWorkspaceStore';
@@ -73,6 +75,7 @@ export const EditorWorkspacePane = memo(function EditorWorkspacePane({
   selectionBar,
   inspector,
 }: EditorWorkspacePaneProps) {
+  const { t } = useTranslation();
   const store = useEditorWorkspaceStore();
   const activeId = useActiveEditorMode();
   const isInspectorOpen = useIsElementInspectorOpen();
@@ -86,11 +89,11 @@ export const EditorWorkspacePane = memo(function EditorWorkspacePane({
       data-tscaps-sidebar
     >
       <div className={isInspectorOpen ? 'hidden' : 'contents'}>
-        {!hideModeTabs && <Tabs.List className={MODE_TABS_LIST_CLASS} aria-label="Editor mode">
+        {!hideModeTabs && <Tabs.List className={MODE_TABS_LIST_CLASS} aria-label={t("Editor mode")}>
           {contentModes.map((m) => (
             <Tabs.Trigger key={m.id} value={m.id} className={CONTENT_TAB_CLASS}>
               {m.icon}
-              <span>{m.label}</span>
+              <span><UiText text={m.label} /></span>
             </Tabs.Trigger>
           ))}
           {toolModes.length > 0 && (
@@ -102,7 +105,7 @@ export const EditorWorkspacePane = memo(function EditorWorkspacePane({
           {toolModes.map((m) => (
             <Tabs.Trigger key={m.id} value={m.id} className={TOOL_TAB_CLASS}>
               {m.icon}
-              <span>{m.label}</span>
+              <span><UiText text={m.label} /></span>
             </Tabs.Trigger>
           ))}
         </Tabs.List>}

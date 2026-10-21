@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useState } from 'react';
 import { Link, Link2, Plus, X } from 'lucide-react';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -81,6 +82,7 @@ export function SheetSelector({
   onUnlinkSheet,
   onResetSheetToTemplateDefaults,
 }: SheetSelectorProps) {
+  const { t } = useTranslation();
   const [createOpen, setCreateOpen] = useState(false);
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   // Settings popover state. Both left-click on the active chip and
@@ -178,12 +180,12 @@ export function SheetSelector({
                 onOpen={(el) => openLinkMenuUnder(sheet, el)}
               />
               {!isMain && (
-                <Tooltip text={`Delete sheet "${sheet.name}"`} position="top">
+                <Tooltip text={t("Delete sheet \"{0}\"", { 0: sheet.name })} position="top">
                   <button
                     type="button"
                     className={CHIP_DELETE}
                     onClick={() => setPendingDelete(sheet)}
-                    aria-label={`Delete sheet ${sheet.name}`}
+                    aria-label={t("Delete sheet {0}", { 0: sheet.name })}
                   >
                     <X size={12} />
                   </button>
@@ -198,7 +200,7 @@ export function SheetSelector({
             onOpenChange={setAddMenuOpen}
             triggerTooltip={ADD_SHEET_TOOLTIP}
             trigger={
-              <button className={ADD_SHEET_BUTTON} aria-label="Add sheet">
+              <button className={ADD_SHEET_BUTTON} aria-label={t("Add sheet")}>
                 <Plus size={14} />
               </button>
             }
@@ -211,7 +213,7 @@ export function SheetSelector({
             <button
               className={ADD_SHEET_BUTTON}
               onClick={() => setCreateOpen(true)}
-              aria-label="Add sheet"
+              aria-label={t("Add sheet")}
             >
               <Plus size={14} />
             </button>

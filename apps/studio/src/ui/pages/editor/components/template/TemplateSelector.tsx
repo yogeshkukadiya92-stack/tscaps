@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { TemplatePreviewLanguageContext, TEMPLATE_PREVIEW_LANGUAGES, type TemplatePreviewLanguage } from '@ui/_shared/contexts/TemplatePreviewLanguageContext';
 import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { ChevronLeft, Search } from 'lucide-react';
@@ -82,6 +83,7 @@ export const TemplateSelector = memo(function TemplateSelector({
   library,
   sectionAdornments,
 }: TemplateSelectorProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [previewLanguage, setPreviewLanguage] = useState<TemplatePreviewLanguage>('en');
   const [openedSectionId, setOpenedSectionId] = useState<TemplateGallerySectionId | null>(null);
@@ -173,12 +175,12 @@ export const TemplateSelector = memo(function TemplateSelector({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search templates"
+          placeholder={t("Search templates")}
           className="flex-1 min-w-0 bg-transparent border-none outline-none text-fg-secondary text-xs placeholder:text-fg-faint"
         />
       </div>
 
-      <div role="group" aria-label="Caption preview language" className="flex flex-wrap gap-2">
+      <div role="group" aria-label={t("Caption preview language")} className="flex flex-wrap gap-2">
         {TEMPLATE_PREVIEW_LANGUAGES.map(language => (
           <button key={language.id} type="button" aria-pressed={previewLanguage === language.id}
             onClick={() => setPreviewLanguage(language.id)}
@@ -186,16 +188,16 @@ export const TemplateSelector = memo(function TemplateSelector({
             {language.label}
           </button>
         ))}
-        <p className="w-full text-xs text-fg-muted">Preview all 58 premium styles in your language. Hover to see motion.</p>
+        <p className="w-full text-xs text-fg-muted"><UiText text="Preview all 58 premium styles in your language. Hover to see motion." /></p>
       </div>
 
       {query.trim() !== '' ? (
         searchResults.length === 0 ? (
-          <div className="p-6 text-center text-fg-muted text-sm">No templates match.</div>
+          <div className="p-6 text-center text-fg-muted text-sm"><UiText text="No templates match." /></div>
         ) : (
           <TemplateGallerySection
             id="saved"
-            label="Results"
+            label={t("Results")}
             templates={searchResults}
             rows={null}
             newTemplateIds={newTemplateIds}
@@ -206,7 +208,7 @@ export const TemplateSelector = memo(function TemplateSelector({
         <div className={`flex flex-col ${BACK_LINK_GAP}`}>
           <button type="button" onClick={closeSection} className={BACK_BUTTON_CLASS}>
             <ChevronLeft size={12} strokeWidth={2.5} />
-            <span>All templates</span>
+            <span><UiText text="All templates" /></span>
           </button>
           <TemplateGallerySection
             id={openedSection.id}

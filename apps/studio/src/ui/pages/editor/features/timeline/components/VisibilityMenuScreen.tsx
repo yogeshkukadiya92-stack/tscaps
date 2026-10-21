@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 import { AudioWaveform, Check, ChevronRight } from 'lucide-react';
 import type { TimelineDetail } from '@core/timeline/domain/TimelineDetail';
@@ -56,19 +57,20 @@ interface VisibilityMenuScreenProps {
  * no way back that they can still see.
  */
 export function VisibilityMenuScreen({ view, visible, onToggle }: VisibilityMenuScreenProps) {
+  const { t } = useTranslation();
   const { navigate } = usePopoverNav();
   const chosenView = TIMELINE_VIEW_OPTIONS.find((option) => option.id === view);
   return (
     <div className={SCREEN_CLASS}>
-      <PopoverHeader title="View" />
+      <PopoverHeader title={t("View")} />
       <button
         type="button"
         className={`${ENTRY_CLASS} ${ENTRY_SHOWN_CLASS}`}
         onClick={() => navigate('level')}
       >
         {chosenView?.icon}
-        <span className={LABEL_CLASS}>Edit by</span>
-        <span className={VALUE_CLASS}>{chosenView?.label}</span>
+        <span className={LABEL_CLASS}><UiText text="Edit by" /></span>
+        <span className={VALUE_CLASS}><UiText text={chosenView?.label} /></span>
         <ChevronRight size={ICON_SIZE_PX} className="shrink-0 text-fg-faint" />
       </button>
       <div className={DIVIDER_CLASS} />
@@ -83,7 +85,7 @@ export function VisibilityMenuScreen({ view, visible, onToggle }: VisibilityMenu
             onClick={() => onToggle(detail.id)}
           >
             {detail.icon}
-            <span className={LABEL_CLASS}>{detail.label}</span>
+            <span className={LABEL_CLASS}><UiText text={detail.label} /></span>
             {isShown && <Check className={CHECK_CLASS} size={ICON_SIZE_PX} />}
           </button>
         );

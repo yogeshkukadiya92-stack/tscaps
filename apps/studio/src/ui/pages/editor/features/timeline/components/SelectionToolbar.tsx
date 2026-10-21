@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { Scissors, X } from 'lucide-react';
 import type { TimelineSelection } from '@presentation/timeline/controllers/TimelineEditingController';
@@ -137,14 +138,14 @@ export function SelectionToolbar({
       style={{ top: anchorBottomPx + TOOLBAR_GAP_PX, left: 0 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <span className="text-fg-muted">Selection {duration.toFixed(2)}s</span>
+      <span className="text-fg-muted"><UiText text="Selection " />{duration.toFixed(2)}s</span>
       <button type="button" className={BUTTON_CLASS} onClick={onCancel}>
         <X size={12} />
-        <span>Cancel</span>
+        <span><UiText text="Cancel" /></span>
       </button>
       <button type="button" className={DANGER_BUTTON_CLASS} onClick={onCut}>
         <Scissors size={12} />
-        <span>Cut</span>
+        <span><UiText text="Cut" /></span>
         <kbd className={SHORTCUT_HINT_CLASS}>{CUT_SHORTCUT_LABEL}</kbd>
       </button>
     </div>

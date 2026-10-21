@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { TranscribePreference } from '@core/transcription/domain/TranscribePreference';
 import { ChevronDownIcon } from '@ui/_shared/components/icons/ChevronDownIcon';
 import { ChevronRightIcon } from '@ui/_shared/components/icons/ChevronRightIcon';
@@ -43,6 +44,7 @@ interface AdvancedSectionProps {
 }
 
 export function AdvancedSection({ open, onToggle, preference, onPreferenceChange }: AdvancedSectionProps) {
+  const { t } = useTranslation();
   const backendHint = BACKENDS.find((o) => o.value === preference.backend)?.hint;
   return (
     <div className="flex flex-col gap-2">
@@ -52,14 +54,12 @@ export function AdvancedSection({ open, onToggle, preference, onPreferenceChange
         onClick={onToggle}
         aria-expanded={open}
       >
-        {open ? <ChevronDownIcon width={12} height={12} /> : <ChevronRightIcon width={12} height={12} />}
-        Advanced
-      </button>
+        {open ? <ChevronDownIcon width={12} height={12} /> : <ChevronRightIcon width={12} height={12} />}<UiText text="Advanced" /></button>
       {open && (
         <div className="flex flex-col gap-3 pl-4 border-l border-edge-subtle">
           <SelectField
             id="td-backend"
-            label="Backend"
+            label={t("Backend")}
             value={preference.backend}
             options={BACKENDS}
             onChange={(value) => onPreferenceChange({ ...preference, backend: value as Backend })}
@@ -67,7 +67,7 @@ export function AdvancedSection({ open, onToggle, preference, onPreferenceChange
           />
           <SelectField
             id="td-model"
-            label="Model"
+            label={t("Model")}
             value={preference.model}
             options={MODELS}
             onChange={(value) => onPreferenceChange({ ...preference, model: value as Model })}

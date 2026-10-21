@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
@@ -207,8 +208,8 @@ export function ProjectRoute() {
     return (
       <div className="min-h-full flex flex-col gap-5 items-center justify-center bg-surface-0 p-5 text-center">
         <ProjectLoadingIndicator downloadStatus={downloadStatus} proxyDownloadStatus={proxyDownloadStatus} />
-        <p className="text-sm text-fg-muted">Large videos can take a little longer. Keep this tab open while your video loads.</p>
-        <button className={BTN_SECONDARY} onClick={onLeaveUnopenable}>Back to projects</button>
+        <p className="text-sm text-fg-muted"><UiText text="Large videos can take a little longer. Keep this tab open while your video loads." /></p>
+        <button className={BTN_SECONDARY} onClick={onLeaveUnopenable}><UiText text="Back to projects" /></button>
       </div>
     );
   }
@@ -252,6 +253,7 @@ interface MissingTemplatesToastProps {
  * about it so the unexpected visual change is not silent.
  */
 function MissingTemplatesToast({ missingTemplateIds }: MissingTemplatesToastProps) {
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
   const open = !dismissed && missingTemplateIds.length > 0;
   const count = missingTemplateIds.length;
@@ -264,7 +266,7 @@ function MissingTemplatesToast({ missingTemplateIds }: MissingTemplatesToastProp
       position="top-center"
       tone="info"
       icon={<AlertTriangle size={16} strokeWidth={2.5} />}
-      title="Some templates couldn't be applied"
+      title={t("Some templates couldn't be applied")}
       description={description}
       onDismiss={() => setDismissed(true)}
     />

@@ -86,20 +86,20 @@ test('creative settings, music, clips and B-roll survive a full project reload',
   await dialog.getByRole('textbox', { name: 'Text', exact: true }).fill('Saved creative title');
   await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'Clips');
   await dialog.getByLabel('Add clips', { exact: true }).setInputFiles({ name: 'extra.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-clip')).toHaveCount(2);
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'B-roll');
   await dialog.getByLabel('Add B-roll', { exact: true }).setInputFiles({ name: 'b-roll.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-overlay')).toHaveCount(1);
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'B-roll');
   await dialog.getByRole('button', { name: 'Picture-in-picture', exact: true }).click();
   await openTool(dialog, 'Audio');
   await dialog.getByLabel('Voice cleanup · rumble filter & noise gate').check();
-  await dialog.getByRole('button', { name: 'Save creative changes' }).click();
+  await dialog.getByRole('button', { name: 'Save changes' }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   await expect(page).toHaveTitle(/ReelStudio/);
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
@@ -136,15 +136,15 @@ test('unified export includes added clips, portrait FHD, captions and audible mu
   await dialog.getByRole('textbox', { name: 'Text', exact: true }).fill('ONE FINAL EXPORT');
   await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'Clips');
   await dialog.getByLabel('Add clips', { exact: true }).setInputFiles({ name: 'extra.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-clip')).toHaveCount(2);
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'B-roll');
   await dialog.getByLabel('Add B-roll', { exact: true }).setInputFiles({ name: 'b-roll.mp4', mimeType: 'video/mp4', buffer: bytes });
   await expect(dialog.getByTestId('creative-overlay')).toHaveCount(1);
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'B-roll');
   await dialog.getByRole('button', { name: 'Picture-in-picture', exact: true }).click();
   await openTool(dialog, 'Clips');
@@ -213,7 +213,7 @@ test('mobile split, reorder, undo, cancellation and music-only export', async ({
   await expect(dialog.getByLabel('Clip 1 start', { exact: true })).toHaveValue('0');
   await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   await openTool(dialog, 'Audio');
   await dialog.getByRole('textbox', { name: 'Original audio value' }).fill('0');
   await openTool(dialog, 'Audio');
@@ -243,7 +243,7 @@ test('missing local music reports the file and replacement restores the saved pr
   const { dialog } = await openStudio(page);
   await openTool(dialog, 'Audio');
   await dialog.getByLabel('Upload music', { exact: true }).setInputFiles(musicWav());
-  await expect(dialog.getByRole('button', { name: 'Save creative changes' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Save changes' })).toBeEnabled();
   const saved = await storedProject(page);
   await page.evaluate(async key => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => { const r = indexedDB.open('reelstudio-creative-media'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
@@ -360,7 +360,7 @@ for (const style of ['Clean', 'Energetic', 'Professional']) {
     await dialog.getByRole('button', { name: 'Noir', exact: true }).click();
     await openTool(dialog, 'Clips');
     await dialog.getByLabel('Clip 1 end', { exact: true }).fill('1.5');
-    await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
     await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
     const saved = await storedProject(page);
     await page.goto(`/project/${saved.id}?e2e=1`);
@@ -410,7 +410,7 @@ test('Auto Edit detects real quiet audio and each generated pause cut can be adj
   expect(Number(await end.inputValue())).toBeLessThan(3.2);
   await openTool(workspace, 'Timing');
   await start.fill('1.4');
-  await workspace.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await workspace.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(workspace.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   const saved = await storedProject(page);
   await page.goto(`/project/${saved.id}?e2e=1`);
@@ -453,7 +453,7 @@ for (const recipe of [
     await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByRole('status')).toContainText(`Template: ${recipe.name}`);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-    await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
     await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
     const saved = await storedProject(page);
     expect(saved.payload.sheets[0]!.templateId).toBe(recipe.template);
@@ -495,7 +495,7 @@ test('saved Auto Edit styles can be replaced after reload while manual edits sur
   let panel = await chooseAutoStyle(dialog, 'Clean');
   await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   const saved = await storedProject(page);
   await page.goto(`/project/${saved.id}?e2e=1`);
@@ -512,7 +512,7 @@ test('saved Auto Edit styles can be replaced after reload while manual edits sur
   await dialog.getByRole('button', { name: 'Noir', exact: true }).click();
   await openTool(dialog, 'Clips');
   await dialog.getByLabel('Clip 1 end', { exact: true }).fill('1.5');
-  await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   await page.goto(`/project/${saved.id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
@@ -538,7 +538,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
   test(`draft Before/After preview is isolated and discardable at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const { dialog } = await openStudio(page);
-    await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
     await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
     const savedBefore = await storedProject(page);
     const panel = await chooseAutoStyle(dialog, 'Energetic');
@@ -607,7 +607,7 @@ test('a different reel template can be previewed and applied after saving and re
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
   await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   const saved = await storedProject(page);
   expect(saved.payload.sheets[0]!.templateId).toBe('scene-boldface');
@@ -631,7 +631,7 @@ test('a different reel template can be previewed and applied after saving and re
   await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
   await panel.getByRole('button', { name: 'Apply auto edit', exact: true }).click();
   await expect(dialog.getByRole('group', { name: 'Preview version', exact: true })).toHaveCount(0);
-  await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   expect((await storedProject(page)).payload.sheets[0]!.templateId).toBe('scene-karaoke');
 });
@@ -660,7 +660,7 @@ for (const mobile of [false, true]) {
     await openTool(page.getByRole('region', { name: 'Creative Studio', exact: true }), 'Auto Edit');
     await expect(panel.getByLabel('Auto Edit plan')).toHaveCount(0);
     await expect(dialog.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-    await dialog.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
     await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
     const saved = await storedProject(page);
     expect(saved.payload.sheets[0]!.templateId).toBe('scene-arcade');
@@ -701,7 +701,7 @@ test('full editing pack applies lighting, elements, zooms and measured pause cut
   await openTool(studio, 'Effects');
   await studio.getByRole('button', { name: 'Preview effect', exact: true }).nth(1).click();
   await studio.getByRole('button', { name: 'Preview', exact: true }).click();
-  await studio.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await studio.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(studio.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   const saved = await storedProject(page);
   expect(saved.payload.creative.effects?.map(effect => effect.kind)).toEqual(['digital-zoom', 'light-leak', 'headline-wall']);
@@ -727,6 +727,6 @@ test('caption customization stays in Creative and supports undo', async ({ page 
   await expect(size).toHaveValue(original);
   await controls.getByLabel('Caption settings').selectOption('Style & colour');
   await expect(controls.getByRole('heading', { name: 'Style', exact: true })).toBeVisible();
-  await dialog.getByRole('button', { name: 'Save creative changes' }).click();
+  await dialog.getByRole('button', { name: 'Save changes' }).click();
   await expect(dialog.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
 });

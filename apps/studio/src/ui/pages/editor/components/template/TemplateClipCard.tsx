@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useRef, useState } from 'react';
 import { Check, Star } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
@@ -66,6 +67,7 @@ export const TemplateClipCard = memo(function TemplateClipCard({
   onSelect,
   onToggleFavorite,
 }: TemplateClipCardProps) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   // The still is an element of its own rather than the video's `poster`,
   // which is shown only until the clip has a frame of its own and never
@@ -142,7 +144,7 @@ export const TemplateClipCard = memo(function TemplateClipCard({
         type="button"
         onClick={() => onToggleFavorite(template.metadata.id)}
         aria-pressed={isFavorite}
-        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        aria-label={isFavorite ? t('Remove from favorites') : t('Add to favorites')}
         className={
           isFavorite
             ? 'absolute top-1 right-1 p-1 rounded-xs bg-surface-1/70 backdrop-blur-sm border border-edge-medium text-accent cursor-pointer transition-colors duration-quick ease-standard hover:bg-surface-1 focus-visible:outline-none focus-visible:bg-surface-1'

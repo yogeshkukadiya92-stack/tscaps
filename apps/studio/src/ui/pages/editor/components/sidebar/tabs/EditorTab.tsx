@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 import { RotateCcw } from 'lucide-react';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -45,6 +47,7 @@ interface EditorTabProps {
  * border-removal still applies.
  */
 export function EditorTab({ title, hideTitleRow, sheetScope, onResetToTemplate, headerAction, children }: EditorTabProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col">
       {sheetScope && (
@@ -68,7 +71,7 @@ export function EditorTab({ title, hideTitleRow, sheetScope, onResetToTemplate, 
       {!hideTitleRow && (
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-mono text-xs uppercase tracking-[0.08em] text-fg-primary m-0">
-            {title}
+            <UiText text={title} />
           </h2>
           <div className="flex items-center gap-1">
             {headerAction}
@@ -77,7 +80,7 @@ export function EditorTab({ title, hideTitleRow, sheetScope, onResetToTemplate, 
                 <button
                   type="button"
                   onClick={onResetToTemplate}
-                  aria-label="Reset to template default"
+                  aria-label={t("Reset to template default")}
                   className="inline-flex items-center justify-center w-8 h-8 rounded-xs bg-transparent border-none text-fg-faint cursor-pointer transition-colors duration-quick ease-standard hover:text-fg-secondary focus-visible:outline-none focus-visible:text-fg-secondary"
                 >
                   <RotateCcw size={15} strokeWidth={2} />

@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { Plus } from 'lucide-react';
 
 interface AddSceneButtonProps {
@@ -36,7 +37,7 @@ export function AddSceneButton({ onClick, label }: AddSceneButtonProps) {
         <Plus size={11} />
         <span className={LABEL_WRAP}>
           <span className={LABEL_CLIP}>
-            <span className={LABEL_INNER}>{label}</span>
+            <span className={LABEL_INNER}><UiText text={label} /></span>
           </span>
         </span>
       </button>

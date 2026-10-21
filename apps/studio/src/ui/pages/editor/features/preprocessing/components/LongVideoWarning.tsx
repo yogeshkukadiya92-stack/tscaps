@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 
 const DESKTOP_THRESHOLD_SECONDS = 10 * 60;
@@ -20,15 +21,15 @@ interface LongVideoWarningProps {
  * "try a faster alternative" link where one exists.
  */
 export function LongVideoWarning({ videoDurationSeconds, isMobile, cta }: LongVideoWarningProps) {
+  const { t } = useTranslation();
   if (!isLongVideo(videoDurationSeconds, isMobile)) return null;
   return (
     <div
       data-testid="long-video-warning"
       className="rounded-sm border border-warning/40 bg-warning/10 p-3 flex flex-col gap-2"
     >
-      <p className="text-xs text-fg-primary leading-snug m-0">
-        This video is <strong className="tabular-nums">{formatDuration(videoDurationSeconds)}</strong>.
-        {' In-browser transcription can take a while. Now would be a good time to grab a coffee.'}
+      <p className="text-xs text-fg-primary leading-snug m-0"><UiText text="This video is " /><strong className="tabular-nums">{formatDuration(videoDurationSeconds)}</strong>.
+        {t(' In-browser transcription can take a while. Now would be a good time to grab a coffee.')}
       </p>
       {cta}
     </div>

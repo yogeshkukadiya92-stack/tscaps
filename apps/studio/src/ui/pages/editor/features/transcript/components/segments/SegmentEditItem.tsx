@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback } from 'react';
 import { Loader2, Lock, MoreHorizontal } from 'lucide-react';
 import type { Document, Segment } from '@tscaps/engine';
@@ -77,6 +78,7 @@ const LOCK_BTN =
  * not change, so iterating this segment's words is enough to decide.
  */
 function SegmentEditItemImpl({ doc, segment, segIdx, isLastSegment, isFirstSegment, isActive, activeWordId, activePopoverId, sheet, sheets, elementStyles, behindActorOverrides, isFrozen, decorationOverrides, cuts, prevSegmentEnd, nextSegmentStart, videoDuration, onSeek, onActivateWord, onActivatePopover, onEditWordText, onEditWordTime, onEditWordTags, onDeleteWords, onApplyStructureEdit, onInsertWord, onAssignSegmentSheet, onCreateSheet, onCommitSegmentTime, onRedistributeWords, onResetSegmentLayout, bulkSelectedWordIds = null, onToggleBulkWord }: SegmentEditItemProps) {
+  const { t } = useTranslation();
   const timeMap = useRenderTimeMap();
   const isComputingActorMasks = useSegmentMaskBackfillPending(segment.id);
   const hasOverride = elementStyles.has(segment.id);
@@ -109,7 +111,7 @@ function SegmentEditItemImpl({ doc, segment, segIdx, isLastSegment, isFirstSegme
           </span>
           {hasOverride && (
             <Tooltip text="Has style overrides" position="top">
-              <span className={OVERRIDE_DOT} aria-label="Has style overrides" />
+              <span className={OVERRIDE_DOT} aria-label={t("Has style overrides")} />
             </Tooltip>
           )}
           {isFrozen && (
@@ -117,7 +119,7 @@ function SegmentEditItemImpl({ doc, segment, segIdx, isLastSegment, isFirstSegme
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onResetSegmentLayout(segment.id); }}
-                aria-label="Reset manual layout"
+                aria-label={t("Reset manual layout")}
                 className={LOCK_BTN}
               >
                 <Lock size={11} />
@@ -126,7 +128,7 @@ function SegmentEditItemImpl({ doc, segment, segIdx, isLastSegment, isFirstSegme
           )}
           {isComputingActorMasks && (
             <Tooltip text="Preparing text behind actor…" position="top">
-              <Loader2 size={11} className="animate-spin text-fg-faint shrink-0" aria-label="Preparing text behind actor" />
+              <Loader2 size={11} className="animate-spin text-fg-faint shrink-0" aria-label={t("Preparing text behind actor")} />
             </Tooltip>
           )}
         </span>

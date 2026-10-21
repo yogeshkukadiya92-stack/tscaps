@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useState, type ReactNode } from 'react';
 import { Lock, ChevronDown } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -39,6 +40,7 @@ export const Section = memo(function Section({
   disabled,
   disabledMessage,
 }: SectionProps) {
+  const { t } = useTranslation();
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const hasAdvanced = advanced != null && advanced !== false;
 
@@ -51,7 +53,7 @@ export const Section = memo(function Section({
       {title !== undefined && (
         <header className="flex items-center justify-between min-h-5">
           <h3 className="font-mono text-2xs uppercase tracking-[0.08em] text-fg-muted m-0">
-            {title}
+            <UiText text={title} />
           </h3>
         </header>
       )}
@@ -66,7 +68,7 @@ export const Section = memo(function Section({
                   group-hover fade stays active. */}
               <div className="flex items-center gap-1.5 bg-surface-1 px-3 py-1.5 rounded-pill text-xs text-fg-secondary border border-edge-strong shadow-sm translate-y-1 transition-transform duration-base ease-standard group-hover/section:translate-y-0">
                 <Lock size={12} />
-                <span>Locked</span>
+                <span><UiText text="Locked" /></span>
               </div>
             </Tooltip>
           </div>
@@ -81,7 +83,7 @@ export const Section = memo(function Section({
               onClick={() => setAdvancedOpen((v) => !v)}
               aria-expanded={advancedOpen}
             >
-              <span>{advancedOpen ? 'Show less' : 'Show more'}</span>
+              <span>{advancedOpen ? t('Show less') : t('Show more')}</span>
               <ChevronDown
                 size={14}
                 className="opacity-75 transition-[transform,opacity] duration-base ease-emphasized group-hover:opacity-100 group-aria-expanded:rotate-180 group-aria-expanded:opacity-100"

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { AppDialog } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM, BTN_DANGER_SM } from '@ui/_shared/styles/buttons';
 
@@ -26,26 +27,25 @@ export function LeaveWithUnsavedChangesDialog({
   onLeaveWithoutSaving,
   onSaveAndLeave,
 }: LeaveWithUnsavedChangesDialogProps) {
+  const { t } = useTranslation();
   return (
     <AppDialog
       open={open}
       onClose={onCancel}
       locked={saving}
       size="md"
-      title="Unsaved changes"
-      description="You have edits that have not been saved. If you leave now, they will be lost."
+      title={t("Unsaved changes")}
+      description={t("You have edits that have not been saved. If you leave now, they will be lost.")}
       showCloseButton
     >
-      {error && <p role="alert" className="m-0 text-sm text-danger">{error}</p>}
+      {error && <p role="alert" className="m-0 text-sm text-danger"><UiText text={error} /></p>}
       <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
         <button
           type="button"
           className={`${BTN_DANGER_SM}`}
           onClick={onLeaveWithoutSaving}
           disabled={saving}
-        >
-          Leave without saving
-        </button>
+        ><UiText text="Leave without saving" /></button>
         <button
           type="button"
           className={`${BTN_PRIMARY_SM}`}
@@ -53,7 +53,7 @@ export function LeaveWithUnsavedChangesDialog({
           disabled={saving}
           autoFocus
         >
-          {saving ? 'Saving…' : 'Save and leave'}
+          {saving ? t('Saving…') : t('Save and leave')}
         </button>
       </div>
     </AppDialog>

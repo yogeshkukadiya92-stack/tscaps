@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { css as cssLang } from '@codemirror/lang-css';
 import { xml as xmlLang } from '@codemirror/lang-xml';
@@ -23,6 +24,7 @@ interface CodeTabProps {
  * once.
  */
 export const CodeTab = memo(function CodeTab({ sheetScope }: CodeTabProps) {
+  const { t } = useTranslation();
   const sheets = useSheets();
   const { svgFilterDefinitionsParser, templateContractValidator } = useRendering();
   const currentTheme = useCurrentTheme();
@@ -76,15 +78,15 @@ export const CodeTab = memo(function CodeTab({ sheetScope }: CodeTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<CodeSubTab>('css');
 
   return (
-    <EditorTab title="Code" sheetScope={sheetScope} onResetToTemplate={handleReset}>
+    <EditorTab title={t("Code")} sheetScope={sheetScope} onResetToTemplate={handleReset}>
       <Tabs.Root
         value={activeSubTab}
         onValueChange={(v) => setActiveSubTab(v as CodeSubTab)}
         className="flex flex-col gap-3 mt-2"
       >
-        <Tabs.List className={SUB_TAB_LIST_CLASS} aria-label="Code editor source">
-          <Tabs.Trigger value="css" className={SUB_TAB_TRIGGER_CLASS}>CSS</Tabs.Trigger>
-          <Tabs.Trigger value="filters" className={SUB_TAB_TRIGGER_CLASS}>SVG Filters</Tabs.Trigger>
+        <Tabs.List className={SUB_TAB_LIST_CLASS} aria-label={t("Code editor source")}>
+          <Tabs.Trigger value="css" className={SUB_TAB_TRIGGER_CLASS}><UiText text="CSS" /></Tabs.Trigger>
+          <Tabs.Trigger value="filters" className={SUB_TAB_TRIGGER_CLASS}><UiText text="SVG Filters" /></Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="css">
           <TemplateSourceEditor
@@ -97,16 +99,13 @@ export const CodeTab = memo(function CodeTab({ sheetScope }: CodeTabProps) {
             validate={validateCss}
             dialogTitle="Template CSS"
             intro={
-              <p className="text-xs text-fg-muted m-0">
-                Edit the template's CSS for this sheet.{' '}
+              <p className="text-xs text-fg-muted m-0"><UiText text="Edit the template's CSS for this sheet." />{' '}
                 <a
                   href={TEMPLATE_GUIDE_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="text-accent hover:underline"
-                >
-                  Template reference →
-                </a>
+                ><UiText text="Template reference →" /></a>
               </p>
             }
           />
@@ -122,10 +121,7 @@ export const CodeTab = memo(function CodeTab({ sheetScope }: CodeTabProps) {
             validate={validateFiltersSvg}
             dialogTitle="Template filters.svg"
             intro={
-              <p className="text-xs text-fg-muted m-0">
-                Edit the template's <code className="font-mono">filters.svg</code> for this
-                sheet.
-              </p>
+              <p className="text-xs text-fg-muted m-0"><UiText text="Edit the template's " /><code className="font-mono"><UiText text="filters.svg" /></code><UiText text=" for this sheet." /></p>
             }
           />
         </Tabs.Content>

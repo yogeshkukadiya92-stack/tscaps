@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import { ChevronLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { usePopoverNav } from '@ui/_shared/components/Popover/usePopoverNav';
@@ -22,6 +24,7 @@ interface PopoverHeaderProps {
  * the right edge (used e.g. for "reset" on the word-style overrides screen).
  */
 export function PopoverHeader({ title, action }: PopoverHeaderProps) {
+  const { t } = useTranslation();
   const { back, canGoBack } = usePopoverNav();
   return (
     <div className="flex items-center gap-1">
@@ -29,14 +32,14 @@ export function PopoverHeader({ title, action }: PopoverHeaderProps) {
         <button
           type="button"
           className={ICON_BTN}
-          title="Back"
-          aria-label="Back"
+          title={t("Back")}
+          aria-label={t("Back")}
           onClick={back}
         >
           <ChevronLeft size={13} />
         </button>
       )}
-      <span className={HEADER_TITLE}>{title}</span>
+      <span className={HEADER_TITLE}><UiText text={title} /></span>
       <div className="flex-1" />
       {action}
     </div>

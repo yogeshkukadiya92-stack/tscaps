@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { ElementAnimationScope } from '@core/elements/domain/ElementAnimationScope';
@@ -58,6 +59,7 @@ export const ElementMotionPanel = memo(function ElementMotionPanel({
   endsAt,
   onReplay,
 }: ElementMotionPanelProps) {
+  const { t } = useTranslation();
   const { styledElementCatalog, animationSupport: support } = useElements().services;
   const scopes = styledElementCatalog.animationScopesFor(kind);
 
@@ -70,7 +72,7 @@ export const ElementMotionPanel = memo(function ElementMotionPanel({
   return (
     <Tabs.Root value={open} onValueChange={(value) => setPicked(value as ElementAnimationScope)}>
       {scopes.length > 1 && (
-        <Tabs.List className={STRIP_CLASS} aria-label="What moves">
+        <Tabs.List className={STRIP_CLASS} aria-label={t("What moves")}>
           {scopes.map((scope) => (
             <Tabs.Trigger key={scope} value={scope} className={STRIP_TAB_CLASS}>
               {titleFor(scope, kind)}

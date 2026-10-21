@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 interface BulkSceneOverlayProps {
   selected: boolean;
   onClick: (extendRange: boolean) => void;
@@ -5,6 +6,7 @@ interface BulkSceneOverlayProps {
 
 /** Turns a scene card into one large toggle target while bulk scene selection is active. */
 export function BulkSceneOverlay({ selected, onClick }: BulkSceneOverlayProps) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -16,7 +18,7 @@ export function BulkSceneOverlay({ selected, onClick }: BulkSceneOverlayProps) {
           : 'bg-transparent border-transparent hover:bg-accent/10 hover:border-accent/30')
       }
       aria-pressed={selected}
-      aria-label={selected ? 'Remove scene from selection' : 'Add scene to selection'}
+      aria-label={selected ? t('Remove scene from selection') : t('Add scene to selection')}
       onClick={(event) => onClick(event.shiftKey)}
     />
   );

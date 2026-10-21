@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { forwardRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -17,6 +18,7 @@ const ICON_BTN =
  */
 export const PrecisePreviewButton = forwardRef<HTMLButtonElement>(
   function PrecisePreviewButton(props, ref) {
+  const { t } = useTranslation();
     return (
       <Tooltip text="Fast preview mode" position="bottom">
         <button
@@ -24,7 +26,7 @@ export const PrecisePreviewButton = forwardRef<HTMLButtonElement>(
           ref={ref}
           type="button"
           className={ICON_BTN}
-          aria-label="Fast preview mode"
+          aria-label={t("Fast preview mode")}
         >
           <AlertTriangle size={14} />
         </button>

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useState, type ReactNode } from 'react';
 import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -70,6 +71,7 @@ export const CodeEditorField = memo(function CodeEditorField({
   placeholder,
   problems,
 }: CodeEditorFieldProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobileViewport = useIsMobileViewport();
 
@@ -101,8 +103,8 @@ export const CodeEditorField = memo(function CodeEditorField({
           <button
             type="button"
             onClick={() => setIsExpanded(true)}
-            aria-label={`Expand ${dialogTitle}`}
-            title="Expand editor"
+            aria-label={t("Expand {0}", { 0: dialogTitle })}
+            title={t("Expand editor")}
             className={EXPAND_BUTTON_CLASS}
           >
             <Maximize2 size={12} />
@@ -117,10 +119,8 @@ export const CodeEditorField = memo(function CodeEditorField({
               <Dialog.Title className="font-mono text-2xs uppercase tracking-[0.08em] text-fg-secondary m-0">
                 {dialogTitle}
               </Dialog.Title>
-              <Dialog.Description className="sr-only">
-                Edit the same source in an expanded view.
-              </Dialog.Description>
-              <Dialog.Close aria-label="Close" className={DIALOG_BUTTON_CLASS}>
+              <Dialog.Description className="sr-only"><UiText text="Edit the same source in an expanded view." /></Dialog.Description>
+              <Dialog.Close aria-label={t("Close")} className={DIALOG_BUTTON_CLASS}>
                 <X size={14} />
               </Dialog.Close>
             </div>

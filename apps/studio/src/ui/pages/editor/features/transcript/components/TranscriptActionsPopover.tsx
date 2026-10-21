@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { forwardRef, type ReactNode } from 'react';
 import { ChevronRight, ListChecks, Megaphone, Wand2 } from 'lucide-react';
 import { Popover } from '@ui/_shared/components/Popover/Popover';
@@ -71,13 +72,14 @@ export function TranscriptActionsPopover({
 
 const TriggerButton = forwardRef<HTMLButtonElement>(
   function TriggerButton(props, ref) {
+  const { t } = useTranslation();
     return (
       <button
         {...props}
         ref={ref}
         type="button"
         className={TRIGGER_BTN}
-        aria-label="Transcript actions"
+        aria-label={t("Transcript actions")}
       >
         <Wand2 size={14} />
       </button>
@@ -94,13 +96,14 @@ function MenuScreen({
   extraAction,
   onSetHookScenes,
 }: MenuScreenProps) {
+  const { t } = useTranslation();
   const { navigate, close } = usePopoverNav();
   return (
     <div className={SCREEN_CLASS}>
-      <PopoverHeader title="Transcript actions" />
+      <PopoverHeader title={t("Transcript actions")} />
       <button type="button" className={ACTION_BTN} onClick={() => navigate('selectMultiple')}>
         <ListChecks size={14} />
-        <span className="flex-1">Select multiple</span>
+        <span className="flex-1"><UiText text="Select multiple" /></span>
         <ChevronRight size={12} />
       </button>
       <button
@@ -109,7 +112,7 @@ function MenuScreen({
         onClick={() => { close(); onSetHookScenes(); }}
       >
         <Megaphone size={14} />
-        <span className="flex-1">Set hook scenes</span>
+        <span className="flex-1"><UiText text="Set hook scenes" /></span>
       </button>
       {extraAction}
     </div>
@@ -120,17 +123,18 @@ function SelectMultipleScreen({
   onSelectScenes,
   onSelectWords,
 }: Pick<TranscriptActionsPopoverProps, 'onSelectScenes' | 'onSelectWords'>) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   return (
     <div className={SCREEN_CLASS}>
-      <PopoverHeader title="Select multiple" />
+      <PopoverHeader title={t("Select multiple")} />
       <button type="button" className={ACTION_BTN} onClick={() => { close(); onSelectScenes(); }}>
         <ListChecks size={14} />
-        <span className="flex-1">Scenes</span>
+        <span className="flex-1"><UiText text="Scenes" /></span>
       </button>
       <button type="button" className={ACTION_BTN} onClick={() => { close(); onSelectWords(); }}>
         <ListChecks size={14} />
-        <span className="flex-1">Words</span>
+        <span className="flex-1"><UiText text="Words" /></span>
       </button>
     </div>
   );

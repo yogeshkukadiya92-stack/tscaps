@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, type Ref } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import type { VideoState } from '@core/editor/domain/VideoState';
@@ -24,6 +25,7 @@ interface VideoPlayerProps {
  * does not need to know which surface is active.
  */
 export const VideoPlayer = memo(function VideoPlayer({ containerRef, video, onClick }: VideoPlayerProps) {
+  const { t } = useTranslation();
   const showLowResBadge = video.preview?.kind === 'proxy';
   return (
     <>
@@ -34,7 +36,7 @@ export const VideoPlayer = memo(function VideoPlayer({ containerRef, video, onCl
       />
       {showLowResBadge && (
         <StatusPill
-          label="Low res preview"
+          label={t("Low res preview")}
           tone="subtle"
           className="absolute top-2 right-2 z-10 pointer-events-none max-lg:hidden"
         />
@@ -42,7 +44,7 @@ export const VideoPlayer = memo(function VideoPlayer({ containerRef, video, onCl
       {video.url && video.loadError && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-1 p-4 text-center pointer-events-none">
           <AlertCircle size={32} className="text-fg-faint" />
-          <p className="text-sm text-fg-primary">Video failed to load</p>
+          <p className="text-sm text-fg-primary"><UiText text="Video failed to load" /></p>
           <p className="text-xs text-fg-faint">
             {labelForLoadErrorCode(video.loadError.code)}
             {video.loadError.message ? ` — ${video.loadError.message}` : ''}

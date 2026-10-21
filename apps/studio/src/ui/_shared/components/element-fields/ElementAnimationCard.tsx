@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, type ReactNode } from 'react';
 
 interface ElementAnimationCardProps {
@@ -34,16 +36,17 @@ export const ElementAnimationCard = memo(function ElementAnimationCard({
   icon,
   onSelect,
 }: ElementAnimationCardProps) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
       aria-pressed={selected}
-      title={selected ? 'Play again' : undefined}
+      title={selected ? t('Play again') : undefined}
       className={`${CARD_CLASS} ${selected ? CARD_SELECTED : CARD_AT_REST}`}
       onClick={onSelect}
     >
       <span className={ICON_CLASS} aria-hidden>{icon}</span>
-      <span className={LABEL_CLASS}>{label}</span>
+      <span className={LABEL_CLASS}><UiText text={label} /></span>
     </button>
   );
 });

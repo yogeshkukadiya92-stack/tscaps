@@ -1,8 +1,8 @@
 .admin-workspace h1, .admin-workspace h2 { font-family: var(--font-display); letter-spacing: -.035em; }
 .admin-workspace > div > header { padding: 12px 0 10px; }
 .admin-workspace > div > header h1 { font-size: clamp(28px, 3vw, 40px); }
-.admin-workspace section[aria-label='Workspace usage'] > div { border-top: 3px solid rgb(var(--color-accent) / .6); box-shadow: var(--shadow-sm); }
-.admin-workspace section[aria-label='Workspace usage'] p:last-child { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+.admin-workspace section[data-ui='workspace-usage'] > div { border-top: 3px solid rgb(var(--color-accent) / .6); box-shadow: var(--shadow-sm); }
+.admin-workspace section[data-ui='workspace-usage'] p:last-child { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 .admin-workspace > div > form { padding: 20px; background: rgb(var(--color-surface-1)); border: 1px solid var(--edge-subtle); border-radius: 14px; }
 .admin-workspace table { font-variant-numeric: tabular-nums; }
 .admin-workspace th { background: rgb(var(--color-surface-2)); font-size: 11px; letter-spacing: .025em; }
@@ -10,9 +10,9 @@
 .admin-workspace caption { font-weight: 600; color: rgb(var(--color-fg-primary)); }
 .admin-workspace input:focus-visible, .admin-workspace select:focus-visible, .admin-workspace textarea:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 2px; }
 .admin-workspace textarea { resize: none; min-height: 88px; }
-.admin-workspace section[aria-label='Account usage and limits'] { border-top: 4px solid rgb(var(--color-accent)); padding: clamp(16px, 3vw, 32px); }
-.admin-workspace section[aria-label='Account usage and limits'] > dl { padding: 20px; border-radius: 12px; background: rgb(var(--color-surface-0)); }
-.admin-workspace section[aria-label='Manage subscriptions'] { padding-block: 20px; border-top: 1px solid var(--edge-subtle); }
+.admin-workspace section[data-ui='account-usage'] { border-top: 4px solid rgb(var(--color-accent)); padding: clamp(16px, 3vw, 32px); }
+.admin-workspace section[data-ui='account-usage'] > dl { padding: 20px; border-radius: 12px; background: rgb(var(--color-surface-0)); }
+.admin-workspace section[data-ui='manage-subscriptions'] { padding-block: 20px; border-top: 1px solid var(--edge-subtle); }
 .admin-account-nav { display: flex; flex-wrap: wrap; gap: 8px; }
 .admin-account-nav a { border: 1px solid var(--edge-medium); background: rgb(var(--color-surface-0)); padding: 10px 15px; border-radius: 8px; font-size: 13px; color: rgb(var(--color-accent)); text-decoration: none; }
 .admin-account-nav a:hover { background: rgb(var(--color-accent) / .1); }

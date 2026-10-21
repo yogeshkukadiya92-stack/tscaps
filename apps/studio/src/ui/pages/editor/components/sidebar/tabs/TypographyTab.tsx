@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import { TypographySection } from '@ui/_shared/components/controls/sections/TypographySection';
 import { EditorTab, type SheetScope } from '@ui/pages/editor/components/sidebar/tabs/EditorTab';
@@ -11,6 +12,7 @@ interface TypographyTabProps {
 }
 
 export const TypographyTab = memo(function TypographyTab({ sheetScope }: TypographyTabProps) {
+  const { t } = useTranslation();
   const sheets = useSheets();
   const { horizontalSideResolver } = useRendering();
   const sheet = sheetScope.activeSheet;
@@ -18,7 +20,7 @@ export const TypographyTab = memo(function TypographyTab({ sheetScope }: Typogra
   const scripts = useSheetScripts(sheet);
   return (
     <EditorTab
-      title="Typography"
+      title={t("Typography")}
       sheetScope={sheetScope}
       onResetToTemplate={() => sheets.actions.style.resetSlice.execute('typography')}
     >

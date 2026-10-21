@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import '@ui/pages/editor/features/overlay/components/SocialOverlay.css';
 import { memo } from 'react';
 
@@ -10,30 +11,29 @@ import { memo } from 'react';
  * stays clickable.
  */
 export const SocialOverlay = memo(function SocialOverlay() {
+  const { t } = useTranslation();
   return (
     <div className="social-overlay" aria-hidden="true">
       <div className="social-top">
-        <span className="social-top-title">Reels</span>
+        <span className="social-top-title"><UiText text="Reels" /></span>
         <CameraIcon />
       </div>
       <div className="social-rail">
         <RailItem label="48.2K"><RailButton><HeartIcon /></RailButton></RailItem>
         <RailItem label="612"><RailButton><CommentIcon /></RailButton></RailItem>
-        <RailItem label="Share"><RailButton><PaperPlaneIcon /></RailButton></RailItem>
-        <RailItem label="Save"><RailButton><BookmarkIcon /></RailButton></RailItem>
+        <RailItem label={t("Share")}><RailButton><PaperPlaneIcon /></RailButton></RailItem>
+        <RailItem label={t("Save")}><RailButton><BookmarkIcon /></RailButton></RailItem>
         <RailItem><RailButton><MoreDotsIcon /></RailButton></RailItem>
       </div>
       <div className="social-bottom">
         <div className="social-bottom-row social-bottom-row--user">
           <div className="social-avatar social-avatar--small"><PersonIcon /></div>
-          <span className="social-handle">user.name</span>
-          <span className="social-follow-pill">Follow</span>
+          <span className="social-handle"><UiText text="user.name" /></span>
+          <span className="social-follow-pill"><UiText text="Follow" /></span>
         </div>
-        <div className="social-bottom-row social-description">
-          Post description goes here · #example
-        </div>
+        <div className="social-bottom-row social-description"><UiText text="Post description goes here · #example" /></div>
         <div className="social-bottom-row social-bottom-row--music">
-          <MusicNoteIcon /> <span className="social-music-text">Original audio · user.name</span>
+          <MusicNoteIcon /> <span className="social-music-text"><UiText text="Original audio · user.name" /></span>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@ function RailItem({ label, children }: RailItemProps) {
   return (
     <div className="social-rail-item">
       {children}
-      {label && <span className="social-rail-label">{label}</span>}
+      {label && <span className="social-rail-label"><UiText text={label} /></span>}
     </div>
   );
 }

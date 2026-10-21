@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { FileText } from 'lucide-react';
 import type { SubtitleFile } from '@core/transcription/domain/SubtitleFile';
 
@@ -25,17 +26,13 @@ interface SubtitleFileFieldProps {
 export function SubtitleFileField({ file, onChange }: SubtitleFileFieldProps) {
   return (
     <div className="flex flex-col gap-2">
-      <p className={LABEL}>Subtitle file</p>
+      <p className={LABEL}><UiText text="Subtitle file" /></p>
       <div className={FILE_ROW}>
         <FileText size={14} className="shrink-0 text-fg-muted" aria-hidden />
         <p className={FILE_NAME} title={file.name}>{file.name}</p>
-        <button type="button" className={CHANGE_BUTTON} onClick={onChange}>
-          Change
-        </button>
+        <button type="button" className={CHANGE_BUTTON} onClick={onChange}><UiText text="Change" /></button>
       </div>
-      <p className={WARNING} data-testid="subtitle-file-timing-warning">
-        Word timing is estimated, so word-by-word animations may not match the voice.
-      </p>
+      <p className={WARNING} data-testid="subtitle-file-timing-warning"><UiText text="Word timing is estimated, so word-by-word animations may not match the voice." /></p>
     </div>
   );
 }

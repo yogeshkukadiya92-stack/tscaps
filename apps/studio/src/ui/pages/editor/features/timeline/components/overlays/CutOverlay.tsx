@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import {
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -67,6 +68,7 @@ interface CutOverlayProps {
  * pointing at any part of it lights up the rest.
  */
 export function CutOverlay({ cut, rowStartSec, rowDurationSec, onRestore }: CutOverlayProps) {
+  const { t } = useTranslation();
   const editingController = useTimelineEditingController();
   const dragController = useTimelinePointerDragController();
   const cutEdit = useTimelineCutEdit();
@@ -138,7 +140,7 @@ export function CutOverlay({ cut, rowStartSec, rowDurationSec, onRestore }: CutO
         <div
           className={className}
           style={{ ...CUT_OVERLAY_STYLE, position: 'absolute', left: leftPct, width: widthPct, top: 0, bottom: 0 }}
-          title="Options for this cut"
+          title={t("Options for this cut")}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={recordPressOffset}
           {...hoverHandlers}
@@ -147,8 +149,8 @@ export function CutOverlay({ cut, rowStartSec, rowDurationSec, onRestore }: CutO
             <div
               className={CUT_RESIZE_HANDLE_CLASS}
               style={{ left: 0 }}
-              title="Drag to resize cut"
-              aria-label="Resize cut start"
+              title={t("Drag to resize cut")}
+              aria-label={t("Resize cut start")}
               onPointerDown={startResizeFromAnchor(cut.endSec)}
               onClick={(e) => e.stopPropagation()}
             />
@@ -157,8 +159,8 @@ export function CutOverlay({ cut, rowStartSec, rowDurationSec, onRestore }: CutO
             <div
               className={CUT_RESIZE_HANDLE_CLASS}
               style={{ right: 0 }}
-              title="Drag to resize cut"
-              aria-label="Resize cut end"
+              title={t("Drag to resize cut")}
+              aria-label={t("Resize cut end")}
               onPointerDown={startResizeFromAnchor(cut.startSec)}
               onClick={(e) => e.stopPropagation()}
             />

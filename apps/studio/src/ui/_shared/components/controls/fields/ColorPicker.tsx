@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useState } from 'react';
 import { Copy, ClipboardPaste, Check } from 'lucide-react';
 import { HexAlphaColorPicker } from 'react-colorful';
@@ -71,6 +73,7 @@ export const ColorPicker = memo(function ColorPicker({
   disabled,
   onChange,
 }: ColorPickerProps) {
+  const { t } = useTranslation();
   const hex8 = normalizeHex(value);
   const displayHex = compactHex(hex8);
 
@@ -113,7 +116,7 @@ export const ColorPicker = memo(function ColorPicker({
       className="w-[26px] h-[26px] rounded-xs border border-edge-medium cursor-pointer p-0 shrink-0 transition-colors duration-quick ease-standard hover:border-edge-strong focus-visible:outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-40 disabled:cursor-not-allowed"
       style={swatchStyle}
       disabled={disabled}
-      aria-label={label ? `Pick ${label} color` : 'Pick color'}
+      aria-label={label ? t("Pick {0} color", { 0: label }) : t('Pick color')}
     />
   );
 
@@ -134,12 +137,12 @@ export const ColorPicker = memo(function ColorPicker({
       />
       {hint === undefined ? (
         <span className="text-xs text-fg-muted whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
-          {label}
+          <UiText text={label} />
         </span>
       ) : (
         <Tooltip text={hint} tapToOpen>
           <span className="text-xs text-fg-muted whitespace-nowrap overflow-hidden text-ellipsis min-w-0 cursor-help underline decoration-dotted decoration-fg-faint underline-offset-2">
-            {label}
+            <UiText text={label} />
           </span>
         </Tooltip>
       )}
@@ -147,8 +150,8 @@ export const ColorPicker = memo(function ColorPicker({
         <button
           type="button"
           className="w-[18px] h-[18px] inline-flex items-center justify-center bg-transparent border-none rounded-xs text-fg-muted cursor-pointer p-0 shrink-0 transition-colors duration-quick ease-standard enabled:hover:bg-surface-3 enabled:hover:text-fg-secondary focus-visible:outline-none focus-visible:bg-surface-3 focus-visible:text-fg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
-          title={copied ? 'Copied' : `Copy ${displayHex}`}
-          aria-label={copied ? 'Copied' : `Copy ${label} color`}
+          title={copied ? t('Copied') : t("Copy {0}", { 0: displayHex })}
+          aria-label={copied ? t('Copied') : t("Copy {0} color", { 0: label })}
           onClick={handleCopy}
           disabled={disabled}
         >
@@ -157,8 +160,8 @@ export const ColorPicker = memo(function ColorPicker({
         <button
           type="button"
           className="w-[18px] h-[18px] inline-flex items-center justify-center bg-transparent border-none rounded-xs text-fg-muted cursor-pointer p-0 shrink-0 transition-colors duration-quick ease-standard enabled:hover:bg-surface-3 enabled:hover:text-fg-secondary focus-visible:outline-none focus-visible:bg-surface-3 focus-visible:text-fg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Paste hex from clipboard"
-          aria-label={`Paste ${label} color from clipboard`}
+          title={t("Paste hex from clipboard")}
+          aria-label={t("Paste {0} color from clipboard", { 0: label })}
           onClick={handlePaste}
           disabled={disabled}
         >

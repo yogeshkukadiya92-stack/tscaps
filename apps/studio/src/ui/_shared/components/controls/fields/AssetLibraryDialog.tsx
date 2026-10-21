@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { ImagePlus, Trash2, Check, Loader2 } from 'lucide-react';
 import type { ControlField } from '@core/templates/domain/definition/ControlField';
@@ -113,6 +114,7 @@ export const AssetLibraryDialog = memo(function AssetLibraryDialog({
   onPick,
   onClose,
 }: AssetLibraryDialogProps) {
+  const { t } = useTranslation();
   const userBlobs = useUserBlobs();
   const { assets } = useAssetLibrary();
   const userAssetsCount = useMemo(
@@ -180,7 +182,7 @@ export const AssetLibraryDialog = memo(function AssetLibraryDialog({
         onClose={onClose}
         size="lg"
         title={field.label}
-        description="Pick an asset or upload your own."
+        description={t("Pick an asset or upload your own.")}
         showCloseButton
       >
         <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-3">
@@ -189,18 +191,18 @@ export const AssetLibraryDialog = memo(function AssetLibraryDialog({
             className={`${TILE_BASE} ${TILE_IDLE} ${TILE_EMPTY}`}
             onClick={openFilePicker}
             disabled={isUploading}
-            aria-label={isUploading ? 'Uploading' : 'Upload a new asset'}
+            aria-label={isUploading ? t('Uploading') : t('Upload a new asset')}
             aria-busy={isUploading}
           >
             {isUploading ? (
               <>
                 <Loader2 size={20} strokeWidth={2} className="animate-spin" />
-                <span className="text-2xs font-medium leading-none">Uploading</span>
+                <span className="text-2xs font-medium leading-none"><UiText text="Uploading" /></span>
               </>
             ) : (
               <>
                 <ImagePlus size={20} strokeWidth={2} />
-                <span className="text-2xs font-medium leading-none">Upload</span>
+                <span className="text-2xs font-medium leading-none"><UiText text="Upload" /></span>
               </>
             )}
           </button>
@@ -216,8 +218,8 @@ export const AssetLibraryDialog = memo(function AssetLibraryDialog({
                   className={`${TILE_BASE} ${isActive ? TILE_ACTIVE : TILE_IDLE} w-full`}
                   style={imageTileStyle(asset.url)}
                   onClick={() => pickAsset(asset)}
-                  aria-label={asset.id === defaultAssetId ? 'Use template default' : 'Use this asset'}
-                  title={asset.id === defaultAssetId ? 'Template default' : undefined}
+                  aria-label={asset.id === defaultAssetId ? t('Use template default') : t('Use this asset')}
+                  title={asset.id === defaultAssetId ? t('Template default') : undefined}
                 >
                   {isActive && (
                     <span className={ACTIVE_BADGE}>
@@ -230,8 +232,8 @@ export const AssetLibraryDialog = memo(function AssetLibraryDialog({
                     type="button"
                     className={DELETE_BTN}
                     onClick={(e) => { e.stopPropagation(); requestDelete(asset); }}
-                    aria-label="Delete asset"
-                    title="Delete asset"
+                    aria-label={t("Delete asset")}
+                    title={t("Delete asset")}
                   >
                     <Trash2 size={11} strokeWidth={2.25} />
                   </button>

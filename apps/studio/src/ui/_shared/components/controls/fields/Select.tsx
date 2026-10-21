@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo, useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 
@@ -37,7 +38,7 @@ export const Select = memo(function Select({
   const fieldId = useId();
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor={fieldId} className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</label>
+      <label htmlFor={fieldId} className="text-xs text-fg-muted min-w-[90px] shrink-0"><UiText text={label} /></label>
       <div className="relative flex-1 min-w-0">
         <select
           id={fieldId}
@@ -48,7 +49,7 @@ export const Select = memo(function Select({
         >
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
-              {opt.label}
+              <UiText text={opt.label} />
             </option>
           ))}
         </select>

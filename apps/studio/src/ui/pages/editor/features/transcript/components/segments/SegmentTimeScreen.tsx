@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useCallback, useMemo, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Sparkles } from 'lucide-react';
 import type { RenderTimeMap, Segment } from '@tscaps/engine';
@@ -52,6 +53,7 @@ interface WordsRange {
 export function SegmentTimeScreen({
   segment, prevSegmentEnd, nextSegmentStart, onCommitSegmentTime, onRedistributeWords,
 }: SegmentTimeScreenProps) {
+  const { t } = useTranslation();
   const timeMap = useRenderTimeMap();
   const outputSegStart = timeMap.toOutputTime(segment.time.start);
   const outputSegEnd = timeMap.toOutputTime(segment.time.end);
@@ -130,11 +132,9 @@ export function SegmentTimeScreen({
 
   return (
     <div className="flex flex-col gap-2 p-2 w-[260px]">
-      <PopoverHeader title="Scene timing" />
+      <PopoverHeader title={t("Scene timing")} />
       <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-1 text-2xs text-fg-secondary">
-          Start
-          <input
+        <label className="flex flex-col gap-1 text-2xs text-fg-secondary"><UiText text="Start" /><input
             type="text"
             inputMode="decimal"
             className={TIME_INPUT_CLASS}
@@ -144,9 +144,7 @@ export function SegmentTimeScreen({
             onKeyDown={handleKey}
           />
         </label>
-        <label className="flex flex-col gap-1 text-2xs text-fg-secondary">
-          End
-          <input
+        <label className="flex flex-col gap-1 text-2xs text-fg-secondary"><UiText text="End" /><input
             type="text"
             inputMode="decimal"
             className={TIME_INPUT_CLASS}
@@ -161,8 +159,7 @@ export function SegmentTimeScreen({
         // States the window that survived rather than naming the wall it
         // hit: the limit can be a neighbouring scene or the video's end,
         // and guessing wrong would teach the user a rule that is not there.
-        <p className={ADJUSTED_NOTE_CLASS}>
-          That range was not available. Kept {startStr}–{endStr}.
+        <p className={ADJUSTED_NOTE_CLASS}><UiText text="That range was not available. Kept " />{startStr}–{endStr}.
         </p>
       )}
       <DualRangeSlider
@@ -188,9 +185,7 @@ export function SegmentTimeScreen({
           position="bottom"
         >
           <button type="button" className={REDISTRIBUTE_BTN} onClick={onRedistributeWords}>
-            <Sparkles size={11} />
-            Redistribute
-          </button>
+            <Sparkles size={11} /><UiText text="Redistribute" /></button>
         </Tooltip>
       </div>
     </div>
@@ -236,9 +231,7 @@ function WordsRangeBracket({ marker, min, max }: WordsRangeBracketProps) {
         <span
           className="absolute top-2 -translate-x-1/2 text-3xs whitespace-nowrap leading-none"
           style={{ left: `${centerPct}%` }}
-        >
-          Word times
-        </span>
+        ><UiText text="Word times" /></span>
       </div>
     </Tooltip>
   );

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { buildPhotoVideo, isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MEDIA_FILE_ACCEPT, isAcceptedMediaFile, isAudioFile, VIDEO_UNSUPPORTED_MESSAGE } from '@ui/_shared/video/videoAcceptance';
@@ -23,6 +24,7 @@ const ERROR_BOX =
   'text-xs text-danger bg-danger/10 border border-danger/40 rounded-xs px-3 py-2';
 
 export function VideoDropzone({ onFile }: VideoDropzoneProps) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const errorTimerRef = useRef<number | null>(null);
   const busyRef = useRef(false);
@@ -88,9 +90,8 @@ export function VideoDropzone({ onFile }: VideoDropzoneProps) {
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
       >
-        <p className={ZONE_TITLE}>{busy ? 'Preparing your media…' : 'Drop your video, photo or audio here'}</p>
-        <label className={ZONE_HINT}>
-          or <span className={BROWSE_LINK}>browse files</span>
+        <p className={ZONE_TITLE}>{busy ? t('Preparing your media…') : t('Drop your video, photo or audio here')}</p>
+        <label className={ZONE_HINT}><UiText text="or " /><span className={BROWSE_LINK}><UiText text="browse files" /></span>
           <input
             type="file"
             accept={MEDIA_FILE_ACCEPT}
@@ -106,7 +107,7 @@ export function VideoDropzone({ onFile }: VideoDropzoneProps) {
           role="alert"
           aria-live="polite"
         >
-          {error}
+          <UiText text={error} />
         </p>
       )}
     </div>

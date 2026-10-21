@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 // Top-left because the other corners are taken: the favourite star sits
 // top-right and the selection mark bottom-left. The top-left is only
 // ever used by a saved template's rename and delete buttons, and a saved
@@ -8,5 +9,5 @@ const NEW_BADGE =
 
 /** The "New" mark laid over a gallery card's corner. */
 export function TemplateNewBadge() {
-  return <span className={NEW_BADGE}>New</span>;
+  return <span className={NEW_BADGE}><UiText text="New" /></span>;
 }

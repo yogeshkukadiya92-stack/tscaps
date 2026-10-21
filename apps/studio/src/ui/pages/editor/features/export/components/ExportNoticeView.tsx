@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
 import type { ExportNotice } from '@core/export/domain/ExportNotice';
@@ -12,9 +13,7 @@ export function ExportNoticeView({ notice, onDismiss }: ExportNoticeViewProps) {
     <div className="flex flex-col gap-4 text-sm">
       <p>{messageFor(notice)}</p>
       <AppDialogActions>
-        <button type="button" className={BTN_PRIMARY_SM} onClick={onDismiss} autoFocus>
-          Got it
-        </button>
+        <button type="button" className={BTN_PRIMARY_SM} onClick={onDismiss} autoFocus><UiText text="Got it" /></button>
       </AppDialogActions>
     </div>
   );

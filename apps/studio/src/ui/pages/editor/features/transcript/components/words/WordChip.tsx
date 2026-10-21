@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo } from 'react';
 
 const WORD_BASE =
@@ -32,6 +33,7 @@ interface WordChipProps {
 export const WordChip = memo(function WordChip({
   wordId, text, isActive, hasOverride, onActivate, selectionMode, selected, onToggleSelection,
 }: WordChipProps) {
+  const { t } = useTranslation();
   const highlighted = selectionMode ? selected === true : isActive;
   return (
     <span
@@ -49,7 +51,7 @@ export const WordChip = memo(function WordChip({
           wrong side of itself; `auto` settles that from the word's own first
           strong character, so the chip needs to know nothing about the sheet. */}
       <span dir="auto">{text || <span className="text-fg-faint italic">·</span>}</span>
-      {!selectionMode && hasOverride && <span className={OVERRIDE_DOT} aria-label="Has style overrides" />}
+      {!selectionMode && hasOverride && <span className={OVERRIDE_DOT} aria-label={t("Has style overrides")} />}
     </span>
   );
 });

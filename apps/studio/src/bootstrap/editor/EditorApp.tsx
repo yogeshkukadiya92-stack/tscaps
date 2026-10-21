@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { LocaleProvider, LocalizedPageTitle } from '@ui/i18n/Locale';
 import { lazy, Suspense, useEffect, useMemo, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeController } from '@presentation/theme/controllers/ThemeController';
@@ -63,7 +65,8 @@ export function EditorApp({
   const projectRoute = <ProjectRoute />;
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+    <LocaleProvider><BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+    <LocalizedPageTitle />
     <CloudAuthGate modules={modules}>
     <EditorAppProviders modules={modules}>
       <AppExitProvider value={exitHref}>
@@ -84,7 +87,7 @@ export function EditorApp({
                 <VideoUploadPanel />
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   <Routes>
-                    <Route path={routes.admin()} element={<Suspense fallback={<p role="status">Loading administration…</p>}><AdminPanel /></Suspense>} />
+                    <Route path={routes.admin()} element={<Suspense fallback={<p role="status"><UiText text="Loading administration…" /></p>}><AdminPanel /></Suspense>} />
                     {exitHref === null && <Route path={routes.projectsList()} element={projectsHost} />}
                     <Route path={routes.editor()} element={<NewProjectRoute />} />
                     <Route path={routes.toolPattern()} element={<NewProjectRoute />} />
@@ -108,6 +111,6 @@ export function EditorApp({
       </AppExitProvider>
     </EditorAppProviders>
     </CloudAuthGate>
-    </BrowserRouter>
+    </BrowserRouter></LocaleProvider>
   );
 }

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useMemo } from 'react';
 import { useCaptions } from '@ui/_shared/contexts/modules/CaptionsContext';
 import { flushSync } from 'react-dom';
@@ -78,6 +79,7 @@ export const FreeTranscriptView = memo(function FreeTranscriptView({
   bulkSelection = null,
   onToggleBulkScene,
 }: FreeTranscriptViewProps) {
+  const { t } = useTranslation();
   const captions = useTranscriptCallbacks();
   // Merge / split restore the caret to the destination textarea.
   // flushSync forces React to fully commit the action (including the
@@ -151,10 +153,10 @@ export const FreeTranscriptView = memo(function FreeTranscriptView({
   if (sorted.length === 0) {
     return (
       <div className="flex flex-col gap-2 py-4 pl-1">
-        <p className="text-sm text-fg-muted text-center m-0">No captions yet.</p>
+        <p className="text-sm text-fg-muted text-center m-0"><UiText text="No captions yet." /></p>
         <AddSceneButton
           onClick={() => onInsertSegment(null, 'before')}
-          label="Add first scene"
+          label={t("Add first scene")}
         />
       </div>
     );
@@ -185,7 +187,7 @@ export const FreeTranscriptView = memo(function FreeTranscriptView({
               {bulkSelection === null && isFirstInList && (
                 <AddSceneButton
                   onClick={() => onInsertSegment(segment.id, 'before')}
-                  label="Add scene at start"
+                  label={t("Add scene at start")}
                 />
               )}
               <div className={`relative ${highlightedSegmentId === segment.id ? 'rounded-sm ring-2 ring-accent ring-offset-2 ring-offset-surface-1' : ''}`}>
@@ -236,7 +238,7 @@ export const FreeTranscriptView = memo(function FreeTranscriptView({
               {bulkSelection === null && (
                 <AddSceneButton
                   onClick={() => onInsertSegment(segment.id, 'after')}
-                  label={isLastInList ? 'Add scene at end' : 'Add scene'}
+                  label={isLastInList ? t('Add scene at end') : t('Add scene')}
                 />
               )}
             </div>

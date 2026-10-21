@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { forwardRef, useState } from 'react';
 import { ListChecks, Palette, SwatchBook, Tags, Trash2, UserRound, UserRoundX } from 'lucide-react';
 import type { Segment, Word } from '@tscaps/engine';
@@ -102,44 +103,44 @@ const TriggerButton = forwardRef<HTMLButtonElement, { disabled?: boolean }>(
   function TriggerButton({ disabled, ...props }, ref) {
     return (
       <button {...props} ref={ref} type="button" disabled={disabled} className={PRIMARY_BUTTON}>
-        <ListChecks size={14} /> Actions
-      </button>
+        <ListChecks size={14} /><UiText text=" Actions" /></button>
     );
   },
 );
 
 function Menu(props: BulkActionsPopoverProps & { tagRows: ReadonlyArray<WordTagRow>; onAskDelete: () => void }) {
+  const { t } = useTranslation();
   const { navigate, close } = usePopoverNav();
   if (props.target === 'words') {
     return (
       <div className={MENU}>
-        <PopoverHeader title="Selected words" />
-        {props.styleContext && <button type="button" className={ITEM} onClick={() => navigate('style')}><Palette size={13} /> Edit style</button>}
+        <PopoverHeader title={t("Selected words")} />
+        {props.styleContext && <button type="button" className={ITEM} onClick={() => navigate('style')}><Palette size={13} /><UiText text=" Edit style" /></button>}
         {props.tagRows.length > 0 ? (
-          <button type="button" className={ITEM} onClick={() => navigate('tags')}><Tags size={13} /> Edit tags</button>
+          <button type="button" className={ITEM} onClick={() => navigate('tags')}><Tags size={13} /><UiText text=" Edit tags" /></button>
         ) : (
           <Tooltip text={NO_TAGS_TOOLTIP} position="left">
             <div>
-              <button type="button" className={DISABLED_ITEM} disabled><Tags size={13} /> Edit tags</button>
+              <button type="button" className={DISABLED_ITEM} disabled><Tags size={13} /><UiText text=" Edit tags" /></button>
             </div>
           </Tooltip>
         )}
-        <button type="button" className={DANGER_ITEM} onClick={() => { close(); props.onAskDelete(); }}><Trash2 size={13} /> Delete words</button>
+        <button type="button" className={DANGER_ITEM} onClick={() => { close(); props.onAskDelete(); }}><Trash2 size={13} /><UiText text=" Delete words" /></button>
       </div>
     );
   }
   return (
     <div className={MENU}>
-      <PopoverHeader title="Selected scenes" />
-      {props.styleContext && <button type="button" className={ITEM} onClick={() => navigate('style')}><Palette size={13} /> Edit style</button>}
+      <PopoverHeader title={t("Selected scenes")} />
+      {props.styleContext && <button type="button" className={ITEM} onClick={() => navigate('style')}><Palette size={13} /><UiText text=" Edit style" /></button>}
       {props.canUseBehindActor && (
         <>
-          <button type="button" className={ITEM} onClick={() => { props.onSetBehindActor(true); close(); }}><UserRound size={13} /> Place behind person</button>
-          <button type="button" className={ITEM} onClick={() => { props.onSetBehindActor(false); close(); }}><UserRoundX size={13} /> Keep in front</button>
+          <button type="button" className={ITEM} onClick={() => { props.onSetBehindActor(true); close(); }}><UserRound size={13} /><UiText text=" Place behind person" /></button>
+          <button type="button" className={ITEM} onClick={() => { props.onSetBehindActor(false); close(); }}><UserRoundX size={13} /><UiText text=" Keep in front" /></button>
         </>
       )}
-      <button type="button" className={ITEM} onClick={() => navigate('sheets')}><SwatchBook size={13} /> Change style sheet</button>
-      <button type="button" className={DANGER_ITEM} onClick={() => { close(); props.onAskDelete(); }}><Trash2 size={13} /> Delete scenes</button>
+      <button type="button" className={ITEM} onClick={() => navigate('sheets')}><SwatchBook size={13} /><UiText text=" Change style sheet" /></button>
+      <button type="button" className={DANGER_ITEM} onClick={() => { close(); props.onAskDelete(); }}><Trash2 size={13} /><UiText text=" Delete scenes" /></button>
     </div>
   );
 }

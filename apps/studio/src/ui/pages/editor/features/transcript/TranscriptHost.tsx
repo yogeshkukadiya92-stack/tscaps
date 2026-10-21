@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { StartDialog } from '@ui/pages/editor/features/preprocessing/StartDialog';
 import { useEditorState } from '@ui/_shared/hooks/useEditorState';
 import { usePreprocessing } from '@ui/_shared/contexts/modules/PreprocessingContext';
@@ -48,6 +49,7 @@ interface TranscriptHostProps {
  * while the pick chrome is up.
  */
 export function TranscriptHost(props: TranscriptHostProps) {
+  const { t } = useTranslation();
   const captions = useCaptions();
   const cuts = useCuts();
   const cutRegistry = useEditorCuts();
@@ -75,15 +77,13 @@ export function TranscriptHost(props: TranscriptHostProps) {
         <div className="flex flex-col gap-1 mb-3">
           <button type="button" className={BTN_SECONDARY_SM}
             disabled={!state.video.file || state.status === 'preprocessing'}
-            onClick={() => { playback.pause(); setRetranscribeOpen(true); }}>
-            Change language / Retranscribe
-          </button>
-          <p className="text-2xs text-fg-muted m-0">Choose a speech language or regenerate captions for the whole video.</p>
+            onClick={() => { playback.pause(); setRetranscribeOpen(true); }}><UiText text="Change language / Retranscribe" /></button>
+          <p className="text-2xs text-fg-muted m-0"><UiText text="Choose a speech language or regenerate captions for the whole video." /></p>
         </div>
         {retranscribeOpen && <StartDialog
-          open title="Change language / Retranscribe"
+          open title={t("Change language / Retranscribe")}
           initialLanguage={props.document?.language?.split('-')[0] ?? ''}
-          description="Regenerate all captions from the original audio in the selected speech language. This replaces caption edits and individual styling; your template and video cuts stay. Use Undo to restore previous captions."
+          description={t("Regenerate all captions from the original audio in the selected speech language. This replaces caption edits and individual styling; your template and video cuts stay. Use Undo to restore previous captions.")}
           preference={state.transcribePreference}
           isMobileDevice={userAgentInspector.isMobile()}
           error={state.error}
@@ -96,13 +96,13 @@ export function TranscriptHost(props: TranscriptHostProps) {
           }}
           onLanguagePicked={(language) => preprocessing.languageUsageRepository.recordPick(language)}
           renderActions={(start) => <>
-            <button type="button" className={BTN_SECONDARY_SM} onClick={() => setRetranscribeOpen(false)}>Cancel</button>
-            <AsyncButton className={BTN_PRIMARY_SM} onClick={start}>Replace all captions</AsyncButton>
+            <button type="button" className={BTN_SECONDARY_SM} onClick={() => setRetranscribeOpen(false)}><UiText text="Cancel" /></button>
+            <AsyncButton className={BTN_PRIMARY_SM} onClick={start}><UiText text="Replace all captions" /></AsyncButton>
           </>}
         />}
         {hasHindi && <div className="flex flex-col gap-1 mb-3">
-          <button className={BTN_SECONDARY_SM} onClick={() => transcription.actions.romanize.execute()}>Convert Hindi to Roman Hinglish</button>
-          <p className="text-2xs text-fg-muted m-0">Keeps word timing and English text. Use Undo to restore the original script.</p>
+          <button className={BTN_SECONDARY_SM} onClick={() => transcription.actions.romanize.execute()}><UiText text="Convert Hindi to Roman Hinglish" /></button>
+          <p className="text-2xs text-fg-muted m-0"><UiText text="Keeps word timing and English text. Use Undo to restore the original script." /></p>
         </div>}
         <TranscriptPanel
           {...props}
@@ -148,9 +148,10 @@ export function TranscriptHost(props: TranscriptHostProps) {
  * on-screen — the two rows on top of each other would otherwise fight.
  */
 function TranscriptTabShell({ children, bulkModeActive }: { children: ReactNode; bulkModeActive: boolean }) {
+  const { t } = useTranslation();
   const pickSnapshot = useScenePickSnapshot();
   return (
-    <EditorTab title="Transcript" hideTitleRow={pickSnapshot.isActive || bulkModeActive}>
+    <EditorTab title={t("Transcript")} hideTitleRow={pickSnapshot.isActive || bulkModeActive}>
       {children}
     </EditorTab>
   );

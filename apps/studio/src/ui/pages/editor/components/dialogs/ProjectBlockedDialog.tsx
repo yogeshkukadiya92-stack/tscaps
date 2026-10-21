@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { AppDialog } from '@ui/_shared/components/Dialog/AppDialog';
 import { AppErrorMessage, getAppErrorTitle, useFailureReason } from '@ui/_shared/components/AppErrorMessage/AppErrorMessage';
 import { BTN_PRIMARY_SM, BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
@@ -46,13 +47,9 @@ export function ProjectBlockedDialog({ error, onBackToProjects }: ProjectBlocked
             className={isRetryable ? BTN_SECONDARY_SM : BTN_PRIMARY_SM}
             onClick={onBackToProjects}
             autoFocus={!isRetryable}
-          >
-            Back to projects
-          </button>
+          ><UiText text="Back to projects" /></button>
           {isRetryable && (
-            <button type="button" className={BTN_PRIMARY_SM} onClick={reload} autoFocus>
-              Reload
-            </button>
+            <button type="button" className={BTN_PRIMARY_SM} onClick={reload} autoFocus><UiText text="Reload" /></button>
           )}
         </div>
       </div>

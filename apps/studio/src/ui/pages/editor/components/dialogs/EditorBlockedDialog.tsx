@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 import { AppDialog } from '@ui/_shared/components/Dialog/AppDialog';
 
@@ -63,9 +64,7 @@ function ReloadButton() {
         type="button"
         className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-fg-on-accent hover:opacity-90"
         onClick={() => window.location.reload()}
-      >
-        Reload
-      </button>
+      ><UiText text="Reload" /></button>
     </div>
   );
 }

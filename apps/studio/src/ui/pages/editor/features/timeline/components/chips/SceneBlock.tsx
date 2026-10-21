@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import type { TimelineSpan } from '@presentation/timeline/services/TimelineSpan';
 import type { TimelineSceneRun } from '@presentation/timeline/services/TimelineProjection';
@@ -101,6 +102,7 @@ export function SceneBlock({
   editedWindow,
   onCutScene,
 }: SceneBlockProps) {
+  const { t } = useTranslation();
   const editingController = useTimelineEditingController();
   const dragController = useTimelinePointerDragController();
   const captions = useCaptions();
@@ -186,7 +188,7 @@ export function SceneBlock({
         borderColor: isLit && isLive ? ACCENT_EDGE : palette.barColorFor(run.toneIndex),
       }}
       title={run.text}
-      aria-label={`Scene: ${run.text}`}
+      aria-label={t("Scene: {0}", { 0: run.text })}
       onPointerDown={carry}
       onClick={takeHold}
       onContextMenu={isLive ? openMenu : undefined}
@@ -197,8 +199,8 @@ export function SceneBlock({
         <span
           className={RESIZE_HANDLE_CLASS}
           style={{ left: 0 }}
-          title="Drag to change when this scene starts"
-          aria-label="Scene start"
+          title={t("Drag to change when this scene starts")}
+          aria-label={t("Scene start")}
           onPointerDown={dragEdge('start')}
         />
       )}
@@ -206,8 +208,8 @@ export function SceneBlock({
         <span
           className={RESIZE_HANDLE_CLASS}
           style={{ right: 0 }}
-          title="Drag to change when this scene stops"
-          aria-label="Scene end"
+          title={t("Drag to change when this scene stops")}
+          aria-label={t("Scene end")}
           onPointerDown={dragEdge('end')}
         />
       )}

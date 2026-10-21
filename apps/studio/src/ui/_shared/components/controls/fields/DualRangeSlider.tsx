@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useCallback, useRef, type PointerEvent } from 'react';
 
 export interface DualRangeSliderMarker {
@@ -38,6 +39,7 @@ export function DualRangeSlider({
   min, max, step, startValue, endValue, marker = null, disabled = false,
   onStartChange, onEndChange,
 }: DualRangeSliderProps) {
+  const { t } = useTranslation();
   const trackRef = useRef<HTMLDivElement>(null);
 
   const pct = useCallback((v: number) => {
@@ -116,7 +118,7 @@ export function DualRangeSlider({
         disabled={disabled}
         style={{ left: `${startPct}%` }}
         onPointerDown={beginDrag('start')}
-        aria-label="Range start"
+        aria-label={t("Range start")}
       />
       <button
         type="button"
@@ -124,7 +126,7 @@ export function DualRangeSlider({
         disabled={disabled}
         style={{ left: `${endPct}%` }}
         onPointerDown={beginDrag('end')}
-        aria-label="Range end"
+        aria-label={t("Range end")}
       />
     </div>
   );

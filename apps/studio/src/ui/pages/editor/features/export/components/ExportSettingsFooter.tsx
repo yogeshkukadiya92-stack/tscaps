@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { AsyncButton } from '@ui/_shared/components/AsyncButton/AsyncButton';
 import { BTN_PRIMARY_SM, BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
 
@@ -41,7 +42,7 @@ export function ExportSettingsFooter({
         {alternateLabel}
       </button>
       <div className="flex gap-2 ml-auto">
-        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}>Cancel</button>
+        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}><UiText text="Cancel" /></button>
         <AsyncButton
           className={BTN_PRIMARY_SM}
           onClick={onConfirm}

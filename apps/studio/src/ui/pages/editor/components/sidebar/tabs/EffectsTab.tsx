@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import type {
   GapFreeEffectConfig,
@@ -28,6 +29,7 @@ interface EffectsTabProps {
 }
 
 export const EffectsTab = memo(function EffectsTab({ sheetScope }: EffectsTabProps) {
+  const { t } = useTranslation();
   const { effects } = useEngine();
   const sheets = useSheets();
   const sheet = sheetScope.activeSheet;
@@ -49,66 +51,58 @@ export const EffectsTab = memo(function EffectsTab({ sheetScope }: EffectsTabPro
 
   return (
     <EditorTab
-      title="Effects"
+      title={t("Effects")}
       sheetScope={sheetScope}
       onResetToTemplate={() => sheets.actions.style.resetSlice.execute('effects')}
     >
       <Section>
         <div className="flex flex-col gap-1">
           <Toggle
-            label="Gap-free"
+            label={t("Gap-free")}
             value={gapFree.enabled}
             onChange={(v) => sheets.actions.style.updateEffects.execute({ ...gapFree, enabled: v })}
           />
-          <p className="text-2xs text-fg-faint leading-snug m-0">
-            Keeps each caption on screen until the next one starts, hiding short pauses between them.
-          </p>
+          <p className="text-2xs text-fg-faint leading-snug m-0"><UiText text="Keeps each caption on screen until the next one starts, hiding short pauses between them." /></p>
         </div>
         <Toggle
-          label="Remove punctuation"
+          label={t("Remove punctuation")}
           value={removePunctuation.enabled}
           onChange={(v) => sheets.actions.style.updateEffects.execute({ ...removePunctuation, enabled: v })}
         />
         <div className="flex flex-col gap-1">
           <Toggle
-            label="Smart punctuation"
+            label={t("Smart punctuation")}
             value={smartPunctuation.enabled}
             onChange={(v) => sheets.actions.style.updateEffects.execute({ ...smartPunctuation, enabled: v })}
           />
-          <p className="text-2xs text-fg-faint leading-snug m-0">
-            Replaces straight quotes, apostrophes, dashes, and ellipses with their typographic equivalents.
-          </p>
+          <p className="text-2xs text-fg-faint leading-snug m-0"><UiText text="Replaces straight quotes, apostrophes, dashes, and ellipses with their typographic equivalents." /></p>
         </div>
         <div className="flex flex-col gap-1">
           <Toggle
-            label="Carry quotes"
+            label={t("Carry quotes")}
             value={carryQuotes.enabled}
             onChange={(v) => sheets.actions.style.updateEffects.execute({ ...carryQuotes, enabled: v })}
           />
-          <p className="text-2xs text-fg-faint leading-snug m-0">
-            When a quoted sentence spans several captions, repeats the surrounding quotes on each so it stays clear the speaker is still quoting.
-          </p>
+          <p className="text-2xs text-fg-faint leading-snug m-0"><UiText text="When a quoted sentence spans several captions, repeats the surrounding quotes on each so it stays clear the speaker is still quoting." /></p>
         </div>
         <div className="flex flex-col gap-1">
           <Toggle
-            label="Smart lowercase"
+            label={t("Smart lowercase")}
             value={smartLowercase.enabled}
             onChange={(v) => sheets.actions.style.updateEffects.execute({ ...smartLowercase, enabled: v })}
           />
-          <p className="text-2xs text-fg-faint leading-snug m-0">
-            Forces lowercase on every word, except proper nouns and the pronoun "I".
-          </p>
+          <p className="text-2xs text-fg-faint leading-snug m-0"><UiText text="Forces lowercase on every word, except proper nouns and the pronoun &quot;I&quot;." /></p>
         </div>
       </Section>
-      <Section title="Emojis">
+      <Section title={t("Emojis")}>
         <Select
-          label="Placement"
+          label={t("Placement")}
           value={emoji.placement}
           options={EMOJI_PLACEMENT_OPTIONS}
           onChange={(v) => sheets.actions.style.updateEffects.execute({ ...emoji, placement: v as EmojiPlacement })}
         />
         <Slider
-          label="Size"
+          label={t("Size")}
           value={emoji.size}
           min={0.5}
           max={3}
@@ -116,7 +110,7 @@ export const EffectsTab = memo(function EffectsTab({ sheetScope }: EffectsTabPro
           onChange={(v) => sheets.actions.style.updateEffects.execute({ ...emoji, size: v })}
         />
         <Slider
-          label="Gap"
+          label={t("Gap")}
           value={emoji.gap}
           min={-5}
           max={5}

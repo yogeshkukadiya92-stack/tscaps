@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
@@ -50,7 +51,7 @@ function TooltipHoverOnly({ text, position, children }: VariantProps) {
           collisionPadding={8}
           className={CONTENT_CLASS}
         >
-          {text}
+          <UiText text={text} />
         </RadixTooltip.Content>
       </RadixTooltip.Portal>
     </RadixTooltip.Root>
@@ -112,7 +113,7 @@ function TooltipWithTapSupport({ text, position, children }: VariantProps) {
           collisionPadding={8}
           className={CONTENT_CLASS}
         >
-          {text}
+          <UiText text={text} />
         </RadixTooltip.Content>
       </RadixTooltip.Portal>
     </RadixTooltip.Root>

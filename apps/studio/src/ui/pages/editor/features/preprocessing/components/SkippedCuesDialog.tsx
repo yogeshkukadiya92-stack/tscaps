@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useState } from 'react';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
@@ -35,6 +36,7 @@ function useSkippedBlocks(store: SkippedCueBlocksStore): readonly string[] {
  * what is missing from it.
  */
 export function SkippedCuesDialog({ store }: SkippedCuesDialogProps) {
+  const { t } = useTranslation();
   const blocks = useSkippedBlocks(store);
   const [dismissed, setDismissed] = useState<readonly string[] | null>(null);
   if (dismissed === blocks || blocks.length === 0) return null;
@@ -47,31 +49,23 @@ export function SkippedCuesDialog({ store }: SkippedCuesDialogProps) {
       size="md"
       title={
         blocks.length === 1
-          ? "Part of this file couldn't be processed"
-          : "Parts of this file couldn't be processed"
+          ? t("Part of this file couldn't be processed")
+          : t("Parts of this file couldn't be processed")
       }
     >
-      <p className={BODY}>
-        Your captions are ready, minus the text below. Each of these sits in your file without a
-        timecode above it, so there was no way to know when it should appear.
-      </p>
+      <p className={BODY}><UiText text="Your captions are ready, minus the text below. Each of these sits in your file without a timecode above it, so there was no way to know when it should appear." /></p>
 
       <div className={PANEL}>
         {preview.map((block) => (
           <p className={PANEL_LINE} key={block}>{block.split('\n').join(' ')}</p>
         ))}
-        {remaining > 0 && <p className={PANEL_MORE}>and {remaining} more</p>}
+        {remaining > 0 && <p className={PANEL_MORE}><UiText text="and " />{remaining}<UiText text=" more" /></p>}
       </div>
 
-      <p className={BODY}>
-        Usually it is a blank line that slipped into the middle of a caption. Fix it in your file
-        and start again with it to get everything in.
-      </p>
+      <p className={BODY}><UiText text="Usually it is a blank line that slipped into the middle of a caption. Fix it in your file and start again with it to get everything in." /></p>
 
       <AppDialogActions>
-        <button type="button" className={BTN_PRIMARY_SM} onClick={() => setDismissed(blocks)}>
-          Got it
-        </button>
+        <button type="button" className={BTN_PRIMARY_SM} onClick={() => setDismissed(blocks)}><UiText text="Got it" /></button>
       </AppDialogActions>
     </AppDialog>
   );

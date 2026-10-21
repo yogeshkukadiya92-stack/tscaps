@@ -142,3 +142,11 @@
 }
 
 .public-support { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; overflow-wrap: anywhere; }
+
+/* Translated actions may be wider than English; keep the language picker reachable. */
+.public-header-actions { min-width: 0; flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .public-header-actions { max-width: 100%; gap: 10px; }
+  .public-header nav { min-width: 0; }
+  .public-site:lang(hi) :is(h1, h2, h3), .public-site:lang(gu) :is(h1, h2, h3) { line-height: 1.35; letter-spacing: normal; }
+}

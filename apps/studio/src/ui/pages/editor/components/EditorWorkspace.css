@@ -18,7 +18,7 @@
 /* Shared editing workspace: one visual language for captions and creative. */
 .editor-studio { padding: 12px 20px 18px; }
 .editor-project-toolbar { min-height: 56px; border-bottom: 0; margin-bottom: 6px; }
-.editor-project-toolbar input[aria-label='Project name'] { background: rgb(var(--color-surface-1)); border: 1px solid var(--edge-subtle); border-radius: 10px; padding: 10px 14px; max-width: min(38vw, 440px); width: 32vw; }
+.editor-project-toolbar input[data-ui='project-name'] { background: rgb(var(--color-surface-1)); border: 1px solid var(--edge-subtle); border-radius: 10px; padding: 10px 14px; max-width: min(38vw, 440px); width: 32vw; }
 .editor-workflow-tabs { gap: 6px; padding-block: 4px 12px !important; }
 .editor-workflow-tabs > button { border-radius: 8px; min-height: 38px; }
 .editor-surface { box-shadow: 0 2px 8px rgb(0 0 0 / .035); }
@@ -39,7 +39,7 @@
 .editor-reel-preview { background: rgb(var(--color-surface-1)); }
 @media (max-width: 1023px) {
   .editor-studio { padding: 8px; }
-  .editor-project-toolbar input[aria-label='Project name'] { padding: 7px; }
+  .editor-project-toolbar input[data-ui='project-name'] { padding: 7px; }
   .caption-section-navigation { flex-wrap: wrap; }
   .caption-section-navigation [role='tablist'] { flex-basis: 100%; }
   .caption-more-tools { margin-left: auto; }

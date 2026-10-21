@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { type ReactElement } from 'react';
 import { Smile, Palette, Trash2 } from 'lucide-react';
 import type { Decoration } from '@tscaps/engine';
@@ -92,16 +93,13 @@ function EmojiMenuScreen({ decoration, onDelete }: MenuScreenProps) {
       <div className="flex items-center gap-2">
         <span className="text-3xl leading-none">{decoration.glyph}</span>
         <button className={ACTION_BTN} onClick={() => navigate('picker')}>
-          <Smile size={13} /> Change emoji
-        </button>
+          <Smile size={13} /><UiText text=" Change emoji" /></button>
       </div>
       <div className="flex flex-col gap-[3px]">
         <button className={ACTION_BTN} onClick={() => navigate('styles')}>
-          <Palette size={13} /> Edit style
-        </button>
+          <Palette size={13} /><UiText text=" Edit style" /></button>
         <button className={ACTION_BTN_DELETE} onClick={() => { onDelete(); close(); }}>
-          <Trash2 size={13} /> Remove emoji
-        </button>
+          <Trash2 size={13} /><UiText text=" Remove emoji" /></button>
       </div>
     </div>
   );

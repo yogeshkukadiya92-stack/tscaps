@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { ChevronRight } from 'lucide-react';
 import type { Document } from '@tscaps/engine';
 import type { OverlaySelectionController } from '@presentation/editor/controllers/OverlaySelectionController';
@@ -45,9 +46,7 @@ export function ElementSelectionBar({ document, selectionController }: ElementSe
     >
       <span className={KIND_PILL_CLASS}>{ELEMENT_KIND_LABELS[element.kind]}</span>
       <span className="text-sm font-medium text-fg-primary truncate min-w-0">{element.name}</span>
-      <span className="ml-auto shrink-0 flex items-center gap-1 text-xs text-fg-muted">
-        Edit style
-        <ChevronRight size={14} strokeWidth={2} />
+      <span className="ml-auto shrink-0 flex items-center gap-1 text-xs text-fg-muted"><UiText text="Edit style" /><ChevronRight size={14} strokeWidth={2} />
       </span>
     </button>
   );

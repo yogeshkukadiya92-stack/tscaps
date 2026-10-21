@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { RotateCcw } from 'lucide-react';
 import { ELEMENT_KIND_LABELS } from '@ui/_shared/components/element-fields/ElementKindLabels';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -29,6 +30,7 @@ const CLEAR_BUTTON_CLASS =
  * in the preview, so the pick is the only title it could carry.
  */
 export function InspectedElementHeader({ element, hasStyle, onClearStyle }: InspectedElementHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2 min-w-0 flex-1">
       <span className={KIND_PILL_CLASS}>{ELEMENT_KIND_LABELS[element.kind]}</span>
@@ -46,7 +48,7 @@ export function InspectedElementHeader({ element, hasStyle, onClearStyle }: Insp
           type="button"
           onClick={onClearStyle}
           disabled={!hasStyle}
-          aria-label="Reset this element"
+          aria-label={t("Reset this element")}
           className={CLEAR_BUTTON_CLASS}
         >
           <RotateCcw size={15} strokeWidth={2} />

@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import type { RotationConfig } from '@core/sheets/domain/RotationConfig';
 import { Section } from '@ui/_shared/components/controls/sections/Section';
@@ -24,10 +25,11 @@ export const RotationSection = memo(function RotationSection({
   onChange,
   hideTitle,
 }: RotationSectionProps) {
+  const { t } = useTranslation();
   return (
-    <Section title={hideTitle ? undefined : 'Rotation'}>
+    <Section title={hideTitle ? undefined : t('Rotation')}>
       <Slider
-        label="Angle"
+        label={t("Angle")}
         value={config.angleDeg}
         min={ROTATION_MIN}
         max={ROTATION_MAX}

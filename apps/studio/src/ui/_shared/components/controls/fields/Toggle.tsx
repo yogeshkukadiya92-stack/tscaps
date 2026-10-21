@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo, type ReactNode } from 'react';
 import * as Switch from '@radix-ui/react-switch';
 
@@ -37,7 +38,7 @@ export const Toggle = memo(function Toggle({
 }: ToggleProps) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</span>
+      <span className="text-xs text-fg-muted min-w-[90px] shrink-0"><UiText text={label} /></span>
       {adornment}
       <Switch.Root
         aria-label={label}

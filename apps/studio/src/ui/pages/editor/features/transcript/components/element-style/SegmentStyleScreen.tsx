@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import type { Sheet } from '@core/sheets/domain/Sheet';
 import { ElementStyleScreen } from '@ui/pages/editor/features/transcript/components/element-style/ElementStyleScreen';
 
@@ -10,9 +11,10 @@ const NO_ANCESTORS: ReadonlyArray<string> = [];
 
 /** The "Edit style" screen of a scene's popover. */
 export function SegmentStyleScreen({ sheet, segmentId }: SegmentStyleScreenProps) {
+  const { t } = useTranslation();
   return (
     <ElementStyleScreen
-      title="Style"
+      title={t("Style")}
       elementId={segmentId}
       kind="segment"
       sheet={sheet}

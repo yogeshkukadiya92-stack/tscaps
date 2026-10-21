@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
@@ -105,7 +106,7 @@ export function PromptDialog({
     <AppDialog open={open} onClose={onCancel} size="sm" title={label} titleSrOnly locked={loading}>
       <div>
         <div className="flex items-baseline justify-between mb-1.5">
-          <label className={INPUT_LABEL} htmlFor="prompt-input">{label}</label>
+          <label className={INPUT_LABEL} htmlFor="prompt-input"><UiText text={label} /></label>
           {counter && (
             <span className="text-2xs text-fg-faint font-mono tabular-nums">{counter}</span>
           )}
@@ -127,7 +128,7 @@ export function PromptDialog({
         )}
       </div>
       <AppDialogActions>
-        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel} disabled={loading}>Cancel</button>
+        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel} disabled={loading}><UiText text="Cancel" /></button>
         <button type="button" className={BTN_PRIMARY_SM} onClick={handleConfirm} disabled={!canConfirm}>
           {loading && <Loader2 size={12} className="animate-spin" />}
           {confirmLabel}

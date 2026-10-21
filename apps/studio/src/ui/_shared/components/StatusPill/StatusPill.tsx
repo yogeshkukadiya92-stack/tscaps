@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 
 export type StatusPillTone = 'subtle' | 'info' | 'success' | 'warning' | 'danger';
@@ -58,7 +59,7 @@ export function StatusPill({
   return (
     <span className={`${PILL} ${className}`} role="status" aria-live="polite">
       {dot}
-      <span>{label}</span>
+      <span><UiText text={label} /></span>
       {progress !== undefined && (
         <span className="tabular-nums">{Math.round(progress)}%</span>
       )}

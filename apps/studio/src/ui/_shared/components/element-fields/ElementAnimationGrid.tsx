@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useMemo } from 'react';
 import { Ban, CornerDownRight } from 'lucide-react';
 import type { ElementAnimation } from '@core/elements/domain/ElementAnimation';
@@ -73,6 +74,7 @@ export const ElementAnimationGrid = memo(function ElementAnimationGrid({
   onDisable,
   onPick,
 }: ElementAnimationGridProps) {
+  const { t } = useTranslation();
   const { animationCatalog } = useElements().services;
   const presets = useMemo(() => animationCatalog.forKind(animatedKind), [animationCatalog, animatedKind]);
 
@@ -85,7 +87,7 @@ export const ElementAnimationGrid = memo(function ElementAnimationGrid({
   const selectedPresetId = unanswered ? (named ? inheritedPresetId : undefined) : animation.presetId;
 
   return (
-    <div className={GRID_CLASS} role="group" aria-label="Animation">
+    <div className={GRID_CLASS} role="group" aria-label={t("Animation")}>
       {!named && (
         <ElementAnimationCard
           label={inheritedLabel}
@@ -95,7 +97,7 @@ export const ElementAnimationGrid = memo(function ElementAnimationGrid({
         />
       )}
       <ElementAnimationCard
-        label="None"
+        label={t("None")}
         selected={selectedPresetId === null}
         icon={<Ban size={GLYPH_SIZE} strokeWidth={1.5} />}
         onSelect={onDisable}

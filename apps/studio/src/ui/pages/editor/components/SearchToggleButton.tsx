@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { Search } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
 
@@ -24,6 +25,7 @@ interface SearchToggleButtonProps {
  * in parentheses.
  */
 export function SearchToggleButton({ open, shortcutLabel, onToggle }: SearchToggleButtonProps) {
+  const { t } = useTranslation();
   const closedTooltip = shortcutLabel ? `Search scenes (${shortcutLabel})` : 'Search scenes';
   const tooltip = open ? 'Close search' : closedTooltip;
   return (
@@ -32,7 +34,7 @@ export function SearchToggleButton({ open, shortcutLabel, onToggle }: SearchTogg
         type="button"
         className={open ? ICON_BTN_ACTIVE : ICON_BTN}
         onClick={onToggle}
-        aria-label={open ? 'Close search' : 'Search scenes'}
+        aria-label={open ? t('Close search') : t('Search scenes')}
       >
         <Search size={14} />
       </button>

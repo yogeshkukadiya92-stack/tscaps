@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useState } from 'react';
 import type { ExportSubtitlesOptions } from '@core/export/actions/ExportSubtitlesAction';
 import type { SubtitleFileFormat } from '@core/export/domain/SubtitleFileFormat';
@@ -94,6 +95,7 @@ export function SubtitleExportSettings({
   onSwitchToVideo,
   onCancel,
 }: SubtitleExportSettingsProps) {
+  const { t } = useTranslation();
   const [format, setFormat] = useState<SubtitleFileFormat>('srt');
   const [wordTimingChoice, setWordTimingChoice] = useState<boolean | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -110,15 +112,15 @@ export function SubtitleExportSettings({
 
       {meta.wordTiming !== null && (
         <DisclosureSection
-          title="Advanced options"
+          title={t("Advanced options")}
           open={advancedOpen}
           onToggle={() => setAdvancedOpen((v) => !v)}
         >
           <Toggle
-            label="Word-level timing"
+            label={t("Word-level timing")}
             value={wordTiming}
             adornment={
-              <InfoTip text={meta.wordTiming.explanation} label="About word-level timing" />
+              <InfoTip text={meta.wordTiming.explanation} label={t("About word-level timing")} />
             }
             onChange={setWordTimingChoice}
           />
@@ -151,7 +153,7 @@ function FormatField({
 }) {
   return (
     <div>
-      <label className={FIELD_LABEL} htmlFor="export-subtitle-format">Format</label>
+      <label className={FIELD_LABEL} htmlFor="export-subtitle-format"><UiText text="Format" /></label>
       <select
         id="export-subtitle-format"
         className={FIELD_SELECT}

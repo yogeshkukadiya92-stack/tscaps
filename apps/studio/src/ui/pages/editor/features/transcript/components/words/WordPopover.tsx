@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useMemo, useState, type ChangeEvent, type ReactElement } from 'react';
 import { ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, CornerDownLeft, Link2, Palette, Plus, Tags, Trash2 } from 'lucide-react';
 import type { Segment, Word } from '@tscaps/engine';
@@ -149,6 +150,7 @@ function WordMenuScreen({
   onMoveToNextBlock,
   onDelete,
 }: MenuScreenProps) {
+  const { t } = useTranslation();
   const { navigate, close } = usePopoverNav();
   const timeMap = useRenderTimeMap();
   const outputWordStart = timeMap.toOutputTime(word.time.start);
@@ -247,11 +249,11 @@ function WordMenuScreen({
           if (e.key === 'Escape') close();
         }}
         autoFocus
-        placeholder="Word text"
+        placeholder={t("Word text")}
       />
       <div className="grid grid-cols-2 gap-1.5">
         <label className="flex flex-col gap-0.5">
-          <span className={TIME_LABEL_HEAD}>Start</span>
+          <span className={TIME_LABEL_HEAD}><UiText text="Start" /></span>
           <input
             type="text" inputMode="decimal" value={start}
             className={`${INPUT_BASE} text-xs font-mono py-[3px] px-[5px]`}
@@ -261,7 +263,7 @@ function WordMenuScreen({
           />
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className={TIME_LABEL_HEAD}>End</span>
+          <span className={TIME_LABEL_HEAD}><UiText text="End" /></span>
           <input
             type="text" inputMode="decimal" value={end}
             className={`${INPUT_BASE} text-xs font-mono py-[3px] px-[5px]`}
@@ -275,8 +277,7 @@ function WordMenuScreen({
         // States the times that survived rather than naming the wall they
         // hit: the limit can be a neighbouring word, a neighbouring scene
         // on the same sheet, or the video's end.
-        <p className={ADJUSTED_NOTE_CLASS}>
-          Those times were not available. Kept {start}–{end}.
+        <p className={ADJUSTED_NOTE_CLASS}><UiText text="Those times were not available. Kept " />{start}–{end}.
         </p>
       )}
       {outputPrevEnd >= outputNextStart ? (
@@ -307,60 +308,49 @@ function WordMenuScreen({
       )}
       <div className="flex flex-col gap-[3px]">
         <button className={ACTION_BTN} onClick={() => navigate('styles')}>
-          <Palette size={13} /> Edit style
-        </button>
+          <Palette size={13} /><UiText text=" Edit style" /></button>
         {tagRows.length > 0 ? (
           <button className={ACTION_BTN} onClick={() => navigate('tags')}>
-            <Tags size={13} /> Edit tags
-          </button>
+            <Tags size={13} /><UiText text=" Edit tags" /></button>
         ) : (
           // Kept in place rather than dropped: the entry disappearing from
           // one scene to the next reads as a bug, the tooltip does not.
           <Tooltip text={NO_TAGS_TOOLTIP} position="right">
             <div>
               <button className={ACTION_BTN_DISABLED} disabled>
-                <Tags size={13} /> Edit tags
-              </button>
+                <Tags size={13} /><UiText text=" Edit tags" /></button>
             </div>
           </Tooltip>
         )}
         {onMoveToPrevBlock && (
           <button className={ACTION_BTN} onClick={() => { onMoveToPrevBlock(); close(); }}>
-            <ChevronsUp size={13} /> Move to previous scene
-          </button>
+            <ChevronsUp size={13} /><UiText text=" Move to previous scene" /></button>
         )}
         {onMoveToPrevLine && (
           <button className={ACTION_BTN} onClick={() => { onMoveToPrevLine(); close(); }}>
-            <ArrowUp size={13} /> Move to previous line
-          </button>
+            <ArrowUp size={13} /><UiText text=" Move to previous line" /></button>
         )}
         {!isLastWordInLine && (
           <button className={ACTION_BTN} onClick={() => { onAddLineBreakAfter(); close(); }}>
-            <CornerDownLeft size={13} /> Add line break after
-          </button>
+            <CornerDownLeft size={13} /><UiText text=" Add line break after" /></button>
         )}
         {isLastWordInLine && onJoinWithNextLine && (
           <button className={ACTION_BTN} onClick={() => { onJoinWithNextLine(); close(); }}>
-            <Link2 size={13} /> Join with next line
-          </button>
+            <Link2 size={13} /><UiText text=" Join with next line" /></button>
         )}
         {onMoveToNextLine && (
           <button className={ACTION_BTN} onClick={() => { onMoveToNextLine(); close(); }}>
-            <ArrowDown size={13} /> Move to next line
-          </button>
+            <ArrowDown size={13} /><UiText text=" Move to next line" /></button>
         )}
         {onMoveToNextBlock && (
           <button className={ACTION_BTN} onClick={() => { onMoveToNextBlock(); close(); }}>
-            <ChevronsDown size={13} /> Move to next scene
-          </button>
+            <ChevronsDown size={13} /><UiText text=" Move to next scene" /></button>
         )}
         {/* No `close()` — the new word activates and a fresh popover opens for it. */}
         <button className={ACTION_BTN} onClick={() => { onAddWordAfter(); }}>
-          <Plus size={13} /> Add word after
-        </button>
+          <Plus size={13} /><UiText text=" Add word after" /></button>
         <button className={ACTION_BTN_DELETE} onClick={() => { onDelete(); close(); }}>
-          <Trash2 size={13} /> Delete word
-        </button>
+          <Trash2 size={13} /><UiText text=" Delete word" /></button>
       </div>
     </div>
   );

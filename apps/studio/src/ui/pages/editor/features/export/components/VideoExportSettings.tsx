@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useState, type ReactNode } from 'react';
 import type {
   ExportResolution,
@@ -88,6 +89,7 @@ export function VideoExportSettings({
   onSwitchToSubtitles,
   onCancel,
 }: VideoExportSettingsProps) {
+  const { t } = useTranslation();
   const { catalog, verticalDownscaleApplied, sourceDescription } = resolutionView;
 
   const [format, setFormat] = useState<ExportVideoOptions['format']>(defaults.format);
@@ -120,7 +122,7 @@ export function VideoExportSettings({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="m-0 text-sm text-fg-secondary">Your video will include your captions and edits. The default settings are ready to use. Press Export to download it. <span lang="gu">તૈયાર વિડિયો ડાઉનલોડ કરવા Export દબાવો. સેટિંગ બદલવાની જરૂર નથી.</span></p>
+      <p className="m-0 text-sm text-fg-secondary"><UiText text="Your video will include your captions and edits. The default settings are ready to use. Press Export to download it. " /><span><UiText text="Press Export to download your finished video. You can use the default settings." /></span></p>
       {hasResolutionChoice ? (
         <ResolutionField
           options={activeCatalog.options}
@@ -136,7 +138,7 @@ export function VideoExportSettings({
       {extraNotice}
 
       <DisclosureSection
-        title="Advanced options"
+        title={t("Advanced options")}
         open={advancedOpen}
         onToggle={() => setAdvancedOpen((v) => !v)}
       >
@@ -176,7 +178,7 @@ function ResolutionField({
 }) {
   return (
     <div>
-      <label className={FIELD_LABEL} htmlFor="export-resolution">Resolution</label>
+      <label className={FIELD_LABEL} htmlFor="export-resolution"><UiText text="Resolution" /></label>
       <select
         id="export-resolution"
         className={FIELD_SELECT}
@@ -184,14 +186,12 @@ function ResolutionField({
         onChange={(e) => onChange(e.target.value)}
       >
         {options.map((opt) => (
-          <option key={opt.id} value={opt.id}>{opt.label}</option>
+          <option key={opt.id} value={opt.id}><UiText text={opt.label} /></option>
         ))}
       </select>
-      <p className={FIELD_HINT}>Output keeps your video&apos;s frame rate.</p>
+      <p className={FIELD_HINT}><UiText text="Output keeps your video&apos;s frame rate." /></p>
       {showVerticalHint && (
-        <p className="mt-1 text-xs text-fg-faint">
-          Vertical videos default to 1080p for social-media exports.
-        </p>
+        <p className="mt-1 text-xs text-fg-faint"><UiText text="Vertical videos default to 1080p for social-media exports." /></p>
       )}
       {cappedNote && <p className="mt-1 text-xs text-fg-faint">{cappedNote}</p>}
     </div>
@@ -201,9 +201,9 @@ function ResolutionField({
 function ResolutionLegend({ sourceDescription }: { sourceDescription: string }) {
   return (
     <div>
-      <p className={FIELD_LABEL}>Resolution</p>
+      <p className={FIELD_LABEL}><UiText text="Resolution" /></p>
       <p className="text-sm text-fg-primary">{sourceDescription}</p>
-      <p className={FIELD_HINT}>Exports at the source resolution. Frame rate is preserved.</p>
+      <p className={FIELD_HINT}><UiText text="Exports at the source resolution. Frame rate is preserved." /></p>
     </div>
   );
 }
@@ -215,6 +215,7 @@ function FormatField({
   format: ExportVideoOptions['format'];
   onChange: (next: ExportVideoOptions['format']) => void;
 }) {
+  const { t } = useTranslation();
   const formatMeta = FORMAT_OPTIONS.find((o) => o.value === format) ?? FORMAT_OPTIONS[0]!;
   return (
     <div>
@@ -222,10 +223,8 @@ function FormatField({
         <label
           className="text-xs font-semibold text-fg-secondary tracking-[-0.005em]"
           htmlFor="export-format"
-        >
-          Format
-        </label>
-        <InfoTip text={formatMeta.codecInfo} label="About this format" />
+        ><UiText text="Format" /></label>
+        <InfoTip text={formatMeta.codecInfo} label={t("About this format")} />
       </div>
       <select
         id="export-format"
@@ -252,7 +251,7 @@ function QualityField({
   const qualityHint = QUALITY_OPTIONS.find((o) => o.value === quality)?.hint ?? '';
   return (
     <div>
-      <label className={FIELD_LABEL} htmlFor="export-quality">Quality</label>
+      <label className={FIELD_LABEL} htmlFor="export-quality"><UiText text="Quality" /></label>
       <select
         id="export-quality"
         className={FIELD_SELECT}

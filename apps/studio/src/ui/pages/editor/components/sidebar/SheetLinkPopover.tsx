@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { Unlink } from 'lucide-react';
 import type { Sheet } from '@core/sheets/domain/Sheet';
 import { MAIN_SHEET_ID } from '@core/sheets/domain/Sheet';
@@ -55,13 +56,14 @@ export function SheetLinkPopover(props: SheetLinkPopoverProps) {
 }
 
 function LinkedGroupScreen({ sheet, sheets, onUnlink }: SheetLinkPopoverProps) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   const groupSiblings = sheets.filter(
     (s) => s.linkGroupId === sheet.linkGroupId && s.id !== sheet.id,
   );
   return (
     <div className={MENU_SHAPE}>
-      <PopoverHeader title="Linked with" />
+      <PopoverHeader title={t("Linked with")} />
       {groupSiblings.map((sibling) => (
         <div key={sibling.id} className={SIBLING_LINE}>
           <SheetDot sheet={sibling} />
@@ -76,22 +78,20 @@ function LinkedGroupScreen({ sheet, sheets, onUnlink }: SheetLinkPopoverProps) {
         className={ITEM}
         onClick={() => { close(); onUnlink(); }}
       >
-        <Unlink size={13} /> Unlink
-      </button>
+        <Unlink size={13} /><UiText text=" Unlink" /></button>
     </div>
   );
 }
 
 function LinkTargetPickerScreen({ sheet, sheets, onLinkTo }: SheetLinkPopoverProps) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   const candidates = sheets.filter((s) => s.id !== sheet.id);
   if (candidates.length === 0) {
     return (
       <div className={MENU_SHAPE}>
-        <PopoverHeader title="Link to" />
-        <p className="px-2 py-2 text-2xs text-fg-faint">
-          Create at least one more sheet to link this one.
-        </p>
+        <PopoverHeader title={t("Link to")} />
+        <p className="px-2 py-2 text-2xs text-fg-faint"><UiText text="Create at least one more sheet to link this one." /></p>
       </div>
     );
   }
@@ -101,7 +101,7 @@ function LinkTargetPickerScreen({ sheet, sheets, onLinkTo }: SheetLinkPopoverPro
   };
   return (
     <div className={MENU_SHAPE}>
-      <PopoverHeader title="Link to" />
+      <PopoverHeader title={t("Link to")} />
       {candidates.map((s) => (
         <button
           key={s.id}

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useState } from 'react';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM } from '@ui/_shared/styles/buttons';
@@ -64,20 +65,17 @@ export function UntranscribedRegionsDialog() {
 }
 
 function PendingNoticeDialog({ notice, onClose }: { notice: UntranscribedRegionsNotice; onClose: () => void }) {
+  const { t } = useTranslation();
   const rangeLabel = notice.regions.length === 1 ? 'Untranscribed range' : 'Untranscribed ranges';
   return (
     <AppDialog
       open
       onClose={onClose}
       size="md"
-      title="Parts of your audio couldn't be transcribed"
+      title={t("Parts of your audio couldn't be transcribed")}
     >
-      <p className={BODY}>
-        The in-browser <span className={EMPHASIS}>{MODEL_LABELS[notice.model]}</span> model produced
-        unusable output for parts of your video. Those parts are marked{' '}
-        <span className={PLACEHOLDER_CHIP}>{UNTRANSCRIBED_PLACEHOLDER_TEXT}</span> in the captions.
-        Edit or delete them like any other caption.
-      </p>
+      <p className={BODY}><UiText text="The in-browser " /><span className={EMPHASIS}>{MODEL_LABELS[notice.model]}</span><UiText text=" model produced unusable output for parts of your video. Those parts are marked" />{' '}
+        <span className={PLACEHOLDER_CHIP}>{UNTRANSCRIBED_PLACEHOLDER_TEXT}</span><UiText text=" in the captions. Edit or delete them like any other caption." /></p>
 
       <div className={RANGES_PANEL}>
         <p className={RANGES_LABEL}>{rangeLabel}</p>
@@ -86,15 +84,13 @@ function PendingNoticeDialog({ notice, onClose }: { notice: UntranscribedRegions
 
       <p className={BODY}>
         {notice.model === 'large-v3-turbo'
-          ? 'Check the selected speech language and try cleaner audio with less background music. Unclear speech can still be missed by this model.'
-          : <>Try <span className={EMPHASIS}>ગુજરાતી · Gujarati captions</span> for Gujarati, or choose Large v3 Turbo in <span className={EMPHASIS}>Advanced settings</span>. Larger models need more memory and processing time.</>}
+          ? t('Check the selected speech language and try cleaner audio with less background music. Unclear speech can still be missed by this model.')
+          : <><UiText text="Try " /><span className={EMPHASIS}><UiText text="ગુજરાતી · Gujarati captions" /></span><UiText text=" for Gujarati, or choose Large v3 Turbo in " /><span className={EMPHASIS}><UiText text="Advanced settings" /></span><UiText text=". Larger models need more memory and processing time." /></>}
       </p>
 
 
       <AppDialogActions>
-        <button type="button" className={BTN_PRIMARY_SM} onClick={onClose}>
-          Got it
-        </button>
+        <button type="button" className={BTN_PRIMARY_SM} onClick={onClose}><UiText text="Got it" /></button>
       </AppDialogActions>
     </AppDialog>
   );

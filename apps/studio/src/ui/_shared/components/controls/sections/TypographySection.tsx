@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, type ReactNode } from 'react';
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import type { PhysicalSide, TextDirection } from '@tscaps/engine';
@@ -109,6 +110,7 @@ export const TypographySection = memo(function TypographySection({
   customizedIds,
   scripts,
 }: TypographySectionProps) {
+  const { t } = useTranslation();
   // A control that writes more than one variable counts as taken over
   // only when every one of them is gone. Losing one leaves the rest of
   // the control working, and saying otherwise would be the lie this
@@ -116,19 +118,19 @@ export const TypographySection = memo(function TypographySection({
   const customized = (...controlIds: string[]): boolean =>
     customizedIds !== undefined && controlIds.every((id) => customizedIds.has(id));
   return (
-    <Section title={hideTitle ? undefined : 'Typography'}>
-      <CustomizedFieldOverlay customized={customized('font-family')} label="Font" controlIds={['font-family']}>
+    <Section title={hideTitle ? undefined : t('Typography')}>
+      <CustomizedFieldOverlay customized={customized('font-family')} label={t("Font")} controlIds={['font-family']}>
         <FontStackField
-          label="Font"
+          label={t("Font")}
           stack={config.fontStack}
           scripts={scripts}
           onChange={(fontStack) => onChange({ fontStack })}
         />
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('font-size')} label="Font size" controlIds={['font-size']}>
+      <CustomizedFieldOverlay customized={customized('font-size')} label={t("Font size")} controlIds={['font-size']}>
         <Slider
-          label="Font size"
+          label={t("Font size")}
           value={config.fontSize}
           min={FONT_SIZE_MIN}
           max={FONT_SIZE_MAX}
@@ -138,9 +140,9 @@ export const TypographySection = memo(function TypographySection({
         />
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('font-weight')} label="Weight" controlIds={['font-weight']}>
+      <CustomizedFieldOverlay customized={customized('font-weight')} label={t("Weight")} controlIds={['font-weight']}>
         <Slider
-          label="Weight"
+          label={t("Weight")}
           value={config.fontWeight}
           min={FONT_WEIGHT_MIN}
           max={FONT_WEIGHT_MAX}
@@ -151,11 +153,11 @@ export const TypographySection = memo(function TypographySection({
 
       <CustomizedFieldOverlay
         customized={customized('font-style', 'text-decoration')}
-        label="Style"
+        label={t("Style")}
         controlIds={['font-style', 'text-decoration']}
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs text-fg-muted min-w-[90px] shrink-0">Style</span>
+          <span className="text-xs text-fg-muted min-w-[90px] shrink-0"><UiText text="Style" /></span>
           <StyleToggles
             value={{ italic: config.italic, underline: config.underline, strikethrough: config.strikethrough }}
             onChange={(patch) => onChange(patch)}
@@ -163,13 +165,13 @@ export const TypographySection = memo(function TypographySection({
         </div>
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('text-align')} label="Align" controlIds={['text-align']}>
+      <CustomizedFieldOverlay customized={customized('text-align')} label={t("Align")} controlIds={['text-align']}>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-fg-muted min-w-[90px] shrink-0">Align</span>
+          <span className="text-xs text-fg-muted min-w-[90px] shrink-0"><UiText text="Align" /></span>
           <div
             className="flex rounded-xs border border-edge-medium bg-surface-2 p-[2px] gap-[2px]"
             role="radiogroup"
-            aria-label="Text alignment"
+            aria-label={t("Text alignment")}
           >
             {TEXT_ALIGN_OPTIONS_BY_DIRECTION[textDirection].map((opt) => {
               const active = alignedTo === opt.lands;
@@ -195,13 +197,13 @@ export const TypographySection = memo(function TypographySection({
         </div>
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('text-transform')} label="Case" controlIds={['text-transform']}>
+      <CustomizedFieldOverlay customized={customized('text-transform')} label={t("Case")} controlIds={['text-transform']}>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-fg-muted min-w-[90px] shrink-0">Case</span>
+          <span className="text-xs text-fg-muted min-w-[90px] shrink-0"><UiText text="Case" /></span>
           <div
             className="flex rounded-xs border border-edge-medium bg-surface-2 p-[2px] gap-[2px]"
             role="radiogroup"
-            aria-label="Text case"
+            aria-label={t("Text case")}
           >
             {TEXT_CASE_OPTIONS.map((opt) => {
               const active = config.textCase === opt.value;
@@ -219,7 +221,7 @@ export const TypographySection = memo(function TypographySection({
                   }
                   onClick={() => onChange({ textCase: opt.value })}
                 >
-                  {opt.label}
+                  <UiText text={opt.label} />
                 </button>
               );
             })}
@@ -227,9 +229,9 @@ export const TypographySection = memo(function TypographySection({
         </div>
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('letter-spacing')} label="Letter spacing" controlIds={['letter-spacing']}>
+      <CustomizedFieldOverlay customized={customized('letter-spacing')} label={t("Letter spacing")} controlIds={['letter-spacing']}>
         <Slider
-          label="Letter spacing"
+          label={t("Letter spacing")}
           value={config.letterSpacing}
           min={LETTER_SPACING_MIN}
           max={LETTER_SPACING_MAX}
@@ -239,9 +241,9 @@ export const TypographySection = memo(function TypographySection({
         />
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('word-spacing')} label="Word spacing" controlIds={['word-spacing']}>
+      <CustomizedFieldOverlay customized={customized('word-spacing')} label={t("Word spacing")} controlIds={['word-spacing']}>
         <Slider
-          label="Word spacing"
+          label={t("Word spacing")}
           value={config.wordSpacing}
           min={WORD_SPACING_MIN}
           max={WORD_SPACING_MAX}
@@ -251,9 +253,9 @@ export const TypographySection = memo(function TypographySection({
         />
       </CustomizedFieldOverlay>
 
-      <CustomizedFieldOverlay customized={customized('line-spacing')} label="Line spacing" controlIds={['line-spacing']}>
+      <CustomizedFieldOverlay customized={customized('line-spacing')} label={t("Line spacing")} controlIds={['line-spacing']}>
         <Slider
-          label="Line spacing"
+          label={t("Line spacing")}
           value={config.lineSpacing}
           min={LINE_SPACING_MIN}
           max={LINE_SPACING_MAX}
@@ -265,14 +267,12 @@ export const TypographySection = memo(function TypographySection({
 
       <div className="space-y-1">
         <Select
-          label="Direction"
+          label={t("Direction")}
           value={textDirection}
           options={TEXT_DIRECTION_OPTIONS}
           onChange={(value) => onTextDirectionChange(value as TextDirection)}
         />
-        <p className="text-2xs text-fg-faint m-0 leading-snug pl-[98px]">
-          Picked from your transcript. Switch it if your captions read the other way.
-        </p>
+        <p className="text-2xs text-fg-faint m-0 leading-snug pl-[98px]"><UiText text="Picked from your transcript. Switch it if your captions read the other way." /></p>
       </div>
     </Section>
   );

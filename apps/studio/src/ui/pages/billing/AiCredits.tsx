@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
@@ -41,10 +42,10 @@ export function AiCredits() {
     } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'Checkout could not open.'); setBusy(false); }
   }
   return <div className="flex flex-col gap-2 text-xs">
-    <p className="m-0">Standard: 1 credit / 5 seconds · High AI quality: 2 credits / 5 seconds. Partial blocks round up. Prompt revisions for this saved video at the same quality use no additional credits.</p>
-    {session ? <AsyncButton className={BTN_SECONDARY} disabled={busy} onClick={refresh}>Check credits</AsyncButton> : <Link className={BTN_SECONDARY} to="/signin">Sign in to view or buy credits</Link>}
-    {status && <><p className="m-0" role="status">Available: {status.balance} credits</p>
-      {status.pack ? <AsyncButton className={BTN_SECONDARY} disabled={busy} onClick={buy}>Buy {status.pack.credits} credits · ₹{(status.pack.amount / 100).toFixed(2)}</AsyncButton> : <p className="m-0">Credit pricing will be available soon.</p>}</>}
-    {message && <p role="status" className="m-0">{message}</p>}
+    <p className="m-0"><UiText text="Standard: 1 credit / 5 seconds · High AI quality: 2 credits / 5 seconds. Partial blocks round up. Prompt revisions for this saved video at the same quality use no additional credits." /></p>
+    {session ? <AsyncButton className={BTN_SECONDARY} disabled={busy} onClick={refresh}><UiText text="Check credits" /></AsyncButton> : <Link className={BTN_SECONDARY} to="/signin"><UiText text="Sign in to view or buy credits" /></Link>}
+    {status && <><p className="m-0" role="status"><UiText text="Available: " />{status.balance}<UiText text=" credits" /></p>
+      {status.pack ? <AsyncButton className={BTN_SECONDARY} disabled={busy} onClick={buy}><UiText text="Buy " />{status.pack.credits}<UiText text=" credits · ₹" />{(status.pack.amount / 100).toFixed(2)}</AsyncButton> : <p className="m-0"><UiText text="Credit pricing will be available soon." /></p>}</>}
+    {message && <p role="status" className="m-0"><UiText text={message} /></p>}
   </div>;
 }

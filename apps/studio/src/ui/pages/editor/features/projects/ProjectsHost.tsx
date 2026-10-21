@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { buildPhotoVideo, isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { isAcceptedVideoFile } from '@ui/_shared/video/videoAcceptance';
@@ -21,6 +22,7 @@ import { BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
  * export of `.tscaps` files so projects can move between devices.
  */
 export function ProjectsHost() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const projects = useProjects();
   const videos = useVideos();
@@ -165,18 +167,18 @@ export function ProjectsHost() {
       error={error}
       isMobileDevice={isMobile}
       homeHref={homeHref}
-      title={projects.cloudEnabled ? 'Your projects' : 'Local projects'}
+      title={projects.cloudEnabled ? t('Your projects') : t('Local projects')}
       subtitle={(n) => `${n} ${n === 1 ? 'project' : 'projects'} · Add video or photos with New project`}
       emptyTitle="Make your first project."
       emptyBody="Add a video or photo. Open Creative → Templates to build a reel with music and motion, or add captions to a talking video."
       headerNote={projects.cloudEnabled ? <div className="flex flex-col gap-2">
-        <p className="text-xs text-fg-muted m-0">Cloud videos are automatically removed 48 hours after upload. Download your finished reel before then. Caption edits remain saved; keep your original video to relink later.</p>
+        <p className="text-xs text-fg-muted m-0"><UiText text="Cloud videos are automatically removed 48 hours after upload. Download your finished reel before then. Caption edits remain saved; keep your original video to relink later." /></p>
         <div className="flex gap-2 flex-wrap">
-          <button className={BTN_SECONDARY_SM} disabled={migrating} onClick={() => void importLocalProjects()}>{migrating ? 'Importing browser projects…' : 'Import projects from this browser'}</button>
-          <button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void openTrash()}>{trash === null ? 'Recently deleted' : 'Close recently deleted'}</button>
+          <button className={BTN_SECONDARY_SM} disabled={migrating} onClick={() => void importLocalProjects()}>{migrating ? t('Importing browser projects…') : t('Import projects from this browser')}</button>
+          <button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void openTrash()}>{trash === null ? t('Recently deleted') : t('Close recently deleted')}</button>
         </div>
         {trash !== null && <div className="rounded-md border border-edge-subtle p-3 text-sm flex flex-col gap-2">
-          {trash.length === 0 ? <span>No deleted projects.</span> : trash.map(entry => <div key={entry.id} className="flex items-center gap-3"><span className="truncate flex-1">{entry.name}</span><button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void restore(entry.id)}>Restore</button></div>)}
+          {trash.length === 0 ? <span><UiText text="No deleted projects." /></span> : trash.map(entry => <div key={entry.id} className="flex items-center gap-3"><span className="truncate flex-1">{entry.name}</span><button className={BTN_SECONDARY_SM} disabled={trashPending} onClick={() => void restore(entry.id)}><UiText text="Restore" /></button></div>)}
         </div>}
         {migrationNotice && <p className="text-xs text-fg-muted m-0" role="status">{migrationNotice}</p>}
       </div> : null}
@@ -188,8 +190,8 @@ export function ProjectsHost() {
       onImportProject={handleImportProject}
       theme={theme}
     />
-    {preparingMedia && <p role="status" className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-edge-medium p-4">Preparing your media…</p>}
-    {audioError && <div className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-danger p-4" role="alert">{audioError}<button className={BTN_SECONDARY_SM} onClick={() => setAudioError('')}>Dismiss</button></div>}
+    {preparingMedia && <p role="status" className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-edge-medium p-4"><UiText text="Preparing your media…" /></p>}
+    {audioError && <div className="fixed bottom-6 left-6 right-6 z-[1000] rounded-md bg-surface-1 border border-danger p-4" role="alert">{audioError}<button className={BTN_SECONDARY_SM} onClick={() => setAudioError('')}><UiText text="Dismiss" /></button></div>}
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { Loader2 } from 'lucide-react';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM, BTN_SECONDARY_SM, BTN_DANGER_SM } from '@ui/_shared/styles/buttons';
@@ -22,17 +23,18 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
   return (
     <AppDialog
       open={open}
       onClose={onCancel}
       size="sm"
-      title="Confirm"
+      title={t("Confirm")}
       titleSrOnly
       description={message}
     >
       <AppDialogActions>
-        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel} disabled={loading}>Cancel</button>
+        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel} disabled={loading}><UiText text="Cancel" /></button>
         <button
           type="button"
           className={danger ? BTN_DANGER_SM : BTN_PRIMARY_SM}

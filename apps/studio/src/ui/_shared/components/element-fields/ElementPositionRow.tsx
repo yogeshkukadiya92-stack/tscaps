@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import type { ElementPlacement } from '@core/elements/domain/ElementPlacement';
 import { Slider } from '@ui/_shared/components/controls/fields/Slider';
 
@@ -29,6 +30,7 @@ interface ElementPositionRowProps {
  * number a slider shows is the number a commit stores.
  */
 export function ElementPositionRow({ current, baseline, compact, onCommit }: ElementPositionRowProps) {
+  const { t } = useTranslation();
   const position = current ?? baseline;
   const commitPosition = (next: ElementPlacement): void => {
     const inherited =
@@ -41,7 +43,7 @@ export function ElementPositionRow({ current, baseline, compact, onCommit }: Ele
   return (
     <>
       <Slider
-        label="Vertical"
+        label={t("Vertical")}
         value={position.verticalOffset}
         min={0}
         max={1}
@@ -50,7 +52,7 @@ export function ElementPositionRow({ current, baseline, compact, onCommit }: Ele
         onChange={(v) => commitPosition({ ...position, verticalOffset: v })}
       />
       <Slider
-        label="Horizontal"
+        label={t("Horizontal")}
         value={position.horizontalOffset}
         min={0}
         max={1}

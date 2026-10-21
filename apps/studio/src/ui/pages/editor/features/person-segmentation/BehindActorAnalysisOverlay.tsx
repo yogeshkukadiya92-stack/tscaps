@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { Loader2 } from 'lucide-react';
 import { StatusPill } from '@ui/_shared/components/StatusPill/StatusPill';
 import { useBehindActorAnalysisBlocked } from '@ui/pages/editor/features/person-segmentation/hooks/useBehindActorAnalysisBlocked';
@@ -25,12 +26,13 @@ const VEIL =
  * else.
  */
 export function BehindActorAnalysisOverlay() {
+  const { t } = useTranslation();
   const blocked = useBehindActorAnalysisBlocked();
   if (!blocked) return null;
   return (
     <div className={VEIL} aria-hidden onPointerDown={(event) => event.stopPropagation()}>
       <StatusPill
-        label="Applying text behind person"
+        label={t("Applying text behind person")}
         tone="info"
         icon={<Loader2 size={12} className="animate-spin" />}
       />

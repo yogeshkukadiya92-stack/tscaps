@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useCallback, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import type { Document } from '@tscaps/engine';
@@ -53,6 +54,7 @@ const BACK_BUTTON_CLASS =
  * stands.
  */
 export function ElementInspector({ document, selectionController }: ElementInspectorProps) {
+  const { t } = useTranslation();
   const workspaceStore = useEditorWorkspaceStore();
   const isOpen = useIsElementInspectorOpen();
   const element = useInspectedElement(selectionController, document);
@@ -76,7 +78,7 @@ export function ElementInspector({ document, selectionController }: ElementInspe
     <>
       <div className={HEADER_CLASS}>
         <Tooltip text="Back to the panel">
-          <button type="button" onClick={close} aria-label="Back to the panel" className={BACK_BUTTON_CLASS}>
+          <button type="button" onClick={close} aria-label={t("Back to the panel")} className={BACK_BUTTON_CLASS}>
             <ArrowLeft size={16} strokeWidth={2} />
           </button>
         </Tooltip>
@@ -87,7 +89,7 @@ export function ElementInspector({ document, selectionController }: ElementInspe
             onClearStyle={clearStyle}
           />
         ) : (
-          <span className="text-sm text-fg-muted truncate">Nothing to edit</span>
+          <span className="text-sm text-fg-muted truncate"><UiText text="Nothing to edit" /></span>
         )}
       </div>
 
@@ -133,10 +135,8 @@ export function ElementInspector({ document, selectionController }: ElementInspe
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
-            <p className="m-0 text-md text-fg-secondary">This element is gone.</p>
-            <p className="m-0 text-sm text-fg-muted max-w-[32ch]">
-              An edit took it out of the video. Pick another one in the preview.
-            </p>
+            <p className="m-0 text-md text-fg-secondary"><UiText text="This element is gone." /></p>
+            <p className="m-0 text-sm text-fg-muted max-w-[32ch]"><UiText text="An edit took it out of the video. Pick another one in the preview." /></p>
           </div>
         )}
       </div>

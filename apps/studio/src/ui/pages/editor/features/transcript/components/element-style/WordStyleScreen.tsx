@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useMemo } from 'react';
 import type { Segment, Word } from '@tscaps/engine';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -11,11 +12,12 @@ interface WordStyleScreenProps {
 
 /** The "Edit style" screen of a word's popover. */
 export function WordStyleScreen({ sheet, segment, word }: WordStyleScreenProps) {
+  const { t } = useTranslation();
   const ancestorIds = useMemo(() => [segment.id], [segment.id]);
 
   return (
     <ElementStyleScreen
-      title="Style"
+      title={t("Style")}
       elementId={word.id}
       kind="word"
       sheet={sheet}

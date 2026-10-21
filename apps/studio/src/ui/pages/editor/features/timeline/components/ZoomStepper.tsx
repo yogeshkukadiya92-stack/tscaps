@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { Minus, Plus } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
 
@@ -53,6 +54,7 @@ export function ZoomStepper({
   onZoomOut,
   onReset,
 }: ZoomStepperProps) {
+  const { t } = useTranslation();
   return (
     <div className={GROUP_CLASS}>
       <Tooltip text="Zoom out" position="bottom">
@@ -61,7 +63,7 @@ export function ZoomStepper({
           className={STEP_BTN}
           onClick={onZoomOut}
           disabled={!canZoomOut}
-          aria-label="Zoom out"
+          aria-label={t("Zoom out")}
         >
           <Minus size={14} />
         </button>
@@ -72,7 +74,7 @@ export function ZoomStepper({
           className={READOUT_BTN}
           onClick={onReset}
           disabled={!canReset}
-          aria-label={`Zoom ${zoomPercent}%. Back to the opening scale`}
+          aria-label={t("Zoom {0}%. Back to the opening scale", { 0: zoomPercent })}
         >
           {zoomPercent}%
         </button>
@@ -83,7 +85,7 @@ export function ZoomStepper({
           className={STEP_BTN}
           onClick={onZoomIn}
           disabled={!canZoomIn}
-          aria-label="Zoom in"
+          aria-label={t("Zoom in")}
         >
           <Plus size={14} />
         </button>

@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { isReelPhoto } from '@core/creative/PhotoVideoBuilder';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowUpFromLine } from 'lucide-react';
@@ -125,7 +126,7 @@ export function ProjectsDropCatcher({ onVideo, onVideoIntent, onProjectFile }: P
         <div className={OVERLAY} aria-hidden="true">
           <div className={OVERLAY_INNER}>
             <ArrowUpFromLine size={40} strokeWidth={1.6} className="text-accent" />
-            <p className={OVERLAY_TITLE}>Drop the video.</p>
+            <p className={OVERLAY_TITLE}><UiText text="Drop the video." /></p>
             <p className={OVERLAY_HINT}>{formatHint}</p>
           </div>
         </div>

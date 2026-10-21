@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 /**
  * Tells the visitor the loaded video has no audio track. Starting is
  * still allowed — the pipeline skips transcription and opens the
@@ -10,10 +11,7 @@ export function NoAudioTrackNotice() {
       data-testid="no-audio-track-notice"
       className="rounded-sm border border-warning/40 bg-warning/10 p-3"
     >
-      <p className="text-xs text-fg-primary leading-snug m-0">
-        This video has no audio track, so there is no speech to transcribe.
-        You can still open the editor and add captions by hand.
-      </p>
+      <p className="text-xs text-fg-primary leading-snug m-0"><UiText text="This video has no audio track, so there is no speech to transcribe. You can still open the editor and add captions by hand." /></p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo, useId } from 'react';
 
 interface TextInputProps {
@@ -28,7 +29,7 @@ export const TextInput = memo(function TextInput({
   const fieldId = useId();
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor={fieldId} className="text-xs text-fg-muted min-w-[90px] shrink-0">{label}</label>
+      <label htmlFor={fieldId} className="text-xs text-fg-muted min-w-[90px] shrink-0"><UiText text={label} /></label>
       <input
           id={fieldId}
         type="text"

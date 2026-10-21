@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useRef, type ReactNode } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { LayoutTemplate, Subtitles, Type, Palette, Move, Orbit, Sparkles, WrapText, Code2 } from 'lucide-react';
@@ -98,6 +99,7 @@ const RAIL: RailEntry[] = [
 ];
 
 export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelProps) {
+  const { t } = useTranslation();
   const {
     sheets, activeSheet, templates, library, document, activeSegmentId,
     elementStyles, behindActorOverrides, frozenSegments, decorationOverrides, videoDuration, isPlaying,
@@ -183,15 +185,15 @@ export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelPro
           />
         </Tabs.Content>
 
-        <Tabs.Content value="typography" className={SIDEBAR_CONTENT_CLASS} ref={typographyRef}>
+        <Tabs.Content aria-label={t("Typography")} value="typography" className={SIDEBAR_CONTENT_CLASS} ref={typographyRef}>
           {sheetScopeProps && <TypographyTab sheetScope={sheetScopeProps} />}
         </Tabs.Content>
 
-        <Tabs.Content value="style" className={SIDEBAR_CONTENT_CLASS} ref={styleRef}>
+        <Tabs.Content aria-label={t("Colors")} value="style" className={SIDEBAR_CONTENT_CLASS} ref={styleRef}>
           {sheetScopeProps && <StyleTab sheetScope={sheetScopeProps} />}
         </Tabs.Content>
 
-        <Tabs.Content value="position" className={SIDEBAR_CONTENT_CLASS} ref={positionRef}>
+        <Tabs.Content aria-label={t("Position")} value="position" className={SIDEBAR_CONTENT_CLASS} ref={positionRef}>
           {sheetScopeProps && <PositionTab sheetScope={sheetScopeProps} />}
         </Tabs.Content>
 
@@ -199,11 +201,11 @@ export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelPro
           {sheetScopeProps && <MotionTab sheetScope={sheetScopeProps} document={document} />}
         </Tabs.Content>
 
-        <Tabs.Content value="effects" className={SIDEBAR_CONTENT_CLASS} ref={effectsRef}>
+        <Tabs.Content aria-label={t("Effects")} value="effects" className={SIDEBAR_CONTENT_CLASS} ref={effectsRef}>
           {sheetScopeProps && <EffectsTab sheetScope={sheetScopeProps} />}
         </Tabs.Content>
 
-        <Tabs.Content value="layout" className={SIDEBAR_CONTENT_CLASS} ref={layoutRef}>
+        <Tabs.Content aria-label={t("Layout")} value="layout" className={SIDEBAR_CONTENT_CLASS} ref={layoutRef}>
           {sheetScopeProps && (
             <LayoutTab
               sheetScope={sheetScopeProps}
@@ -213,7 +215,7 @@ export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelPro
           )}
         </Tabs.Content>
 
-        <Tabs.Content value="code" className={SIDEBAR_CONTENT_CLASS} ref={codeRef}>
+        <Tabs.Content aria-label={t("Code")} value="code" className={SIDEBAR_CONTENT_CLASS} ref={codeRef}>
           {sheetScopeProps && <CodeTab sheetScope={sheetScopeProps} />}
         </Tabs.Content>
 
@@ -221,18 +223,18 @@ export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelPro
       </div>
 
       <div className="caption-section-navigation">
-      <Tabs.List className={RAIL_LIST_CLASS} aria-label="Editor sections">
+      <Tabs.List className={RAIL_LIST_CLASS} aria-label={t("Editor sections")}>
         {(['transcript', 'templates', 'motion'] as const).map(tabId => {
           const { id, label, icon } = RAIL.find(entry => entry.id === tabId)!;
-          return <Tabs.Trigger key={id} value={id} className={RAIL_TAB_CLASS} aria-label={label}>
-            {icon}<span className={RAIL_TAB_LABEL_CLASS}>{id === 'transcript' ? 'Edit words' : id === 'templates' ? 'Templates' : 'Animation'}</span>
+          return <Tabs.Trigger key={id} value={id} className={RAIL_TAB_CLASS} aria-label={t(label)}>
+            {icon}<span className={RAIL_TAB_LABEL_CLASS}>{id === 'transcript' ? t('Edit words') : id === 'templates' ? t('Templates') : t('Animation')}</span>
           </Tabs.Trigger>;
         })}
       </Tabs.List>
-      <label className="caption-more-tools"><span className="sr-only">More caption tools</span>
-        <select aria-label="More caption tools" value={['transcript', 'templates', 'motion'].includes(activeTab) ? '' : activeTab} onChange={event => tabStore.setActiveTab(event.target.value as CaptionsTabId)}>
-          <option value="" disabled>Customize…</option>
-          {RAIL.filter(entry => !['transcript', 'templates', 'motion'].includes(entry.id)).map(entry => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
+      <label className="caption-more-tools"><span className="sr-only"><UiText text="More caption tools" /></span>
+        <select aria-label={t("More caption tools")} value={['transcript', 'templates', 'motion'].includes(activeTab) ? '' : activeTab} onChange={event => tabStore.setActiveTab(event.target.value as CaptionsTabId)}>
+          <option value="" disabled><UiText text="Customize…" /></option>
+          {RAIL.filter(entry => !['transcript', 'templates', 'motion'].includes(entry.id)).map(entry => <option key={entry.id} value={entry.id}><UiText text={entry.label} /></option>)}
         </select>
       </label>
       </div>

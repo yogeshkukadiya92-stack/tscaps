@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { Document, Segment } from '@tscaps/engine';
@@ -89,6 +90,7 @@ export const AdvancedTranscriptView = memo(function AdvancedTranscriptView({
   bulkSelection = EMPTY_SELECTION,
   onToggleBulkItem,
 }: AdvancedTranscriptViewProps) {
+  const { t } = useTranslation();
   const [activeWordId, setActiveWordId] = useState<string | null>(null);
   const [activePopoverId, setActivePopoverId] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -164,10 +166,10 @@ export const AdvancedTranscriptView = memo(function AdvancedTranscriptView({
   if (sorted.length === 0) {
     return (
       <div className="flex flex-col gap-2 py-4 pl-1">
-        <p className="text-sm text-fg-muted text-center m-0">No captions yet.</p>
+        <p className="text-sm text-fg-muted text-center m-0"><UiText text="No captions yet." /></p>
         <AddSceneButton
           onClick={() => handleInsertSegment(null, 'before')}
-          label="Add first scene"
+          label={t("Add first scene")}
         />
       </div>
     );
@@ -208,7 +210,7 @@ export const AdvancedTranscriptView = memo(function AdvancedTranscriptView({
                 {bulkTarget === null && isFirstInList && (
                   <AddSceneButton
                     onClick={() => handleInsertSegment(segment.id, 'before')}
-                    label="Add scene at start"
+                    label={t("Add scene at start")}
                   />
                 )}
                 <div className={`relative ${highlightedSegmentId === segment.id ? 'rounded-sm ring-2 ring-accent ring-offset-2 ring-offset-surface-1' : ''}`}>
@@ -268,7 +270,7 @@ export const AdvancedTranscriptView = memo(function AdvancedTranscriptView({
                 {bulkTarget === null && (
                   <AddSceneButton
                     onClick={() => handleInsertSegment(segment.id, 'after')}
-                    label={isLastInList ? 'Add scene at end' : 'Add scene'}
+                    label={isLastInList ? t('Add scene at end') : t('Add scene')}
                   />
                 )}
               </div>

@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useEffect, useState, type ReactElement } from 'react';
 import { ChevronsUp, ChevronsDown, Clock3, Trash2, Palette, Check, SwatchBook, UserRound, Loader2 } from 'lucide-react';
 import type { Document, Segment } from '@tscaps/engine';
@@ -131,36 +132,30 @@ function SegmentMenuScreen({
   return (
     <div className={POPOVER_MENU_SHAPE}>
       <button className={POPOVER_ITEM} onClick={() => navigate('time')}>
-        <Clock3 size={13} /> Edit timing
-      </button>
+        <Clock3 size={13} /><UiText text=" Edit timing" /></button>
       {sheet && (
         <button className={POPOVER_ITEM} onClick={() => navigate('styles')}>
-          <Palette size={13} /> Edit style
-        </button>
+          <Palette size={13} /><UiText text=" Edit style" /></button>
       )}
       <button className={POPOVER_ITEM} onClick={() => navigate('sheetPicker')}>
-        <SwatchBook size={13} /> Change style sheet
-      </button>
+        <SwatchBook size={13} /><UiText text=" Change style sheet" /></button>
       {showBehindActor && (
         <button className={POPOVER_ITEM} onClick={handleToggleBehindActor} disabled={isComputingMasks}>
           {isComputingMasks ? <Loader2 size={13} className="animate-spin" /> : <UserRound size={13} />}
-          <span className="flex-1 text-left">Hide behind person</span>
+          <span className="flex-1 text-left"><UiText text="Hide behind person" /></span>
           {behindActorOn && <Check size={12} />}
         </button>
       )}
       {!isFirstSegment && (
         <button className={POPOVER_ITEM} onClick={() => { onApplyStructureEdit(documentEditor.mergeSegmentWithNext(doc, segIdx - 1)); close(); }}>
-          <ChevronsUp size={13} /> Join with previous scene
-        </button>
+          <ChevronsUp size={13} /><UiText text=" Join with previous scene" /></button>
       )}
       {!isLastSegment && (
         <button className={POPOVER_ITEM} onClick={() => { onApplyStructureEdit(documentEditor.mergeSegmentWithNext(doc, segIdx)); close(); }}>
-          <ChevronsDown size={13} /> Join with next scene
-        </button>
+          <ChevronsDown size={13} /><UiText text=" Join with next scene" /></button>
       )}
       <button className={POPOVER_ITEM_DANGER} onClick={() => { onDeleteWords(segment.lines.flatMap((l) => l.words.map((w) => w.id))); close(); }}>
-        <Trash2 size={13} /> Delete scene
-      </button>
+        <Trash2 size={13} /><UiText text=" Delete scene" /></button>
     </div>
   );
 }

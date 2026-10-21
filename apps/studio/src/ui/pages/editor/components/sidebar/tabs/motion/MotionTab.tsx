@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { RotateCcw } from 'lucide-react';
@@ -56,6 +57,7 @@ const RESET_CLASS =
  * answered, so a second title would only repeat it.
  */
 export const MotionTab = memo(function MotionTab({ sheetScope, document }: MotionTabProps) {
+  const { t } = useTranslation();
   const sheet = sheetScope.activeSheet;
   const scripts = useSheetScripts(sheet);
   const onScreen = useActiveSegments(document)[0] ?? null;
@@ -74,10 +76,10 @@ export const MotionTab = memo(function MotionTab({ sheetScope, document }: Motio
   }, [resetMotion, picked, replay]);
 
   return (
-    <EditorTab title="Motion" hideTitleRow sheetScope={sheetScope}>
+    <EditorTab title={t("Motion")} hideTitleRow sheetScope={sheetScope}>
       <Tabs.Root value={picked} onValueChange={(value) => setPicked(value as ElementAnimationScope)}>
         <div className={STRIP_ROW_CLASS}>
-          <Tabs.List className={STRIP_CLASS} aria-label="What moves">
+          <Tabs.List className={STRIP_CLASS} aria-label={t("What moves")}>
             {SHEET_ANIMATION_SCOPES.map((scope) => (
               <Tabs.Trigger key={scope} value={scope} className={STRIP_TAB_CLASS}>
                 {ANIMATION_SCOPE_LABELS[scope]}
@@ -85,7 +87,7 @@ export const MotionTab = memo(function MotionTab({ sheetScope, document }: Motio
             ))}
           </Tabs.List>
           <Tooltip text="Reset to template default">
-            <button type="button" onClick={reset} aria-label="Reset to template default" className={RESET_CLASS}>
+            <button type="button" onClick={reset} aria-label={t("Reset to template default")} className={RESET_CLASS}>
               <RotateCcw size={13} strokeWidth={2} />
             </button>
           </Tooltip>

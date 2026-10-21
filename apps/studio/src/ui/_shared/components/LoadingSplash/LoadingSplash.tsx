@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { Wordmark } from '@ui/_shared/components/Wordmark/Wordmark';
 
 interface LoadingSplashProps {
@@ -36,8 +37,8 @@ export function LoadingSplash({ label, variant = 'fullscreen' }: LoadingSplashPr
     >
       <Wordmark size="lg" working />
       {label
-        ? <span className={LABEL}>{label}</span>
-        : <span className="sr-only">Loading</span>}
+        ? <span className={LABEL}><UiText text={label} /></span>
+        : <span className="sr-only"><UiText text="Loading" /></span>}
     </div>
   );
 }

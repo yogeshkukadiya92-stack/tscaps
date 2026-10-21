@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useRef, useState, type ReactNode } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Code2, Orbit, Palette } from 'lucide-react';
@@ -48,6 +49,7 @@ const CONTENT_CLASS =
  * way out, so leaving mid-edit keeps the edit.
  */
 export function ElementInspectorTabs({ style, motion, code }: ElementInspectorTabsProps) {
+  const { t } = useTranslation();
   const [active, setActive] = useState<string>(STYLE);
   // Per-tab refs so `ScrollFade` reattaches on tab change: its effect
   // depends on the ref's identity, and one shared ref would never
@@ -73,18 +75,18 @@ export function ElementInspectorTabs({ style, motion, code }: ElementInspectorTa
         </div>
       </div>
 
-      <Tabs.List className={RAIL_LIST_CLASS} aria-label="Element properties">
-        <Tabs.Trigger value={STYLE} className={RAIL_TAB_CLASS} aria-label="Style">
+      <Tabs.List className={RAIL_LIST_CLASS} aria-label={t("Element properties")}>
+        <Tabs.Trigger value={STYLE} className={RAIL_TAB_CLASS} aria-label={t("Style")}>
           <Palette size={ICON_SIZE} />
-          <span className={RAIL_TAB_LABEL_CLASS}>Style</span>
+          <span className={RAIL_TAB_LABEL_CLASS}><UiText text="Style" /></span>
         </Tabs.Trigger>
-        <Tabs.Trigger value={MOTION} className={RAIL_TAB_CLASS} aria-label="Motion">
+        <Tabs.Trigger value={MOTION} className={RAIL_TAB_CLASS} aria-label={t("Motion")}>
           <Orbit size={ICON_SIZE} />
-          <span className={RAIL_TAB_LABEL_CLASS}>Motion</span>
+          <span className={RAIL_TAB_LABEL_CLASS}><UiText text="Motion" /></span>
         </Tabs.Trigger>
-        <Tabs.Trigger value={CODE} className={RAIL_TAB_CLASS} aria-label="Code">
+        <Tabs.Trigger value={CODE} className={RAIL_TAB_CLASS} aria-label={t("Code")}>
           <Code2 size={ICON_SIZE} />
-          <span className={RAIL_TAB_LABEL_CLASS}>Code</span>
+          <span className={RAIL_TAB_LABEL_CLASS}><UiText text="Code" /></span>
         </Tabs.Trigger>
       </Tabs.List>
     </Tabs.Root>

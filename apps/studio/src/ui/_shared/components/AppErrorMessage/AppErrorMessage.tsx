@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { ServerTranscriptionFailedError } from '@core/transcription/domain/errors/ServerTranscriptionFailedError';
 import type { ReactElement } from 'react';
 import type { AppError } from '@core/errors/domain/AppError';
@@ -811,27 +812,27 @@ function ErrorBody({
   const announcement = announceBullets(bullets, suggestions);
   return (
     <div className="space-y-2">
-      <p className="m-0">{announcement ? `${lead} ${announcement}` : lead}</p>
+      <p className="m-0"><UiText text={lead} />{announcement && <> <UiText text={announcement} /></>}</p>
       {bullets.length >= 2 && (
         <ul className="list-disc pl-5 m-0 space-y-1">
-          {bullets.map((text) => <li key={text}>{text}</li>)}
+          {bullets.map((text) => <li key={text}><UiText text={text} /></li>)}
         </ul>
       )}
-      {bullets.length === 1 && <p className="m-0">{bullets[0]}</p>}
+      {bullets.length === 1 && <p className="m-0"><UiText text={bullets[0]} /></p>}
       <p className="m-0">
-        {inviteToSupport(support, bullets.length > 0)}
-        <SupportLink /> and we&apos;ll take a look.
-      </p>
-      {details && <p className="m-0 text-fg-faint text-xs">{details}</p>}
+        <UiText text={inviteToSupport(support, bullets.length > 0)} />
+        <SupportLink /><UiText text=" and we&apos;ll take a look." /></p>
+      {details && <p className="m-0 text-fg-faint text-xs"><UiText text={details} /></p>}
     </div>
   );
 }
 
 function SupportLink(): ReactElement {
+  const { t } = useTranslation();
   return (
     <>
       <a className="underline break-all" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-      {' or call '}
+      {t(' or call ')}
       <a className="underline" href={SUPPORT_PHONE_HREF}>{SUPPORT_PHONE}</a>
     </>
   );

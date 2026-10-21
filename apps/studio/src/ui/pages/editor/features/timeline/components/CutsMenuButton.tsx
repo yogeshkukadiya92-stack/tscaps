@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { forwardRef } from 'react';
 import { Scissors } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -18,6 +19,7 @@ const ICON_BTN =
  */
 export const CutsMenuButton = forwardRef<HTMLButtonElement>(
   function CutsMenuButton(props, ref) {
+  const { t } = useTranslation();
     return (
       <Tooltip text="Cuts" position="bottom">
         <button
@@ -25,7 +27,7 @@ export const CutsMenuButton = forwardRef<HTMLButtonElement>(
           ref={ref}
           type="button"
           className={ICON_BTN}
-          aria-label="Cuts"
+          aria-label={t("Cuts")}
         >
           <Scissors size={14} />
         </button>

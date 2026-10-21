@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
@@ -40,6 +41,7 @@ const MODE_LABEL: Record<ThemeMode, string> = {
  * don't have to guess what comes next.
  */
 export function ThemeToggle({ controller }: ThemeToggleProps) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<ThemeMode>(() => controller.getMode());
   useEffect(() => {
     const update = () => setMode(controller.getMode());
@@ -49,14 +51,14 @@ export function ThemeToggle({ controller }: ThemeToggleProps) {
   }, [controller]);
 
   const Icon = MODE_ICON[mode];
-  const label = MODE_LABEL[mode];
+  const label = t(MODE_LABEL[mode]);
   return (
-    <Tooltip text={`Theme: ${label} (click to change)`} position="bottom">
+    <Tooltip text={t("Theme: {0} (click to change)", { 0: label })} position="bottom">
       <button
         type="button"
         className={BTN_CLASS}
         onClick={() => controller.cycle()}
-        aria-label={`Theme: ${label}. Click to change.`}
+        aria-label={t("Theme: {0}. Click to change.", { 0: label })}
       >
         <Icon size={16} />
       </button>

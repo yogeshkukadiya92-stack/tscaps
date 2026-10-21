@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo, useCallback, type ReactNode } from 'react';
 import type { AuthoredElementControl } from '@core/elements/domain/ElementControl';
 import type { ElementControlValue } from '@core/elements/services/css/ElementControlCssWriter';
@@ -97,7 +98,7 @@ function renderField(
   if (control.type === 'color') {
     return (
       <div className="flex items-center gap-2">
-        <span className={elementFieldLabelClass(compact)}>{control.label}</span>
+        <span className={elementFieldLabelClass(compact)}><UiText text={control.label} /></span>
         <ColorPicker label="" value={String(value ?? '')} onChange={onChange} />
       </div>
     );

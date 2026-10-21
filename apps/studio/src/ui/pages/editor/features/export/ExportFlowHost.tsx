@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { creativeResolution } from '@core/creative/CreativeProject';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ExportStore } from '@core/export/store/ExportStore';
@@ -77,7 +78,7 @@ export function ExportFlowHost({
     <>
       {replacedVideoDiffers && <ReplacedVideoNotice onSelect={handleSelectOriginalVideo} />}
       {watermarkNotice}
-      {state.creative && <p className="text-xs text-fg-secondary">Includes Creative Studio clips, B-roll, music, effects and captions. Subtitle files use the original caption timeline.</p>}
+      {state.creative && <p className="text-xs text-fg-secondary"><UiText text="Includes Creative Studio clips, B-roll, music, effects and captions. Subtitle files use the original caption timeline." /></p>}
     </>
   );
   const environment = useMemo(() => userAgentInspector.detect(), [userAgentInspector]);

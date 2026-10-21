@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type {
   TimelineWordDragMode,
@@ -81,6 +82,7 @@ interface WordChipProps {
  * it only draws.
  */
 export function WordChip({ cell, rowStartSec, rowDurationSec, dragTarget }: WordChipProps) {
+  const { t } = useTranslation();
   const dragController = useTimelinePointerDragController();
   const isSplit = cell.cutAtStart || cell.cutAtEnd;
   const [isLinkedHover, hoverHandlers] = useLinkedCellHover(cell.id, isSplit);
@@ -115,8 +117,8 @@ export function WordChip({ cell, rowStartSec, rowDurationSec, dragTarget }: Word
         <span
           className={RESIZE_HANDLE_CLASS}
           style={{ left: 0 }}
-          title="Drag to change when this word starts"
-          aria-label="Resize word start"
+          title={t("Drag to change when this word starts")}
+          aria-label={t("Resize word start")}
           onPointerDown={startEdit('resize-start')}
         />
       )}
@@ -124,8 +126,8 @@ export function WordChip({ cell, rowStartSec, rowDurationSec, dragTarget }: Word
         <span
           className={RESIZE_HANDLE_CLASS}
           style={{ right: 0 }}
-          title="Drag to change when this word ends"
-          aria-label="Resize word end"
+          title={t("Drag to change when this word ends")}
+          aria-label={t("Resize word end")}
           onPointerDown={startEdit('resize-end')}
         />
       )}

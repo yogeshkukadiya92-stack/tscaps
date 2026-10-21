@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { forwardRef } from 'react';
 import { Download, MoreVertical, Trash2 } from 'lucide-react';
 import { Popover } from '@ui/_shared/components/Popover/Popover';
@@ -71,13 +72,14 @@ export function ProjectActionsMenu({
 
 const MenuTriggerButton = forwardRef<HTMLButtonElement>(
   function MenuTriggerButton(props, ref) {
+  const { t } = useTranslation();
     return (
       <button
         {...props}
         ref={ref}
         type="button"
         className={MENU_TRIGGER}
-        aria-label="Project actions"
+        aria-label={t("Project actions")}
       >
         <MoreVertical size={14} />
       </button>
@@ -108,7 +110,7 @@ function MenuScreen({
           onClick={() => { close(); onExport(); }}
         >
           <Download size={14} />
-          <span className="flex-1">Export</span>
+          <span className="flex-1"><UiText text="Export" /></span>
         </button>
       )}
       <button
@@ -117,7 +119,7 @@ function MenuScreen({
         onClick={() => { close(); onDelete(); }}
       >
         <Trash2 size={14} />
-        <span className="flex-1">Delete</span>
+        <span className="flex-1"><UiText text="Delete" /></span>
       </button>
     </div>
   );

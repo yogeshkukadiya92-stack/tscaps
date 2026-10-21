@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useMemo, useState } from 'react';
 import { ScreenWakeLock } from '@presentation/editor/controllers/ScreenWakeLock';
 import { BeforeUnloadPrompt } from '@presentation/editor/controllers/BeforeUnloadPrompt';
@@ -41,6 +42,7 @@ interface EditorShellHostProps {
  * both directions.
  */
 export function EditorShellHost({ onBack }: EditorShellHostProps) {
+  const { t } = useTranslation();
   const editor = useEditor();
   const exports = useExport();
   const exportFeedback = useMemo(
@@ -82,7 +84,7 @@ export function EditorShellHost({ onBack }: EditorShellHostProps) {
   const exportReachable = branch === 'editor' || branch === 'exporting';
 
   const branchTree = branch === 'loading-project' ? (
-    <LoadingSplash label="Opening project…" />
+    <LoadingSplash label={t("Opening project…")} />
   ) : branch === 'preprocessing' ? (
     <PreprocessingScreenHost />
   ) : branch === 'exporting' ? (

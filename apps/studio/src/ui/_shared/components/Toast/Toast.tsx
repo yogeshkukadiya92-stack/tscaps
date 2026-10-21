@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useState, type AnimationEvent, type ReactNode } from 'react';
@@ -67,6 +69,7 @@ const CHROME =
  * `ToastStackProvider` must sit above this component.
  */
 export function Toast({ open, icon, tone = 'info', title, description, position = 'bottom-right', duration, onDismiss }: ToastProps) {
+  const { t } = useTranslation();
   const stacks = useToastStacks();
   const [exiting, setExiting] = useState(false);
   const [pointerHeld, setPointerHeld] = useState(false);
@@ -111,15 +114,15 @@ export function Toast({ open, icon, tone = 'info', title, description, position 
     >
       {icon && <span className={`shrink-0 mt-px ${TONE_ICON[tone]}`}>{icon}</span>}
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-sm text-fg-primary leading-snug">{title}</span>
+        <span className="text-sm text-fg-primary leading-snug"><UiText text={title} /></span>
         {description && (
-          <span className="text-xs text-fg-muted leading-snug">{description}</span>
+          <span className="text-xs text-fg-muted leading-snug"><UiText text={description} /></span>
         )}
       </div>
       <button
         type="button"
         onClick={() => setExiting(true)}
-        aria-label="Dismiss"
+        aria-label={t("Dismiss")}
         className="shrink-0 -mr-1 -mt-1 p-1 rounded-xs text-fg-faint cursor-pointer transition-colors duration-quick ease-standard hover:text-fg-secondary hover:bg-surface-2 focus-visible:outline-none focus-visible:border focus-visible:border-accent"
       >
         <X size={14} />

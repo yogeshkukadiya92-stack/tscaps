@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import type { TimelineSpan } from '@presentation/timeline/services/TimelineSpan';
 
 const TITLE_CLASS = 'text-fg-primary font-medium';
@@ -33,16 +34,16 @@ export function SceneSpeechSummary({ words, window }: SceneSpeechSummaryProps) {
   const offScreenSec = spokenSec - coveredSec;
   return (
     <div>
-      <div className={TITLE_CLASS}>Speech off screen</div>
-      <div className={SUBTITLE_CLASS}>Words spoken while this scene is not shown</div>
+      <div className={TITLE_CLASS}><UiText text="Speech off screen" /></div>
+      <div className={SUBTITLE_CLASS}><UiText text="Words spoken while this scene is not shown" /></div>
       <div className={TABLE_CLASS}>
-        <span>Spoken</span>
+        <span><UiText text="Spoken" /></span>
         <span className={VALUE_CLASS}>{spokenSec.toFixed(2)}s</span>
-        <span>On screen</span>
+        <span><UiText text="On screen" /></span>
         <span className={VALUE_CLASS}>{shownSec.toFixed(2)}s</span>
         {offScreenSec >= OFF_SCREEN_THRESHOLD_SEC && (
           <>
-            <span>Off screen</span>
+            <span><UiText text="Off screen" /></span>
             <span className={WARNING_VALUE_CLASS}>{offScreenSec.toFixed(2)}s</span>
           </>
         )}

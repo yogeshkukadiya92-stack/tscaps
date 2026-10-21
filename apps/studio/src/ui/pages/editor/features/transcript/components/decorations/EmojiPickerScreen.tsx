@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useCallback } from 'react';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
@@ -20,6 +21,7 @@ interface PickedEmoji {
  * unicode glyph.
  */
 export function EmojiPickerScreen({ onPick }: EmojiPickerScreenProps) {
+  const { t } = useTranslation();
   const currentTheme = useCurrentTheme();
 
   const handleSelect = useCallback((emoji: PickedEmoji) => {
@@ -28,7 +30,7 @@ export function EmojiPickerScreen({ onPick }: EmojiPickerScreenProps) {
 
   return (
     <div className="p-2 flex flex-col gap-2 box-border">
-      <PopoverHeader title="Pick emoji" />
+      <PopoverHeader title={t("Pick emoji")} />
       <div className="[&_em-emoji-picker]:!min-h-0 [&_em-emoji-picker]:!h-[200px]">
         <Picker
           data={data}

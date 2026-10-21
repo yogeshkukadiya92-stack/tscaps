@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useMemo } from 'react';
 import type { AlignmentConfig } from '@tscaps/engine';
 import { PositionSection } from '@ui/_shared/components/controls/sections/PositionSection';
@@ -11,6 +12,7 @@ interface PositionTabProps {
 }
 
 export const PositionTab = memo(function PositionTab({ sheetScope }: PositionTabProps) {
+  const { t } = useTranslation();
   const sheets = useSheets();
   const { horizontalPlacementResolver } = useRendering();
   const sheet = sheetScope.activeSheet;
@@ -38,7 +40,7 @@ export const PositionTab = memo(function PositionTab({ sheetScope }: PositionTab
 
   return (
     <EditorTab
-      title="Position"
+      title={t("Position")}
       sheetScope={sheetScope}
       onResetToTemplate={() => sheets.actions.style.resetSlice.execute('position')}
     >

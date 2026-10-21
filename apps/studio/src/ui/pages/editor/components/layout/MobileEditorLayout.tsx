@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { BottomSheetResizeController } from '@presentation/editor/controllers/BottomSheetResizeController';
 import { useObservedHeightPx } from '@ui/_shared/hooks/useObservedHeightPx';
@@ -63,6 +64,7 @@ function useObservedRect(elementRef: React.RefObject<HTMLElement | null>): RectS
  * actively expands the editor.
  */
 export function MobileEditorLayout({ videoBox, playbackControls, sidebar, videoAspectRatio }: MobileEditorLayoutProps) {
+  const { t } = useTranslation();
   const controller = useMemo(() => new BottomSheetResizeController(), []);
   const { pct, isDragging } = useResizeSnapshot(controller);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -160,7 +162,7 @@ export function MobileEditorLayout({ videoBox, playbackControls, sidebar, videoA
           role="separator"
           tabIndex={0}
           aria-orientation="horizontal"
-          aria-label="Resize editor panel"
+          aria-label={t("Resize editor panel")}
           aria-valuemin={Math.round(controller.minPct * 100)}
           aria-valuemax={Math.round(controller.maxPct * 100)}
           aria-valuenow={Math.round(pct * 100)}

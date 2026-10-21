@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { LocateFixed } from 'lucide-react';
 import { Tooltip } from '@ui/_shared/components/Tooltip/Tooltip';
 
@@ -20,6 +21,7 @@ interface LocateButtonProps {
  * parentheses.
  */
 export function LocateButton({ disabled, shortcutLabel, onLocate }: LocateButtonProps) {
+  const { t } = useTranslation();
   const tooltip = shortcutLabel ? `Go to current scene (${shortcutLabel})` : 'Go to current scene';
   return (
     <Tooltip text={tooltip} position="bottom">
@@ -28,7 +30,7 @@ export function LocateButton({ disabled, shortcutLabel, onLocate }: LocateButton
         className={ICON_BTN}
         onClick={onLocate}
         disabled={disabled}
-        aria-label="Go to current scene"
+        aria-label={t("Go to current scene")}
       >
         <LocateFixed size={14} />
       </button>

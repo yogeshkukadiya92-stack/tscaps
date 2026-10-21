@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo } from 'react';
 import type { ElementKind } from '@core/elements/domain/ElementKind';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -29,6 +30,7 @@ export const ElementPositionPanel = memo(function ElementPositionPanel({
   sheet,
   ancestorIds,
 }: ElementPositionPanelProps) {
+  const { t } = useTranslation();
   const elements = useElements();
   const { elementStyles } = useEditorState();
   const baseline = useElementPositionBaseline(kind, elementId, sheet, ancestorIds);
@@ -36,7 +38,7 @@ export const ElementPositionPanel = memo(function ElementPositionPanel({
   if (!elements.services.styledElementCatalog.canBePlaced(kind)) return null;
 
   return (
-    <Section title="Position">
+    <Section title={t("Position")}>
       <ElementPositionRow
         current={elementStyles.placementOf(elementId)}
         baseline={baseline}

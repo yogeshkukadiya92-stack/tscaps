@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { useEffect, useRef, useState } from 'react';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { BTN_PRIMARY_SM, BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
@@ -55,7 +56,7 @@ export function EditSheetDialog({ open, sheet, onConfirm, onCancel }: EditSheetD
   return (
     <AppDialog open={open} onClose={onCancel} size="md" title={title}>
       <div>
-        <label className={SECTION_LABEL} htmlFor="edit-sheet-name">Name</label>
+        <label className={SECTION_LABEL} htmlFor="edit-sheet-name"><UiText text="Name" /></label>
         <input
           id="edit-sheet-name"
           ref={inputRef}
@@ -68,7 +69,7 @@ export function EditSheetDialog({ open, sheet, onConfirm, onCancel }: EditSheetD
       </div>
 
       <AppDialogActions>
-        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}>Cancel</button>
+        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}><UiText text="Cancel" /></button>
         <button
           type="button"
           className={BTN_PRIMARY_SM}

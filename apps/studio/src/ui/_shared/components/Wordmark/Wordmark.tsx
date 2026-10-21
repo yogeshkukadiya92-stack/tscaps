@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { MouseEventHandler } from 'react';
 
 interface WordmarkProps {
@@ -23,6 +24,7 @@ const BASE =
 
 /** Shared ReelStudio brand mark, with a blinking activity indicator. */
 export function Wordmark({ href, onClick, size = 'md', working = false, className = '' }: WordmarkProps) {
+  const { t } = useTranslation();
   const sizeClass = SIZE_CLASS[size];
   const isLink = href !== undefined;
   const isStage = size === 'lg';
@@ -37,8 +39,8 @@ export function Wordmark({ href, onClick, size = 'md', working = false, classNam
   const content = (
     <>
       <img src="/reelstudio-logo.svg" alt="" aria-hidden="true" className="mr-2 h-[1.6em] w-[1.6em] shrink-0" />
-      <span className="text-fg-primary">Reel</span>
-      <span className={capsClass}>Studio</span>
+      <span className="text-fg-primary"><UiText text="Reel" /></span>
+      <span className={capsClass}><UiText text="Studio" /></span>
       <span className={dotClass} aria-hidden="true">.</span>
     </>
   );
@@ -49,7 +51,7 @@ export function Wordmark({ href, onClick, size = 'md', working = false, classNam
         href={href}
         onClick={onClick}
         className={`${BASE} group ${sizeClass} focus-visible:outline-none ${className}`}
-        aria-label="ReelStudio — home"
+        aria-label={t("ReelStudio — home")}
       >
         {content}
       </a>
@@ -57,7 +59,7 @@ export function Wordmark({ href, onClick, size = 'md', working = false, classNam
   }
 
   return (
-    <span className={`${BASE} ${sizeClass} ${className}`} aria-label="ReelStudio">
+    <span className={`${BASE} ${sizeClass} ${className}`} aria-label={t("ReelStudio")}>
       {content}
     </span>
   );

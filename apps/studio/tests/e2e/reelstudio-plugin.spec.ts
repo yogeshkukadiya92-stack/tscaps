@@ -33,10 +33,12 @@ test('plugin applies a real template, saves editable changes, opens preview and 
   const service = new ReelService(browser, catalog);
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   try {
+    await page.getByTestId('app-language').selectOption('gu');
     const edit = service.start('auto_edit', projectId, () => browser.autoEdit({ projectId, preset: 'arcade', style: 'energetic' }, catalog));
     await expect.poll(() => service.get(edit.id).status, { timeout: 60000 }).not.toBe('running');
     expect(service.get(edit.id), JSON.stringify(service.get(edit.id))).toMatchObject({ status: 'succeeded', result: { saved: true, editable: true } });
     expect(await browser.preview(projectId, true)).toMatchObject({ opened: true, playing: true });
+    await page.getByTestId('app-language').selectOption('en');
     await page.getByRole('button', { name: 'Stop preview', exact: true }).click();
     await expect(page.getByLabel('Effect 1 intensity')).toBeEnabled();
     const exported = service.start('export_reel', projectId, () => browser.export(projectId, format));

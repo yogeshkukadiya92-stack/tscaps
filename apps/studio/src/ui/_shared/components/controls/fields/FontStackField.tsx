@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { memo, useId, useState } from 'react';
 import { Languages } from 'lucide-react';
 import type { FontStack } from '@core/fonts/domain/FontStack';
@@ -72,7 +73,7 @@ export const FontStackField = memo(function FontStackField({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-start gap-2">
-        <span className={LABEL}>{label}</span>
+        <span className={LABEL}><UiText text={label} /></span>
         <FontPicker
           value={stack.familyFor(leading)}
           forScript={leading}

@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { AudioWaveform, ChevronRight, RotateCcw } from 'lucide-react';
 import { usePopoverNav } from '@ui/_shared/components/Popover/usePopoverNav';
 import { PopoverHeader } from '@ui/_shared/components/Popover/PopoverHeader';
@@ -35,6 +36,7 @@ export interface CutsMenuScreenProps {
  * affordances instead.
  */
 export function CutsMenuScreen({ canRestoreAll, onRestoreAll }: CutsMenuScreenProps) {
+  const { t } = useTranslation();
   const { navigate, close } = usePopoverNav();
 
   const restoreAll = () => {
@@ -44,10 +46,10 @@ export function CutsMenuScreen({ canRestoreAll, onRestoreAll }: CutsMenuScreenPr
 
   return (
     <div className={SCREEN_CLASS}>
-      <PopoverHeader title="Cuts" />
+      <PopoverHeader title={t("Cuts")} />
       <button type="button" className={ACTION_BTN} onClick={() => navigate('silences')}>
         <AudioWaveform size={14} />
-        <span className="flex-1">Remove silences</span>
+        <span className="flex-1"><UiText text="Remove silences" /></span>
         <ChevronRight size={13} className="text-fg-faint" />
       </button>
       <div className={DIVIDER_CLASS} />
@@ -58,7 +60,7 @@ export function CutsMenuScreen({ canRestoreAll, onRestoreAll }: CutsMenuScreenPr
         disabled={!canRestoreAll}
       >
         <RotateCcw size={14} />
-        <span className="flex-1">Restore all cuts</span>
+        <span className="flex-1"><UiText text="Restore all cuts" /></span>
       </button>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { TimelineSelection } from '@presentation/timeline/controllers/TimelineEditingController';
 import { useTimelinePointerDragController } from '@ui/pages/editor/features/timeline/contexts/TimelinePointerDragContext';
@@ -29,6 +30,7 @@ interface SelectionOverlayProps {
  * across rows.
  */
 export function SelectionOverlay({ selection, rowStartSec, rowDurationSec }: SelectionOverlayProps) {
+  const { t } = useTranslation();
   const dragController = useTimelinePointerDragController();
   const rowEndSec = rowStartSec + rowDurationSec;
 
@@ -61,8 +63,8 @@ export function SelectionOverlay({ selection, rowStartSec, rowDurationSec }: Sel
         <div
           className={RESIZE_HANDLE_CLASS}
           style={{ left: 0 }}
-          title="Drag to resize selection"
-          aria-label="Resize selection start"
+          title={t("Drag to resize selection")}
+          aria-label={t("Resize selection start")}
           onPointerDown={startResizeFromAnchor(selection.endSec)}
         />
       )}
@@ -70,8 +72,8 @@ export function SelectionOverlay({ selection, rowStartSec, rowDurationSec }: Sel
         <div
           className={RESIZE_HANDLE_CLASS}
           style={{ right: 0 }}
-          title="Drag to resize selection"
-          aria-label="Resize selection end"
+          title={t("Drag to resize selection")}
+          aria-label={t("Resize selection end")}
           onPointerDown={startResizeFromAnchor(selection.startSec)}
         />
       )}

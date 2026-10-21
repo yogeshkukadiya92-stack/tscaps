@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useRef, useState } from 'react';
 import { Link2 } from 'lucide-react';
 import { Toast, TOAST_AUTO_DISMISS_MS } from '@ui/_shared/components/Toast/Toast';
@@ -14,6 +15,7 @@ interface ToastState {
  * discoverable but repeated edits stay silent. Auto-dismisses.
  */
 export function LinkedSheetsPropagationToast() {
+  const { t } = useTranslation();
   const { linkedSheetsPropagationNotifier } = useSheets();
   const alreadyNotifiedGroupIdsRef = useRef<Set<string>>(new Set());
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -38,7 +40,7 @@ export function LinkedSheetsPropagationToast() {
       position="bottom-right"
       tone="info"
       icon={<Link2 size={16} strokeWidth={2.5} />}
-      title="Linked sheets updated"
+      title={t("Linked sheets updated")}
       description={description}
       duration={TOAST_AUTO_DISMISS_MS}
       onDismiss={() => setToast(null)}

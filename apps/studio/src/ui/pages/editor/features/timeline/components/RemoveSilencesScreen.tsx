@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useMemo, useState } from 'react';
 import type { Document } from '@tscaps/engine';
 import type { CutRegistry } from '@core/cuts/domain/CutRegistry';
@@ -51,6 +52,7 @@ export function RemoveSilencesScreen({
   cuts,
   onRemoveSilences,
 }: RemoveSilencesScreenProps) {
+  const { t } = useTranslation();
   const { silenceFinder } = useCuts().services;
   const [preset, setPreset] = useState<RemoveSilencesPreset>('fast');
   const removableSilences = useMemo(() => {
@@ -64,8 +66,8 @@ export function RemoveSilencesScreen({
 
   return (
     <div className={SCREEN_CLASS}>
-      <PopoverHeader title="Remove silences" />
-      <div className={SWITCH_GROUP_CLASS} role="tablist" aria-label="Remove silences intensity">
+      <PopoverHeader title={t("Remove silences")} />
+      <div className={SWITCH_GROUP_CLASS} role="tablist" aria-label={t("Remove silences intensity")}>
         {PRESETS.map((option) => {
           const active = option.value === preset;
           return (
@@ -77,7 +79,7 @@ export function RemoveSilencesScreen({
               className={active ? SWITCH_BUTTON_ACTIVE : SWITCH_BUTTON_INACTIVE}
               onClick={() => setPreset(option.value)}
             >
-              {option.label}
+              <UiText text={option.label} />
             </button>
           );
         })}
@@ -91,7 +93,7 @@ export function RemoveSilencesScreen({
         {removeLabel}
       </button>
       {disabled && (
-        <p className={EMPTY_HELPER_CLASS}>No silences found with current settings.</p>
+        <p className={EMPTY_HELPER_CLASS}><UiText text="No silences found with current settings." /></p>
       )}
     </div>
   );

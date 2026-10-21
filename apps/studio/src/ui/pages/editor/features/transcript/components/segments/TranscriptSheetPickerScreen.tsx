@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useState } from 'react';
 import { Check, Plus } from 'lucide-react';
 import type { Sheet } from '@core/sheets/domain/Sheet';
@@ -20,6 +21,7 @@ export function TranscriptSheetPickerScreen({
   onAssign,
   onCreateSheet,
 }: TranscriptSheetPickerScreenProps) {
+  const { t } = useTranslation();
   const { close } = usePopoverNav();
   const [promptOpen, setPromptOpen] = useState(false);
 
@@ -37,7 +39,7 @@ export function TranscriptSheetPickerScreen({
 
   return (
     <div className={POPOVER_MENU_SHAPE}>
-      <PopoverHeader title="Style sheet" />
+      <PopoverHeader title={t("Style sheet")} />
       {sheets.map((sheet) => {
         const isAssigned = assignedSheetId === sheet.id;
         const isMain = sheet.color === null;
@@ -55,11 +57,10 @@ export function TranscriptSheetPickerScreen({
         );
       })}
       <button className={POPOVER_ITEM_MOVE} onClick={() => setPromptOpen(true)}>
-        <Plus size={13} /> New sheet…
-      </button>
+        <Plus size={13} /><UiText text=" New sheet…" /></button>
       <PromptDialog
         open={promptOpen}
-        label="Style sheet name"
+        label={t("Style sheet name")}
         defaultValue="New sheet"
         confirmLabel="Create"
         onConfirm={createAndAssign}

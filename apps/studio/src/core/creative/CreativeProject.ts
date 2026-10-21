@@ -1,3 +1,4 @@
+import { readContentFormatState, recoverContentFormatState, type ContentFormatState } from '@core/creative/ContentFormats';
 import { readAutoEditGeneration, type AutoEditGeneration } from '@core/creative/AutoEditGeneration';
 import { isReelPresetId, type ReelPresetId } from '@core/creative/ReelPresets';
 import { readMotionEffects, type MotionEffect } from '@core/creative/MotionEffects';
@@ -36,6 +37,7 @@ export interface CreativeProject {
   /** Present after one Auto Edit pass; all resulting edits remain ordinary editable values. */
   autoEdit?: { style: 'clean' | 'energetic' | 'professional'; preset?: ReelPresetId; generation?: AutoEditGeneration };
   effects?: MotionEffect[];
+  contentFormat?: ContentFormatState;
   settings: CreativeSettings;
   clips: CreativeClip[];
   overlays: BRoll[];
@@ -121,5 +123,6 @@ export function readCreativeProject(value: unknown): CreativeProject | null {
   if (project.autoEdit?.preset !== undefined && !isReelPresetId(project.autoEdit.preset)) throw new Error('Invalid reel template.');
   readAutoEditGeneration(project.autoEdit?.generation);
   const effects = readMotionEffects(project.effects);
-  return { ...project, settings, ...(effects ? { effects } : {}) };
+  const contentFormat = readContentFormatState(project.contentFormat) ?? recoverContentFormatState(effects);
+  return { ...project, settings, ...(effects ? { effects } : {}), ...(contentFormat ? { contentFormat } : {}) };
 }

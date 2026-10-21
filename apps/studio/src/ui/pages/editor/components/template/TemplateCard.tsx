@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useRef, useState } from 'react';
 import { Star, Trash2, Pencil } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
@@ -52,6 +53,7 @@ export const TemplateCard = memo(function TemplateCard({
   onDelete,
   onRename,
 }: TemplateCardProps) {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   // Hover host on the wrapper (not the inner button) so the favorite overlay doesn't break hover.
   const hostRef = useRef<HTMLDivElement>(null);
@@ -80,7 +82,7 @@ export const TemplateCard = memo(function TemplateCard({
           onHoverLost={onHoverLost}
           aspectClass="caption-template-frame aspect-[4/2]"
         />
-        <span className="w-full px-2 py-1.5 text-left text-xs text-fg-secondary">{template.metadata.name}<span className="block mt-1 text-accent">{isSelected ? '✓ Applied' : 'Apply style'}</span></span>
+        <span className="w-full px-2 py-1.5 text-left text-xs text-fg-secondary">{template.metadata.name}<span className="block mt-1 text-accent">{isSelected ? t('✓ Applied') : t('Apply style')}</span></span>
       </button>
 
       {isNew && <TemplateNewBadge />}
@@ -90,7 +92,7 @@ export const TemplateCard = memo(function TemplateCard({
         type="button"
         onClick={() => onToggleFavorite(template.metadata.id)}
         aria-pressed={isFavorite}
-        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        aria-label={isFavorite ? t('Remove from favorites') : t('Add to favorites')}
         className={
           isFavorite
             ? 'absolute top-1 right-1 p-1 rounded-xs bg-surface-1/70 backdrop-blur-sm border border-edge-medium text-accent cursor-pointer transition-colors duration-quick ease-standard hover:bg-surface-1 focus-visible:outline-none focus-visible:bg-surface-1'
@@ -106,8 +108,8 @@ export const TemplateCard = memo(function TemplateCard({
             <button
               type="button"
               onClick={onRename}
-              aria-label="Rename this saved template"
-              title="Rename this saved template"
+              aria-label={t("Rename this saved template")}
+              title={t("Rename this saved template")}
               className="p-1 rounded-xs bg-surface-1/70 backdrop-blur-sm border border-edge-medium text-fg-faint cursor-pointer [@media(hover:hover)]:opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100 transition-[opacity,color,background-color] duration-quick ease-standard hover:text-fg-primary hover:bg-surface-1 focus-visible:outline-none focus-visible:text-fg-primary focus-visible:bg-surface-1"
             >
               <Pencil size={14} strokeWidth={2.25} />
@@ -117,8 +119,8 @@ export const TemplateCard = memo(function TemplateCard({
             <button
               type="button"
               onClick={onDelete}
-              aria-label="Delete this saved template"
-              title="Delete this saved template"
+              aria-label={t("Delete this saved template")}
+              title={t("Delete this saved template")}
               className="p-1 rounded-xs bg-surface-1/70 backdrop-blur-sm border border-edge-medium text-fg-faint cursor-pointer [@media(hover:hover)]:opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100 transition-[opacity,color,background-color] duration-quick ease-standard hover:text-danger hover:bg-surface-1 focus-visible:outline-none focus-visible:text-danger focus-visible:bg-surface-1"
             >
               <Trash2 size={14} strokeWidth={2.25} />

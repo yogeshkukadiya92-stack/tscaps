@@ -1,3 +1,5 @@
+import { UiText } from '@ui/i18n/Locale';
+import { useTranslation } from '@ui/i18n/Locale';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -108,6 +110,7 @@ export function AppDialog({
   elevated = false,
   children,
 }: AppDialogProps) {
+  const { t } = useTranslation();
   const layer = elevated ? ELEVATED_LAYER : DEFAULT_LAYER;
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next && !locked) onClose(); }}>
@@ -122,17 +125,17 @@ export function AppDialog({
           data-floating-layer
         >
           {titleSrOnly ? (
-            <Dialog.Title className="sr-only">{title}</Dialog.Title>
+            <Dialog.Title className="sr-only"><UiText text={title} /></Dialog.Title>
           ) : (
-            <Dialog.Title className={`${TITLE} ${showCloseButton ? 'pr-10' : ''}`}>{title}</Dialog.Title>
+            <Dialog.Title className={`${TITLE} ${showCloseButton ? 'pr-10' : ''}`}><UiText text={title} /></Dialog.Title>
           )}
           {description !== undefined && (
-            <Dialog.Description className={DESCRIPTION}>{description}</Dialog.Description>
+            <Dialog.Description className={DESCRIPTION}><UiText text={description} /></Dialog.Description>
           )}
           {showCloseButton && (
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t("Close")}
               className={CLOSE_BTN}
               onClick={onClose}
               disabled={locked}

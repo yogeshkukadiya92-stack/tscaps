@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 import '@ui/pages/editor/features/transcript/components/bulk-mode/BulkModeBottomBar.css';
 
@@ -26,6 +27,7 @@ export function BulkModeBottomBar({
   onClear,
   onDone,
 }: BulkModeBottomBarProps) {
+  const { t } = useTranslation();
   const noun = target === 'scenes' ? 'scene' : 'word';
   return (
     <div className="bulk-mode-bottom-bar sticky bottom-0 z-20 bg-surface-2 border-t border-edge-medium shadow-[0_-6px_10px_-8px_rgba(0,0,0,0.35)] mt-2">
@@ -37,14 +39,14 @@ export function BulkModeBottomBar({
           </span>
           <div className="bulk-mode-bottom-bar__selection flex items-center gap-0.5 shrink-0">
             <button type="button" className={SECONDARY_BUTTON} onClick={onToggleAll}>
-              {allSelected ? 'Deselect all' : 'Select all'}
+              {allSelected ? t('Deselect all') : t('Select all')}
             </button>
             {selectionCount > 0 && !allSelected && (
-              <button type="button" className={SECONDARY_BUTTON} onClick={onClear}>Clear</button>
+              <button type="button" className={SECONDARY_BUTTON} onClick={onClear}><UiText text="Clear" /></button>
             )}
           </div>
           <div className="bulk-mode-bottom-bar__completion flex items-center gap-1 shrink-0">
-            <button type="button" className={SECONDARY_BUTTON} onClick={onDone}>Done</button>
+            <button type="button" className={SECONDARY_BUTTON} onClick={onDone}><UiText text="Done" /></button>
             {actions}
           </div>
         </div>

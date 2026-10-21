@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import '@ui/pages/editor/components/EditorWorkspace.css';
 import { useActiveEditorMode } from '@ui/pages/editor/hooks/useActiveEditorMode';
 import { useEditorWorkspaceStore } from '@ui/pages/editor/contexts/EditorWorkspaceContext';
@@ -91,6 +92,7 @@ export function EditorPage({
   videoOverlay,
   banner,
 }: EditorPageProps) {
+  const { t } = useTranslation();
   const [draftPreviewActive, setDraftPreviewActive] = useState(false);
   const activeMode = useActiveEditorMode();
   const workspace = useEditorWorkspaceStore();
@@ -307,20 +309,19 @@ export function EditorPage({
           onSave={onSave}
         />
         <details className="relative w-full shrink-0 mb-2 rounded-md border border-edge-subtle bg-surface-1 text-xs text-fg-secondary">
-          <summary className="cursor-pointer px-3 py-2 font-medium text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-            How to make your reel · <span lang="gu">રીલ કેવી રીતે બનાવવી?</span>
+          <summary className="cursor-pointer px-3 py-2 font-medium text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><UiText text="How to make your reel" />
           </summary>
           <div className="absolute left-0 right-0 top-full z-50 max-h-[50dvh] overflow-y-auto rounded-b-md border border-edge-subtle bg-surface-1 px-3 py-3 shadow-lg leading-relaxed">
             <ol className="list-decimal pl-4 space-y-2 m-0">
-              <li><strong>Captions:</strong> correct the words and choose a design. <span lang="gu">શબ્દો સુધારો અને લખાણની ડિઝાઇન પસંદ કરો.</span></li>
-              <li><strong>Creative:</strong> add music, images or effects, then press Save creative changes. <span lang="gu">સંગીત, ફોટો કે ઇફેક્ટ ઉમેરો. ફેરફાર રાખવા Save creative changes દબાવો.</span></li>
-              <li><strong>Play:</strong> watch your reel and check the words. <span lang="gu">વિડિયો ચલાવીને જુઓ અને શબ્દો તપાસો. ભૂલ થાય તો Undo દબાવો.</span></li>
-              <li><strong>Export:</strong> download the finished video. <span lang="gu">તૈયાર વિડિયો ફોનમાં લેવા Export દબાવો. Save માત્ર પ્રોજેક્ટના ફેરફાર સાચવે છે.</span></li>
+              <li><strong><UiText text="Captions:" /></strong><UiText text=" correct the words and choose a design. " /></li>
+              <li><strong><UiText text="Creative:" /></strong><UiText text=" add music, images or effects, then press Save changes. " /><span><UiText text="Add music, photos or effects. Press Save changes to keep your edits." /></span></li>
+              <li><strong><UiText text="Play:" /></strong><UiText text=" watch your reel and check the words. " /><span><UiText text="Play the video and check the words. Use Undo to correct a mistake." /></span></li>
+              <li><strong><UiText text="Export:" /></strong><UiText text=" download the finished video. " /><span><UiText text="Press Export to download the finished video. Save only keeps project edits." /></span></li>
             </ol>
-            <p className="mt-2 mb-0">Timeline is optional — use it to adjust when captions appear. <span lang="gu">લખાણ ક્યારે દેખાય તે બદલવા Timeline વાપરો.</span></p>
+            <p className="mt-2 mb-0"><UiText text="Timeline is optional — use it to adjust when captions appear. " /><span><UiText text="Use Timeline to change when captions appear." /></span></p>
           </div>
         </details>
-        <nav role="tablist" aria-label="Editor workspace" className="editor-workflow-tabs flex gap-2 w-full min-w-0 shrink-0 pb-3"
+        <nav role="tablist" aria-label={t("Editor workspace")} className="editor-workflow-tabs flex gap-2 w-full min-w-0 shrink-0 pb-3"
           onKeyDown={event => {
             const index = workspaceModes.findIndex(mode => mode.id === activeMode);
             const next = event.key === 'ArrowRight' ? (index + 1) % workspaceModes.length
@@ -333,10 +334,10 @@ export function EditorPage({
             workspace.setActiveMode(workspaceModes[next]!.id);
             event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
           }}>
-          {workspaceModes.map(mode => <button key={mode.id} id={`workspace-tab-${mode.id}`} role="tab" aria-selected={activeMode === mode.id} aria-controls="editor-workspace-panel" tabIndex={activeMode === mode.id ? 0 : -1} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex flex-1 sm:flex-none min-w-0 items-center justify-center gap-1 sm:gap-2 rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'bg-accent text-fg-on-accent' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}<span>{mode.label}<small aria-hidden="true">{mode.id === 'captions' ? 'Words & style' : mode.id === 'creative' ? 'Music & effects' : 'Timing & cuts'}</small></span></button>)}
+          {workspaceModes.map(mode => <button key={mode.id} id={`workspace-tab-${mode.id}`} role="tab" aria-selected={activeMode === mode.id} aria-controls="editor-workspace-panel" tabIndex={activeMode === mode.id ? 0 : -1} onClick={() => { playback.pause(); workspace.setActiveMode(mode.id); }} className={`inline-flex flex-1 sm:flex-none min-w-0 items-center justify-center gap-1 sm:gap-2 rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeMode === mode.id ? 'bg-accent text-fg-on-accent' : 'bg-surface-1 text-fg-secondary border border-edge-medium'}`}>{mode.icon}<span><UiText text={mode.label} /><small aria-hidden="true">{mode.id === 'captions' ? t('Words & style') : mode.id === 'creative' ? t('Music & effects') : t('Timing & cuts')}</small></span></button>)}
         </nav>
         <div id="editor-workspace-panel" role="tabpanel" aria-labelledby={`workspace-tab-${activeMode}`} className="flex flex-col w-full flex-1 min-h-0 min-w-0">
-        {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} captionControls={captionScope ? <CreativeCaptionControls document={state.document} sheetScope={captionScope} templates={state.availableTemplates} library={library} /> : <p className="text-sm text-fg-muted">Add captions in the Captions workspace to customize their style.</p>} />}
+        {activeMode === 'creative' && <CreativeStudio state={state} onDraftPreviewChange={setDraftPreviewActive} captionControls={captionScope ? <CreativeCaptionControls document={state.document} sheetScope={captionScope} templates={state.availableTemplates} library={library} /> : <p className="text-sm text-fg-muted"><UiText text="Add captions in the Captions workspace to customize their style." /></p>} />}
         <div className={activeMode === 'creative' ? 'hidden' : 'flex flex-col w-full flex-1 min-h-0'}>
         {isMobile ? (
           <MobileEditorLayout
@@ -356,17 +357,17 @@ export function EditorPage({
                 <div className="rounded-lg border border-edge-subtle overflow-hidden">
                   <div className="aspect-video bg-surface-2 flex items-center justify-center text-accent"><Film size={32} strokeWidth={1.5} /></div>
                   <div className="p-3">
-                    <p className="font-medium text-fg-primary truncate" title={state.video.fileName ?? 'Video'}>{state.video.fileName ?? 'Video'}</p>
+                    <p className="font-medium text-fg-primary truncate" title={state.video.fileName ?? t('Video')}>{state.video.fileName ?? t('Video')}</p>
                     <p className="mt-1 text-xs text-fg-muted">{state.video.layout ? `${state.video.layout.width} × ${state.video.layout.height} · ` : ''}{Math.floor(state.video.duration / 60)}:{String(Math.floor(state.video.duration % 60)).padStart(2, '0')}</p>
                   </div>
                 </div>
                 <div className="space-y-3 text-xs text-fg-muted leading-relaxed">
-                  <p className="font-semibold text-fg-primary">Make it yours</p>
-                  <p><strong className="text-fg-secondary">1. Check the words</strong><br />Open Transcript to correct your captions.</p>
-                  <p><strong className="text-fg-secondary">2. Choose your look</strong><br />Open Templates, then adjust the font and colors.</p>
-                  <p><strong className="text-fg-secondary">3. Watch and export</strong><br />Play the preview. Export downloads your finished reel.</p>
+                  <p className="font-semibold text-fg-primary"><UiText text="Make it yours" /></p>
+                  <p><strong className="text-fg-secondary"><UiText text="1. Check the words" /></strong><br /><UiText text="Open Transcript to correct your captions." /></p>
+                  <p><strong className="text-fg-secondary"><UiText text="2. Choose your look" /></strong><br /><UiText text="Open Templates, then adjust the font and colors." /></p>
+                  <p><strong className="text-fg-secondary"><UiText text="3. Watch and export" /></strong><br /><UiText text="Play the preview. Export downloads your finished reel." /></p>
                 </div>
-                <div className="mt-1 rounded-lg bg-surface-2 p-3 text-xs leading-relaxed text-fg-muted">Start with your words, choose a caption design, then preview and export your reel.</div>
+                <div className="mt-1 rounded-lg bg-surface-2 p-3 text-xs leading-relaxed text-fg-muted"><UiText text="Start with your words, choose a caption design, then preview and export your reel." /></div>
               </div>
             }
           />
@@ -381,8 +382,8 @@ export function EditorPage({
           position="top-center"
           tone="success"
           icon={<Check size={16} strokeWidth={2.5} />}
-          title="Export complete"
-          description="Your video was saved to disk."
+          title={t("Export complete")}
+          description={t("Your video was saved to disk.")}
           onDismiss={onDismissToast}
         />
       )}

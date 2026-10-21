@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactNode } from 'react';
 
 export interface SelectFieldOption {
@@ -27,7 +28,7 @@ const HINT_CLS = 'text-2xs text-fg-faint m-0 mt-1.5 leading-snug';
 export function SelectField({ id, label, value, options, onChange, hint }: SelectFieldProps) {
   return (
     <div>
-      <label className={LABEL_CLS} htmlFor={id}>{label}</label>
+      <label className={LABEL_CLS} htmlFor={id}><UiText text={label} /></label>
       <select
         id={id}
         className={SELECT_CLS}
@@ -35,7 +36,7 @@ export function SelectField({ id, label, value, options, onChange, hint }: Selec
         onChange={(e) => onChange(e.target.value)}
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <option key={opt.value} value={opt.value}><UiText text={opt.label} /></option>
         ))}
       </select>
       {hint != null && <p className={HINT_CLS}>{hint}</p>}

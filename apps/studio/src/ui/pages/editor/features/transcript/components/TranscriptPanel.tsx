@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronsRightLeft, Pencil } from 'lucide-react';
 import type { Document, Segment } from '@tscaps/engine';
@@ -95,6 +96,7 @@ const MODE_TOGGLE =
   'transition-colors duration-quick ease-standard focus-visible:outline-none focus-visible:bg-surface-2';
 
 export const TranscriptPanel = memo(function TranscriptPanel(props: TranscriptPanelProps) {
+  const { t } = useTranslation();
   const {
     document, activeSegmentId, sheets,
     elementStyles, behindActorOverrides, frozenSegments, decorationOverrides,
@@ -364,9 +366,7 @@ export const TranscriptPanel = memo(function TranscriptPanel(props: TranscriptPa
 
   if (!document) {
     return (
-      <div className="py-6 text-center text-sm text-fg-faint">
-        Transcribe a video to see captions here.
-      </div>
+      <div className="py-6 text-center text-sm text-fg-faint"><UiText text="Transcribe a video to see captions here." /></div>
     );
   }
 
@@ -377,7 +377,7 @@ export const TranscriptPanel = memo(function TranscriptPanel(props: TranscriptPa
       ) : pickActive ? (
         <PickModeHeader
           ref={topbarRef}
-          title="Choose your hook scenes"
+          title={t("Choose your hook scenes")}
           hint="Click a scene to mark where the hook ends."
           accentColor={HOOK_SHEET_COLOR}
           cancelLabel="Cancel hook selection"
@@ -396,10 +396,10 @@ export const TranscriptPanel = memo(function TranscriptPanel(props: TranscriptPa
                   type="button"
                   className={MODE_TOGGLE}
                   onClick={() => setMode(effectiveMode === 'free' ? 'advanced' : 'free')}
-                  aria-label={effectiveMode === 'free' ? 'Free mode, click to switch to advanced' : 'Advanced mode, click to switch to free'}
+                  aria-label={effectiveMode === 'free' ? t('Free mode, click to switch to advanced') : t('Advanced mode, click to switch to free')}
                 >
                   {effectiveMode === 'free' ? <Pencil size={12} /> : <ChevronsRightLeft size={12} />}
-                  {effectiveMode === 'free' ? 'Free' : 'Advanced'}
+                  {effectiveMode === 'free' ? t('Free') : t('Advanced')}
                 </button>
               </Tooltip>
               <div className="flex items-center gap-0.5">

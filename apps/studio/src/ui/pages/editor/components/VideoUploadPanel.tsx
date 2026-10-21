@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useEffect, useId, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import { useCloudAuth } from '@bootstrap/CloudAuthContext';
@@ -60,6 +61,7 @@ interface UploadListProps {
 }
 
 function UploadList({ store, onCancel, onRetry }: UploadListProps) {
+  const { t } = useTranslation();
   const routes = useAppRoutes();
   const [expanded, setExpanded] = useState(false);
   const listId = useId();
@@ -72,16 +74,16 @@ function UploadList({ store, onCancel, onRetry }: UploadListProps) {
   );
   if (!statuses.length) return null;
   const attention = statuses.filter(status => status.phase === 'failed' || status.phase === 'cancelled' || status.phase === 'ready').length;
-  return <section aria-label="Video uploads" className="shrink-0 max-h-[35dvh] overflow-y-auto border-b border-edge-subtle bg-surface-1 px-3 py-2 lg:px-8">
+  return <section aria-label={t("Video uploads")} className="shrink-0 max-h-[35dvh] overflow-y-auto border-b border-edge-subtle bg-surface-1 px-3 py-2 lg:px-8">
     <button type="button" aria-expanded={expanded} aria-controls={listId} onClick={() => setExpanded(value => !value)}
       className="mx-auto flex w-full max-w-3xl items-center justify-between gap-2 rounded-sm text-left text-xs text-fg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
-      <span>Video uploads ({statuses.length}){attention > 0 ? ` · ${attention} need attention` : ' · In progress'}</span>
-      <span className="shrink-0 text-accent">{expanded ? 'Hide' : 'Show'}</span>
+      <span><UiText text="Video uploads (" />{statuses.length}){attention > 0 ? t(" · {0} need attention", { 0: attention }) : t(' · In progress')}</span>
+      <span className="shrink-0 text-accent">{expanded ? t('Hide') : t('Show')}</span>
     </button>
     <div id={listId} hidden={!expanded}>
     {statuses.map(status => <div key={status.key} className="mx-auto max-w-3xl"><VideoUploadCard status={status}
       onCancel={() => onCancel(status.key)} onRetry={() => onRetry(status.projectId)} />
-      {status.persisted && <Link className="text-xs text-accent underline" to={routes.project(status.projectId)}>Open project</Link>}
+      {status.persisted && <Link className="text-xs text-accent underline" to={routes.project(status.projectId)}><UiText text="Open project" /></Link>}
     </div>)}
     </div>
   </section>;
@@ -92,6 +94,7 @@ export function VideoUploadCard({ status, onCancel, onRetry }: {
   readonly onCancel: () => void;
   readonly onRetry: () => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [retryError, setRetryError] = useState('');
   const [retryBusy, setRetryBusy] = useState(false);
   const active = status.phase === 'uploading' || status.phase === 'retrying' || status.phase === 'paused';
@@ -115,22 +118,22 @@ export function VideoUploadCard({ status, onCancel, onRetry }: {
     <div className="flex flex-wrap items-center gap-2">
       <span className="min-w-0 flex-1 truncate text-fg-primary" title={status.fileName}>{status.fileName}</span>
       <span className="font-mono tabular-nums">{percent}%</span>
-      {active ? <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}>Cancel</button>
+      {active ? <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}><UiText text="Cancel" /></button>
         : <button type="button" className={BTN_SECONDARY_SM} disabled={retryBusy} onClick={() => void retry()}>
-          {retryBusy ? 'Working…' : status.phase === 'cancelled' ? 'Resume' : status.phase === 'ready' ? 'Save project' : 'Retry'}
+          {retryBusy ? t('Working…') : status.phase === 'cancelled' ? t('Resume') : status.phase === 'ready' ? t('Save project') : t('Retry')}
         </button>}
     </div>
     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3" role="progressbar"
-      aria-label={`Upload progress for ${status.fileName}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+      aria-label={t("Upload progress for {0}", { 0: status.fileName })} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
       <div className="h-full origin-left bg-accent transition-transform duration-base motion-reduce:transition-none"
         style={{ transform: `scaleX(${percent / 100})` }} />
     </div>
-    <p className="mt-1 mb-0" role="status">{label} · {formatBytes(status.sent)} / {formatBytes(status.total)}</p>
-    {status.phase === 'uploading' && <p className="mt-1 mb-0 font-mono tabular-nums" aria-label="Upload speed and time remaining">
-      {status.speedBps ? formatSpeed(status.speedBps) : 'Calculating speed…'}
+    <p className="mt-1 mb-0" role="status"><UiText text={label} /> · {formatBytes(status.sent)} / {formatBytes(status.total)}</p>
+    {status.phase === 'uploading' && <p className="mt-1 mb-0 font-mono tabular-nums" aria-label={t("Upload speed and time remaining")}>
+      {status.speedBps ? formatSpeed(status.speedBps) : t('Calculating speed…')}
       {status.remainingSeconds != null && ` · About ${formatRemaining(status.remainingSeconds)} left`}
     </p>}
-    {status.persisted === false && <p className="mt-1 mb-0 text-danger">This browser could not keep the file. Keep this tab open to finish uploading.</p>}
+    {status.persisted === false && <p className="mt-1 mb-0 text-danger"><UiText text="This browser could not keep the file. Keep this tab open to finish uploading." /></p>}
     {retryError && !active && <p className="mt-1 mb-0 text-danger" role="alert">{retryError}</p>}
   </div>;
 }

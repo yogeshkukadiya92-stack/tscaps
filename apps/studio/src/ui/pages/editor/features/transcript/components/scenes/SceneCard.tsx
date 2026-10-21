@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Loader2, Lock, MoreHorizontal, Trash2 } from 'lucide-react';
 import type { Document, Segment } from '@tscaps/engine';
@@ -61,6 +62,7 @@ export interface SceneCardProps {
 }
 
 export const SceneCard = memo(function SceneCard(props: SceneCardProps) {
+  const { t } = useTranslation();
   const {
     doc, segment, segIdx, isFirstSegment, isLastSegment, isActive,
     sheet, sheets, elementStyles, behindActorOverrides, isFrozen, decorationOverrides,
@@ -132,7 +134,7 @@ export const SceneCard = memo(function SceneCard(props: SceneCardProps) {
           </span>
           {hasOverride && (
             <Tooltip text="Has style overrides" position="top">
-              <span className={OVERRIDE_DOT} aria-label="Has style overrides" />
+              <span className={OVERRIDE_DOT} aria-label={t("Has style overrides")} />
             </Tooltip>
           )}
           {isFrozen && (
@@ -140,7 +142,7 @@ export const SceneCard = memo(function SceneCard(props: SceneCardProps) {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onResetSegmentLayout(segment.id); }}
-                aria-label="Reset manual layout"
+                aria-label={t("Reset manual layout")}
                 className={LOCK_BTN}
               >
                 <Lock size={11} />
@@ -149,7 +151,7 @@ export const SceneCard = memo(function SceneCard(props: SceneCardProps) {
           )}
           {isComputingActorMasks && (
             <Tooltip text="Preparing text behind actor…" position="top">
-              <Loader2 size={11} className="animate-spin text-fg-faint shrink-0" aria-label="Preparing text behind actor" />
+              <Loader2 size={11} className="animate-spin text-fg-faint shrink-0" aria-label={t("Preparing text behind actor")} />
             </Tooltip>
           )}
         </span>
@@ -163,7 +165,7 @@ export const SceneCard = memo(function SceneCard(props: SceneCardProps) {
             <button
               type="button"
               onClick={handleDelete}
-              aria-label="Delete scene"
+              aria-label={t("Delete scene")}
               className={TRASH_BTN}
             >
               <Trash2 size={14} />
@@ -213,7 +215,7 @@ export const SceneCard = memo(function SceneCard(props: SceneCardProps) {
         onBlur={onBlur}
         rows={2}
         spellCheck={false}
-        placeholder="Empty scene"
+        placeholder={t("Empty scene")}
         className="block w-full bg-transparent text-fg-primary text-sm leading-snug px-2.5 py-2 outline-none resize-none border-none overflow-hidden placeholder:text-fg-faint"
       />
     </div>

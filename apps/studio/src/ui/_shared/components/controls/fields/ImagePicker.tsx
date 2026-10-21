@@ -1,3 +1,5 @@
+import { useTranslation } from '@ui/i18n/Locale';
+import { UiText } from '@ui/i18n/Locale';
 import { memo, useCallback, useState } from 'react';
 import { ImagePlus } from 'lucide-react';
 import type { ControlField } from '@core/templates/domain/definition/ControlField';
@@ -56,6 +58,7 @@ interface UnlockedImagePickerProps {
 }
 
 const UnlockedImagePicker = memo(function UnlockedImagePicker({ field, value, disabled }: UnlockedImagePickerProps) {
+  const { t } = useTranslation();
   const { repository } = useAssetLibrary();
   const sheets = useSheets();
   const editorStore = useEditorStore();
@@ -84,12 +87,12 @@ const UnlockedImagePicker = memo(function UnlockedImagePicker({ field, value, di
           style={previewUrl ? imageTileStyle(previewUrl) : {}}
           onClick={openDialog}
           disabled={disabled}
-          aria-label={`Pick ${field.label}`}
-          title={`Pick ${field.label}`}
+          aria-label={t("Pick {0}", { 0: field.label })}
+          title={t("Pick {0}", { 0: field.label })}
         >
           {!previewUrl && <ImagePlus size={16} strokeWidth={2} />}
         </button>
-        <span className={FIELD_LABEL}>{field.label}</span>
+        <span className={FIELD_LABEL}><UiText text={field.label} /></span>
       </div>
 
       <AssetLibraryDialog

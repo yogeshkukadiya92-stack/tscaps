@@ -1,3 +1,4 @@
+import { UiText } from '@ui/i18n/Locale';
 import { AppDialog, AppDialogActions } from '@ui/_shared/components/Dialog/AppDialog';
 import { AsyncButton } from '@ui/_shared/components/AsyncButton/AsyncButton';
 import { BTN_PRIMARY_SM, BTN_SECONDARY_SM } from '@ui/_shared/styles/buttons';
@@ -93,21 +94,21 @@ function renderActions({
 }) {
   if (mode === 'running') {
     return (
-      <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}>Cancel</button>
+      <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}><UiText text="Cancel" /></button>
     );
   }
   if (mode === 'error') {
     return (
       <>
-        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}>Cancel</button>
-        <AsyncButton className={BTN_PRIMARY_SM} onClick={onRetry} autoFocus>Try again</AsyncButton>
+        <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}><UiText text="Cancel" /></button>
+        <AsyncButton className={BTN_PRIMARY_SM} onClick={onRetry} autoFocus><UiText text="Try again" /></AsyncButton>
       </>
     );
   }
   return (
     <>
-      <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}>Cancel</button>
-      <AsyncButton className={BTN_PRIMARY_SM} onClick={onContinue} autoFocus>Continue</AsyncButton>
+      <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel}><UiText text="Cancel" /></button>
+      <AsyncButton className={BTN_PRIMARY_SM} onClick={onContinue} autoFocus><UiText text="Continue" /></AsyncButton>
     </>
   );
 }

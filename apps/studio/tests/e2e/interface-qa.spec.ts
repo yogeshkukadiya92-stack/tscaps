@@ -42,7 +42,7 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   await bootEditorWithCaptions(page, bytes, doc);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await page.getByRole('tab', { name: 'Captions', exact: true }).click();
   const name = page.getByRole('textbox', { name: 'Project name', exact: true });
   await expect(name).toBeEnabled();
@@ -107,7 +107,7 @@ test('failed save-and-leave keeps edits available and reports the failure on a s
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
-  await page.getByRole('button', { name: 'Save creative changes', exact: true }).click();
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(page.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'Captions', exact: true }).click();
   const name = page.getByRole('textbox', { name: 'Project name', exact: true });
@@ -142,7 +142,11 @@ test('caption sections remain reachable on a phone', async ({ page }) => {
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
   for (const label of ['Choose style', 'Transcript', 'Typography', 'Colors', 'Position', 'Motion', 'Effects', 'Layout', 'Code']) {
-    await page.getByRole('tablist', { name: 'Editor sections' }).getByRole('tab', { name: label, exact: true }).click();
+    if (['Choose style', 'Transcript', 'Motion'].includes(label)) {
+      await page.getByRole('tablist', { name: 'Editor sections' }).getByRole('tab', { name: label, exact: true }).click();
+    } else {
+      await page.getByLabel('More caption tools', { exact: true }).selectOption({ label });
+    }
     await expect(page.getByRole('tabpanel', { name: label, exact: true })).toBeVisible();
     await page.screenshot({ animations: 'disabled', path: test.info().outputPath(`section-${label}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
@@ -189,7 +193,7 @@ test('beginner guide is keyboard accessible and fits a small phone', async ({ pa
   await toggle.focus();
   await page.keyboard.press('Enter');
   await expect(guide).toHaveAttribute('open', '');
-  await expect(guide).toContainText('Save માત્ર પ્રોજેક્ટના ફેરફાર સાચવે છે');
+  await expect(guide).toContainText('Save only keeps project edits.');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   const tabs = page.getByRole('tablist', { name: 'Editor workspace', exact: true });
   await expect(tabs).toBeVisible();

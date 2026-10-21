@@ -1,3 +1,4 @@
+import { useTranslation } from '@ui/i18n/Locale';
 import type { TimelineGapCell } from '@presentation/timeline/services/TimelineProjection';
 import { useLinkedCellHover } from '@ui/pages/editor/features/timeline/hooks/useLinkedCellHover';
 import { cellPieceStyle } from '@ui/pages/editor/features/timeline/utils';
@@ -52,6 +53,7 @@ interface GapChipProps {
  * it twice would state a length neither piece has.
  */
 export function GapChip({ cell, rowStartSec, rowDurationSec, onSelect }: GapChipProps) {
+  const { t } = useTranslation();
   const isSplit = cell.cutAtStart || cell.cutAtEnd;
   const [isLinkedHover, hoverHandlers] = useLinkedCellHover(cell.id, isSplit);
   const seconds = cell.fullEndSec - cell.fullStartSec;
@@ -68,7 +70,7 @@ export function GapChip({ cell, rowStartSec, rowDurationSec, onSelect }: GapChip
     <span
       className={classes}
       style={cellPieceStyle(cell, rowStartSec, rowDurationSec)}
-      title={`Silence ${seconds.toFixed(2)}s`}
+      title={t("Silence {0}s", { 0: seconds.toFixed(2) })}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={() => onSelect(cell.fullStartSec, cell.fullEndSec)}
       {...hoverHandlers}

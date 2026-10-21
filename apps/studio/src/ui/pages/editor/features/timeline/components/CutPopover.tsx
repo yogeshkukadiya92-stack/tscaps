@@ -1,3 +1,5 @@
+import { useTranslation } from '@ui/i18n/Locale';
+import { UiText } from '@ui/i18n/Locale';
 import type { ReactElement } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { Popover } from '@ui/_shared/components/Popover/Popover';
@@ -43,6 +45,7 @@ export function CutPopover({
   pressOffsetPx,
   onRestore,
 }: CutPopoverProps) {
+  const { t } = useTranslation();
   return (
     <Popover
       open={open}
@@ -56,14 +59,14 @@ export function CutPopover({
           // range drag and captures the pointer — swallowing the release
           // the button under the finger was waiting for.
           <div className={SCREEN_CLASS} onPointerDown={(e) => e.stopPropagation()}>
-            <PopoverHeader title={`Cut · ${durationSec.toFixed(2)}s`} />
+            <PopoverHeader title={t("Cut · {0}s", { 0: durationSec.toFixed(2) })} />
             <button
               type="button"
               className={ACTION_BTN}
               onClick={() => { onOpenChange(false); onRestore(); }}
             >
               <RotateCcw size={14} />
-              <span className="flex-1">Restore this cut</span>
+              <span className="flex-1"><UiText text="Restore this cut" /></span>
             </button>
           </div>
         ),

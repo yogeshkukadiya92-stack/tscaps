@@ -1,3 +1,4 @@
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { AlertCircle, BookmarkPlus, CheckCircle2, Loader2, Save } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
@@ -25,6 +26,7 @@ const HEADER_BUTTON_CLASS =
   'transition-colors duration-quick ease-standard hover:text-fg-secondary focus-visible:outline-none focus-visible:text-fg-secondary';
 
 export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, library }: TemplatesTabProps) {
+  const { t } = useTranslation();
   const sheets = useSheets();
   const userTemplatesContext = useUserTemplates();
   const sectionAdornments = MODERN_MISSING_TAGS_ADORNMENTS;
@@ -179,8 +181,8 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
             type="button"
             onClick={onSaveChanges}
             disabled={savingChanges}
-            aria-label="Save changes to this template"
-            title="Save changes to this template"
+            aria-label={t("Save changes to this template")}
+            title={t("Save changes to this template")}
             className={HEADER_BUTTON_CLASS}
           >
             {savingChanges
@@ -193,7 +195,7 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
         <button
           type="button"
           onClick={() => setSaveDialogOpen(true)}
-          aria-label="Save current style as a new template"
+          aria-label={t("Save current style as a new template")}
           className={HEADER_BUTTON_CLASS}
         >
           <BookmarkPlus size={15} strokeWidth={2} />
@@ -203,9 +205,9 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
   );
 
   return (
-    <EditorTab title="Choose caption style" headerAction={headerAction}>
-      <p className="mt-1 mb-2 text-sm text-fg-secondary">Click a style to apply · નીચે style પસંદ કરો અને Previewમાં જુઓ.</p>
-      <p className="mb-3 text-xs text-accent" role="status">Applied to {sheetScope.activeSheet.name}: <strong>{sheetScope.activeSheet.template.metadata.name}</strong></p>
+    <EditorTab title={t("Choose caption style")} headerAction={headerAction}>
+      <p className="mt-1 mb-2 text-sm text-fg-secondary"><UiText text="Choose a style below and check the preview." /></p>
+      <p className="mb-3 text-xs text-accent" role="status"><UiText text="Applied to " />{sheetScope.activeSheet.name}: <strong>{sheetScope.activeSheet.template.metadata.name}</strong></p>
       <TemplateSelector
         templates={templates}
         userTemplates={userTemplates}
@@ -218,13 +220,13 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
       />
 
       <details className="mt-4">
-        <summary className="cursor-pointer text-xs text-fg-secondary">Manage caption sheets</summary>
-        <EditorTab title="Caption sheets" hideTitleRow sheetScope={sheetScope}>{null}</EditorTab>
+        <summary className="cursor-pointer text-xs text-fg-secondary"><UiText text="Manage caption sheets" /></summary>
+        <EditorTab title={t("Caption sheets")} hideTitleRow sheetScope={sheetScope}>{null}</EditorTab>
       </details>
 
       <PromptDialog
         open={saveDialogOpen}
-        label="Template name"
+        label={t("Template name")}
         defaultValue={sheetScope.activeSheet.template.metadata.name}
         confirmLabel="Save"
         validate={userTemplatesContext.validateName}
@@ -237,7 +239,7 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
 
       <PromptDialog
         open={pendingRenameId !== null}
-        label="Rename template"
+        label={t("Rename template")}
         defaultValue={pendingRenameCurrentName}
         confirmLabel="Rename"
         validate={userTemplatesContext.validateName}
