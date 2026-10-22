@@ -317,6 +317,7 @@ function builtinTemplateNames(): string[] {
     'scene-beast-mode',
     'scene-karaoke',
     'scene-desi-bold',
+    'scene-gujarati-punch',
     'scene-tabahi',
     'scene-floodlight',
     'scene-pink-neon',

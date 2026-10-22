@@ -1,0 +1,22 @@
+@use '../_lib/caption-treatment' as *;
+
+// Reference-inspired orange / cream word hierarchy, kept stable while narrating.
+// Uses the existing script-aware typography and export-clock word entrance.
+@include caption-treatment(
+  $font: 'Poppins', $size: 3.6cqh, $weight: 900, $case: none,
+  $ink: #ffffff, $accent: #ff8500, $paper: #151515,
+  $treatment: highlight, $motion: pop
+);
+
+.segment { max-width: 88cqw; }
+.line { line-height: 1.25; }
+.word { vertical-align: baseline; text-shadow: 0.025em 0.045em 0 #17120e, 0 0.07em 0.09em #000b; }
+.word-being-narrated { color: inherit; }
+.first-line-in-segment > .word:first-child {
+  font-size: 2.1em;
+  color: var(--tscaps-highlight-color, #ff8500);
+}
+.line + .line > .word:first-child {
+  font-size: 1.45em;
+  color: var(--tscaps-quote-color, #f4edac);
+}
