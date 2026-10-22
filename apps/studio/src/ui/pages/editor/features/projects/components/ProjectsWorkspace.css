@@ -52,6 +52,14 @@
 .workspace-projects--list .workspace-project-thumbnail { width: 150px; flex-shrink: 0; }
 .workspace-projects--list .workspace-project-details { flex: 1; }
 .workspace-page-actions { flex-wrap: wrap; }
+.workspace-support { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 24px; padding: 12px 18px; border: 1px solid var(--workspace-line); border-radius: 10px; background: rgb(var(--color-surface-1)); font-size: 13px; }
+.workspace-support strong, .workspace-support a { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.workspace-support strong { color: rgb(var(--color-fg-primary)); font-weight: 600; margin-right: auto; }
+.workspace-support a { min-height: 44px; color: rgb(var(--color-accent)); text-decoration: underline; text-underline-offset: 3px; }
+.workspace-support a:hover { color: rgb(var(--color-accent-hover)); }
+.workspace-support svg { flex-shrink: 0; }
+.workspace-support a span { overflow-wrap: anywhere; }
+@media (max-width: 640px) { .workspace-support { align-items: flex-start; flex-direction: column; gap: 4px; } .workspace-support strong { margin-bottom: 4px; } }
 .workspace-start-copy { min-width: 0; }
 .workspace-projects > * { min-width: 0; }
 .workspace-no-results { grid-column: 1 / -1; padding: 35px 0; color: rgb(var(--color-fg-muted)); font-size: 13px; overflow-wrap: anywhere; }

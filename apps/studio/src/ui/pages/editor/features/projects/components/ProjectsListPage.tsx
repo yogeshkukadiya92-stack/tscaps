@@ -1,7 +1,7 @@
 import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@ui/_shared/styles/buttons';
 import { memo, useRef, useState, type ReactNode } from 'react';
-import { Plus, Upload, FolderOpen, Film, Search, LayoutGrid, List, ArrowUpRight, Captions, Scissors, X } from 'lucide-react';
+import { Plus, Upload, FolderOpen, Film, Search, LayoutGrid, List, ArrowUpRight, Captions, Scissors, X, Headphones, Phone, Mail } from 'lucide-react';
 import type { AppError } from '@core/errors/domain/AppError';
 import type { ProjectMetadata } from '@core/projects/domain/ProjectMetadata';
 import type { ThemeController } from '@presentation/theme/controllers/ThemeController';
@@ -190,6 +190,12 @@ export const ProjectsListPage = memo(function ProjectsListPage({
               )}
             </div>
           </div>
+
+          <section className="workspace-support" aria-label={t("Contact support")}>
+            <strong><Headphones size={18} aria-hidden="true" /><UiText text="Contact support" /></strong>
+            <a href="tel:+919825344428"><Phone size={16} aria-hidden="true" /><span>9825344428</span></a>
+            <a href="mailto:yogeshkukadiya92@gmail.com"><Mail size={16} aria-hidden="true" /><span>yogeshkukadiya92@gmail.com</span></a>
+          </section>
 
           <section className={`workspace-start ${count > 0 ? 'workspace-start--compact' : ''}`} aria-label={t("Start editing")}>
             <div className="workspace-start-copy"><span className="workspace-eyebrow"><UiText text="Your next reel" /></span><h2><UiText text="A great reel starts with your video." /></h2><p><UiText text="Upload a video. Check your captions. Pick a style. Export." /></p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /><UiText text=" New project " /><ArrowUpRight size={16} /></button><span className="workspace-drop-hint"><UiText text="or drop a video file anywhere" /></span></div>
