@@ -544,4 +544,48 @@ describe('ExportVideoAction', () => {
       expect(harness.telemetry.propertiesOf('export_failed')['progress_percent']).toBe(50);
     });
   });
+
+  describe('when the save dialog cannot be used', () => {
+    function withWriters(primary: ExportWriter, fallback?: ExportWriter): void {
+      (harness.action as unknown as { exportWriterFactory: ExportWriterFactory }).exportWriterFactory = {
+        create: () => primary,
+        ...(fallback ? { createFallback: () => fallback } : {}),
+      };
+    }
+    const refused = (): ExportWriter => Object.assign(new RecordingWriter(), {
+      open: async () => { throw new DOMException('User activation is required', 'NotAllowedError'); },
+    });
+
+    it('opens the writer before planning so the click still allows the save dialog', async () => {
+      loadProject(harness.store, [buildSheet('main')], buildDocument('main', [{ id: 'word', text: 'hello', start: 0, end: 1 }]));
+      const order: string[] = [];
+      const writer = Object.assign(new RecordingWriter(), { open: async () => { order.push('open'); } });
+      withWriters(writer);
+      const planner = (harness.action as unknown as { planner: { plan: (...args: unknown[]) => unknown } }).planner;
+      const plan = planner.plan.bind(planner);
+      planner.plan = (...args: unknown[]) => { order.push('plan'); return plan(...args); };
+      await harness.action.execute(DEFAULT_OPTIONS);
+      expect(order).toEqual(['open', 'plan']);
+    });
+
+    it('finishes as a plain download when the save dialog is refused', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      loadProject(harness.store, [buildSheet('main')], buildDocument('main', [{ id: 'word', text: 'hello', start: 0, end: 1 }]));
+      const fallback = new RecordingWriter();
+      withWriters(refused(), fallback);
+      await harness.action.execute(DEFAULT_OPTIONS);
+      expect(fallback.finalized).toBe(true);
+      expect(harness.downloaded).toHaveLength(1);
+      expect(harness.store.snapshot().error).toBeNull();
+    });
+
+    it('reports the failure instead of ending silently when no writer can open', async () => {
+      loadProject(harness.store, [buildSheet('main')], buildDocument('main', [{ id: 'word', text: 'hello', start: 0, end: 1 }]));
+      withWriters(refused());
+      await expect(harness.action.execute(DEFAULT_OPTIONS)).resolves.toBeUndefined();
+      expect(harness.store.snapshot().error).not.toBeNull();
+      expect(harness.renderer.lastJob).toBeNull();
+      expect(harness.downloaded).toHaveLength(0);
+    });
+  });
 });

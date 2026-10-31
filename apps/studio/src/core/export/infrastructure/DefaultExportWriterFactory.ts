@@ -35,6 +35,10 @@ export class DefaultExportWriterFactory implements ExportWriterFactory {
     if (!this.userAgentInspector.isMobile() && FilePickerExportWriter.isSupported()) {
       return new FilePickerExportWriter();
     }
+    return this.createFallback();
+  }
+
+  createFallback(): ExportWriter {
     if (OpfsExportWriter.isSupported()) {
       const worker = new Worker(
         new URL('../../_shared/opfs/opfsWriterWorker.ts', import.meta.url),

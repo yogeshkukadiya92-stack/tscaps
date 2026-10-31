@@ -85,21 +85,37 @@ export class ExportVideoAction {
     } = state;
     if (video.fileName === null || ((!document || sheets.length === 0) && !state.creative)) return;
 
-    const plan = await this.planner.plan({
-      document: document ?? new Document({ sections: [] }),
-      sheets,
-      elementStyles,
-      decorationOverrides,
-      cuts: state.creative ? CutRegistry.empty() : cuts,
-      behindActorOverrides,
-      projectId,
-      videoLayout: video.layout,
-    });
-
-    // Open the writer before the heavy work: if the user cancels an
-    // interactive prompt we abort without spending any encoding time.
-    const writer = await this.openWriter(options.format);
+    // Open the writer first, before any await: the browser only allows
+    // the save dialog (and its write permission) while the click that
+    // started the export is still active, and planning can outlast that.
+    // A dismissed prompt also aborts here without spending encoding time.
+    let writer: ExportWriter | null;
+    try {
+      writer = await this.openWriter(options.format);
+    } catch (err) {
+      this.reportFailureBeforeRender(err, options);
+      return;
+    }
     if (!writer) return;
+
+    let plan: ExportRenderPlan;
+    try {
+      plan = await this.planner.plan({
+        document: document ?? new Document({ sections: [] }),
+        sheets,
+        elementStyles,
+        decorationOverrides,
+        cuts: state.creative ? CutRegistry.empty() : cuts,
+        behindActorOverrides,
+        projectId,
+        videoLayout: video.layout,
+      });
+    } catch (err) {
+      await writer.abort();
+      writer.dispose();
+      this.reportFailureBeforeRender(err, options);
+      return;
+    }
 
     // The phase follows what can be read, not what the store holds: a
     // picked file whose bytes have gone away leaves the run waiting on
@@ -298,8 +314,36 @@ export class ExportVideoAction {
       if (err instanceof Error && err.name === 'AbortError') {
         return null;
       }
-      throw err;
+      // The save dialog was refused (e.g. NotAllowedError once the click
+      // expired) or is unavailable: finish the export as a plain download.
+      const fallback = this.exportWriterFactory.createFallback?.();
+      if (!fallback) throw err;
+      console.warn('[export] save dialog unavailable, downloading instead', err);
+      try {
+        await fallback.open(format);
+        return fallback;
+      } catch (fallbackErr) {
+        fallback.dispose();
+        throw fallbackErr;
+      }
     }
+  }
+
+  /** Surfaces a failure that happened before the render began, so it never ends silently. */
+  private reportFailureBeforeRender(err: unknown, options: ExportVideoOptions): void {
+    const visibilitySpan = this.visibilityTracker.begin();
+    visibilitySpan.end();
+    this.editorStore.patch({
+      error: this.runTelemetry.failed({
+        error: err,
+        options,
+        elapsedMs: 0,
+        progressPercent: 0,
+        visibility: visibilitySpan,
+        decoderSelection: null,
+        videoSource: null,
+      }),
+    });
   }
 
   private triggerDownload(blob: Blob, format: OutputFormat): void {

@@ -9,4 +9,11 @@ import type { ExportWriter } from '@core/export/domain/ExportWriter';
  */
 export interface ExportWriterFactory {
   create(): ExportWriter;
+  /**
+   * A writer that needs no browser permission and hands the finished
+   * file to a plain download. Used when the {@link create} writer cannot
+   * open, e.g. the save dialog was refused because the click that
+   * started the export is no longer active.
+   */
+  createFallback?(): ExportWriter;
 }
