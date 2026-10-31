@@ -1,4 +1,4 @@
-# ReelStudio Desktop plugin — v0.1.0
+# ReelStudio Desktop plugin — v0.2.0-beta.1
 
 A real local MCP server for **Claude Code and Codex local desktop sessions**. It operates ReelStudio in its own Chrome window using the same editing controls and compositor as the site. Existing projects remain manually editable. It does not use the upstream Tscaps API.
 
@@ -13,7 +13,17 @@ A real local MCP server for **Claude Code and Codex local desktop sessions**. It
 
 This first version needs a **desktop**, **Node.js 22+**, **Google Chrome**, the ReelStudio site, and an existing project with accessible source media. Transcribe/import footage in the plugin browser before Auto Edit. No hosted render queue, API keys, subscription enforcement, public directory approval or sales system is included. Cloud-only chats and claude.ai connector installations are not supported by this local server.
 
-## Setup once, then install
+## Private beta ZIP — start here
+
+For testers, open **START-HERE.html** in the extracted beta ZIP. Run the Mac/Windows installer or `node scripts/install.mjs --host=codex` (use `claude` for Claude Code). Node 22+, npm and Google Chrome are required. The setup downloads pinned Playwright from npm, uses a separate Chrome profile and copies the package to a permanent versioned directory. No repository checkout, pnpm or source build is needed for ZIP recipients.
+
+Automatic host registration needs the corresponding CLI on PATH. If unavailable, setup prints the marketplace directory and the guide explains manual registration. Windows `.cmd` host shims use manual registration; macOS is the verified beta platform, with Windows/Linux provided for testing. `--check` checks prerequisites without changing anything.
+
+Support: yogeshkukadiya92@gmail.com / +91 9825344428.
+
+Build the ZIP: `pnpm --filter @reelstudio/desktop-plugin build` then `pnpm --filter @reelstudio/desktop-plugin pack:plugins`. The release includes both host manifests and its own `reelstudio-desktop-beta` marketplace. The adjacent SHA-256 file checks archive integrity; it is not a code signature.
+
+## Developer checkout setup
 
 From the checkout root:
 

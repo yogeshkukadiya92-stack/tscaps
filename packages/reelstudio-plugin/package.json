@@ -1,6 +1,6 @@
 {
   "name": "@reelstudio/desktop-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.1",
   "private": true,
   "type": "module",
   "description": "Claude Code and Codex desktop plugin for editable ReelStudio reels",
@@ -12,7 +12,8 @@
     "test": "node --test server/*.test.mjs",
     "setup": "node scripts/setup.mjs",
     "start": "node dist/index.mjs",
-    "pack:plugins": "node scripts/pack.mjs"
+    "pack:plugins": "node scripts/pack.mjs",
+    "test:beta": "node --test scripts/beta.test.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",

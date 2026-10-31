@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { projectUrl } from './config.mjs';
 
 export function createServer(service, config) {
-  const server = new McpServer({ name: 'reelstudio', version: '0.1.0' });
+  const server = new McpServer({ name: 'reelstudio', version: '0.2.0-beta.1' });
   const id = z.string().uuid().describe('UUID from the /project/UUID URL in the dedicated ReelStudio plugin browser');
   const response = data => ({ content: [{ type: 'text', text: JSON.stringify(data) }] });
   function tool(name, description, inputSchema, annotations, run) {

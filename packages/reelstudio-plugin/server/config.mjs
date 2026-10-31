@@ -1,7 +1,7 @@
 import { homedir } from 'node:os';
 import { resolve, join } from 'node:path';
 
-export const DEFAULT_SITE = 'https://vge2ejzplpz2k1eqjurvhnsj.13.140.130.27.sslip.io';
+export const DEFAULT_SITE = 'https://cap.yogeshaihub.in';
 export const PLAYWRIGHT_VERSION = '1.63.0';
 export function pluginConfig(env = process.env) {
   const url = new URL(env.REELSTUDIO_URL || DEFAULT_SITE);

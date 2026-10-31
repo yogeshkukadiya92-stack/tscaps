@@ -8,7 +8,7 @@
       "name": "reelstudio-desktop",
       "source": "./packages/reelstudio-plugin",
       "description": "31 editable reel recipes, Auto Edit, preview and video export.",
-      "version": "0.1.0"
+      "version": "0.2.0-beta.1"
     }
   ],
   "description": "Editable ReelStudio templates, Auto Edit, preview and video export for desktop assistants."

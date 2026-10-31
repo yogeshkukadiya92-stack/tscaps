@@ -26,3 +26,6 @@ templates/_lib/animation/presets.build.json
 # Local media, QA evidence and browser test output; kept outside source releases.
 /output/
 /apps/studio/.playwright-*/
+
+# Generated private beta distributables.
+/packages/reelstudio-plugin/releases/
