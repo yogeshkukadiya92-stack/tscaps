@@ -1,5 +1,17 @@
 /** Authored interface copy. User content is never translated. */
 export const translations: Record<string, { hi: string; gu: string }> = {
+"Music": {"hi": "संगीत", "gu": "સંગીત"},
+"Trim": {"hi": "काटें", "gu": "ટ્રિમ"},
+"Add video → Edit captions → Choose style → Export": {"hi": "वीडियो जोड़ें → शब्द सुधारें → स्टाइल चुनें → एक्सपोर्ट", "gu": "વીડિયો ઉમેરો → શબ્દો સુધારો → સ્ટાઇલ પસંદ કરો → એક્સપોર્ટ"},
+"Hinglish · Accuracy": {"hi": "हिंग्लिश · सटीकता", "gu": "હિંગ્લિશ · એક્યુરસી"},
+"Large multilingual model. Downloads about 0.9 GB on CPU; GPU needs several GB of memory and a larger download. First run can take several minutes. Review captions for errors.": {"hi": "बड़ा बहुभाषी मॉडल। CPU पर लगभग 0.9 GB डाउनलोड होगा; GPU को कई GB मेमोरी और बड़े डाउनलोड की ज़रूरत है। पहली बार कई मिनट लग सकते हैं। कैप्शन में गलतियाँ जाँचें।", "gu": "મોટું બહુભાષી મોડેલ. CPU પર લગભગ 0.9 GB ડાઉનલોડ થશે; GPU માટે અનેક GB મેમરી અને મોટું ડાઉનલોડ જરૂરી છે. પહેલી વાર થોડી મિનિટ લાગી શકે છે. કેપ્શનમાં ભૂલો તપાસો."},
+"Speech language": {"hi": "बोलने की भाषा", "gu": "બોલવાની ભાષા"},
+"Choose what you speak. Captions keep the original language; this does not translate your video.": {"hi": "आप जिस भाषा में बोलते हैं, वह चुनें। कैप्शन उसी भाषा में बनेंगे; वीडियो का अनुवाद नहीं होगा।", "gu": "તમે જે ભાષામાં બોલો છો તે પસંદ કરો. કેપ્શન મૂળ ભાષામાં રહેશે; આ વીડિયોનો અનુવાદ કરતું નથી."},
+"All tools": {"hi": "सभी टूल", "gu": "બધાં ટૂલ્સ"},
+"Find a tool": {"hi": "टूल खोजें", "gu": "ટૂલ શોધો"},
+"Choose a tool to open it directly.": {"hi": "कोई टूल चुनकर सीधे खोलें।", "gu": "ટૂલ પસંદ કરીને સીધું ખોલો."},
+"No tools found. Try another word.": {"hi": "कोई टूल नहीं मिला। दूसरा शब्द आज़माएँ।", "gu": "કોઈ ટૂલ મળ્યું નથી. બીજો શબ્દ અજમાવો."},
+"Check words → Choose style → Preview → Export": {"hi": "शब्द जाँचें → स्टाइल चुनें → प्रीव्यू → एक्सपोर्ट", "gu": "શબ્દો તપાસો → સ્ટાઇલ પસંદ કરો → પ્રીવ્યૂ → એક્સપોર્ટ"},
 "Reduce rumble and quiet background noise, balance speech levels and keep peaks under control. Music stays separate.": {"hi": "भारी गड़गड़ाहट और धीमा बैकग्राउंड शोर घटाएँ, बोलने की आवाज़ संतुलित करें और तेज़ आवाज़ नियंत्रित रखें। संगीत अलग रहता है।", "gu": "નીચી ગડગડાહટ અને હળવો બેકગ્રાઉન્ડ અવાજ ઘટાડો, બોલવાનો અવાજ સંતુલિત કરો અને ઊંચો અવાજ નિયંત્રિત રાખો. સંગીત અલગ રહે છે."},
 "Restore original voice": {"hi": "मूल आवाज़ वापस लाएँ", "gu": "મૂળ અવાજ પાછો લાવો"},
 "Electric hum removal": {"hi": "बिजली की गूँज हटाएँ", "gu": "ઇલેક્ટ્રિક ગુંજ દૂર કરો"},

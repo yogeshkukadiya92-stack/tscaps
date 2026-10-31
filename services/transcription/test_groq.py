@@ -32,14 +32,15 @@ def test_budget_is_durable_and_refuses_excess(monkeypatch):
     assert failure.value.status_code == 429
 
 
-def test_gujarati_uses_full_model_and_reserves_its_actual_rate(monkeypatch):
+@pytest.mark.parametrize('language', ['gu', 'hi'])
+def test_priority_languages_use_full_model_and_reserve_its_actual_rate(monkeypatch, language):
     monkeypatch.setenv('GROQ_MODEL', 'whisper-large-v3-turbo')
     # Enough for Turbo's ten-second minimum, insufficient for full Large v3.
     monkeypatch.setenv('GROQ_MONTHLY_USD_LIMIT', '0.0002')
     calls = []
     transport = httpx.MockTransport(lambda request: calls.append(request))
     with pytest.raises(HTTPException) as failure:
-        transcribe_groq(np.zeros(16000), 'gu', transport)
+        transcribe_groq(np.zeros(16000), language, transport)
     assert failure.value.status_code == 429
     assert calls == []
     monkeypatch.setenv('GROQ_MONTHLY_USD_LIMIT', '5')
@@ -48,7 +49,7 @@ def test_gujarati_uses_full_model_and_reserves_its_actual_rate(monkeypatch):
         assert b'whisper-large-v3-turbo' not in request.content
         assert b'whisper-large-v3' in request.content
         return httpx.Response(200, json={'language': 'gu', 'words': [{'word': 'ગુજરાતી', 'start': 0, 'end': 0.5}]})
-    result = transcribe_groq(np.zeros(16000), 'gu', httpx.MockTransport(handle))
+    result = transcribe_groq(np.zeros(16000), language, httpx.MockTransport(handle))
     assert result['words'][0]['text'] == 'ગુજરાતી'
 
 

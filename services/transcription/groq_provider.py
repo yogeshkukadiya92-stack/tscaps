@@ -54,10 +54,10 @@ def transcribe_groq(pcm, language, transport=None, keywords=None):
     model = os.getenv('GROQ_MODEL', 'whisper-large-v3')
     if model not in RATES:
         raise HTTPException(503, 'Unsupported transcription model')
-    # Gujarati is error-sensitive: use the full multilingual decoder even
+    # Hindi/Hinglish and Gujarati use the full multilingual decoder even
     # when the service's general-purpose default is the pruned Turbo model.
     # Reserve at this model's actual rate so the existing cap still applies.
-    if language == 'gu':
+    if language in ('gu', 'hi'):
         model = 'whisper-large-v3'
     key = os.getenv('GROQ_API_KEY')
     if not key:

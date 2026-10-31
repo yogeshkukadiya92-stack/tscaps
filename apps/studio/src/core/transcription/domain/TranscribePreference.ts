@@ -19,5 +19,5 @@ export interface TranscribePreference {
 export const DEFAULT_TRANSCRIBE_PREFERENCE: TranscribePreference = {
   backend: 'auto',
   model: 'small',
-  captionStyle: 'roman-hinglish',
+  captionStyle: 'original',
 };

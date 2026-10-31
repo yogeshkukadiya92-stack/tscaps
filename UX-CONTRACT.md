@@ -12,7 +12,7 @@
 
 ## Workflow
 Projects use one New project vocabulary. Local search clears immediately and returns input focus. Project queries and admin account searches remain ephemeral to avoid placing private names/emails in browser history; paging/filter state stays in the mounted screen.
-Editor task tab labels remain stable for keyboard navigation. Tab descriptions explain scope without changing accessible names. Caption tools use Radix horizontal keyboard semantics. Preview/export and saving keep existing behavior.
+The unified editor exposes Video, Captions, Style, Music, Effects and Trim as labeled buttons with aria-pressed selection. Desktop uses a left rail and right inspector; phones use a bottom rail and independently scrolling controls beneath a persistent composition preview. All tools opens advanced controls directly and restores trigger focus on dismissal. Caption tabs retain Radix keyboard semantics. The same composition drives preview and export; Save, Undo and Redo operate on shared project state.
 Selecting an admin account moves keyboard focus to its detail heading so settings are discoverable below the table. Account section links use native navigation. Money/access changes retain explicit reasons and review/confirm steps. Do not invent new billing states or authorize mutations through styling.
 
 ## States and recovery

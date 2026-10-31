@@ -17,7 +17,7 @@ describe('Hinglish transcription configuration', () => {
   }
   it('selects the upgraded multilingual model, requests Hindi transcription, then romanizes without changing timing', async () => {
     const { action, transcriber, words } = setup();
-    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'hi' }, 'hi');
+    const document = await action.execute({} as File, { ...DEFAULT_TRANSCRIBE_PREFERENCE, captionStyle: 'roman-hinglish' }, { language: 'hi' }, 'hi');
     expect(transcriber.setConfig).toHaveBeenCalledWith({ model: 'small', device: 'auto' });
     expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'hi' });
     expect(document.getWords().map(w => w.text)).toEqual(['aaj', 'video']);
@@ -33,7 +33,7 @@ describe('Hinglish transcription configuration', () => {
   });
   it.each(['gu', 'en', 'mr'])('preserves explicit %s speech even with a saved Hinglish preference', async (language) => {
     const { action, transcriber, words } = setup();
-    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language }, language);
+    const document = await action.execute({} as File, { ...DEFAULT_TRANSCRIBE_PREFERENCE, captionStyle: 'roman-hinglish' }, { language }, language);
     expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language });
     expect(document.getWords()[0]?.text).toBe(words[0]?.text);
     expect(document.language).toBe(language);
@@ -49,6 +49,21 @@ describe('Hinglish transcription configuration', () => {
     const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'gu' }, 'hi');
     expect(transcriber.transcribe).toHaveBeenCalledWith({}, { language: 'gu' });
     expect(document.language).toBe('gu');
+  });
+  it('does not turn auto-detection into Hindi because of a saved Roman preference', async () => {
+    const { action, transcriber } = setup();
+    await action.execute({} as File, { ...DEFAULT_TRANSCRIBE_PREFERENCE, captionStyle: 'roman-hinglish' }, {});
+    expect(transcriber.transcribe).toHaveBeenCalledWith({}, {});
+  });
+  it('preserves native Hindi script by default', async () => {
+    const { action } = setup();
+    const document = await action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE, { language: 'hi' });
+    expect(document.getWords()[0]?.text).toBe('आज');
+  });
+  it('rejects empty recognition even when the provider reports no gaps', async () => {
+    const { action, transcriber } = setup();
+    transcriber.transcribe.mockResolvedValue(new Document({ sections: [] }));
+    await expect(action.execute({} as File, DEFAULT_TRANSCRIBE_PREFERENCE)).rejects.toMatchObject({ name: 'LocalTranscriptionFailedError' });
   });
   it('rejects a placeholder-only result instead of replacing the existing transcript', async () => {
     const { action, transcriber } = setup();

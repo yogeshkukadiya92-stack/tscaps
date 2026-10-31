@@ -47,6 +47,16 @@ The Typography font picker offers fonts for the caption's writing system. Hindi/
 
 ## Sample outputs
 
+### Find editing tools
+
+Use **All tools** above the editor to search and open caption controls, music, clips, backgrounds or effects directly. Search accepts the current interface language as well as English tool names. The same menu is available on phones; Escape closes it and returns keyboard focus.
+
+New captions default to the original script. Choose **ગુજરાતી**, **हिन्दी** or **English** first, or use the language picker for another language. Hindi also offers optional Roman Hinglish. A saved Roman preference no longer silently selects Hindi when no language was chosen. Gujarati selection through either control configures the larger local model; phones can choose the smaller mobile model, and advanced settings remain available. Language selection recognizes speech, not translation. Empty recognition results are treated as failures so retranscription cannot replace existing captions with an empty document.
+
+### Hinglish accuracy preset
+
+Choose **Hinglish · Accuracy** when starting or regenerating captions. It explicitly selects Hindi speech and Roman Hinglish output. In-browser processing selects Large v3 Turbo on CPU (about 0.9 GB on first use); the mobile-friendly and advanced controls remain available. Groq server processing uses full Whisper Large v3 for Hindi as well as Gujarati, reserving the full model's cost under the existing budget cap. Other providers retain their configured models. Common English loanwords are rendered with familiar English spellings; existing English text and word timings stay unchanged. These are configuration and spelling improvements, not a measured accuracy guarantee on every recording.
+
 ### Change transcription language or replace captions
 
 In an existing project, open **Captions → Transcript → Change language / Retranscribe**. Choose the speech language and original script or Roman Hinglish, then **Replace all captions**. You can also replace the transcript with an SRT or VTT file. This uses the original source and cached transcription model without regenerating the video preview. Processing time still depends on the model and device.
@@ -55,7 +65,7 @@ Existing captions remain intact if transcription fails. A successful replacement
 
 ### Auto Edit
 
-Open **Creative → Auto Edit**, choose **Clean**, **Energetic** or **Professional**, and click **Auto edit reel** for one-step analysis and application, or **Analyze auto edit** to review a draft first. Review the proposed number of pause cuts, time saved, zooms and caption styles, then **Apply auto edit** and preview. Each option can be switched off before analysis. This runs locally using audio energy and the existing transcript; it does not generate a new transcript, select semantic highlights, or add stock music/B-roll.
+Open **All tools → Auto Edit**, choose **Clean**, **Energetic** or **Professional**, and click **Auto edit reel** for one-step analysis and application, or **Analyze auto edit** to review a draft first. Review the proposed number of pause cuts, time saved, zooms and caption styles, then **Apply auto edit** and preview. Each option can be switched off before analysis. This runs locally using audio energy and the existing transcript; it does not generate a new transcript, select semantic highlights, or add stock music/B-roll.
 
 Clean keeps natural pauses and gentle zooms; Energetic uses shorter pause handles, stronger/frequent zooms and larger captions; Professional keeps longer pauses and restrained styling. Audio analysis streams 50ms windows and protects word timestamps with speech handles. Missing transcripts, silent audio and undecodable audio never cause guessed speech cuts. Existing timed effects/B-roll keep their positions by skipping new pause cuts; custom contrast, saturation, caption sizes, CSS and linked caption styles are preserved.
 
@@ -69,7 +79,7 @@ The preview retains its current output time when changing effects, colour, capti
 
 ### Ready-made photo and video reels
 
-Open **Creative → Templates** for **36 ready-made reels** across Travel, Celebration, Business, Lifestyle, Creator, Fashion and Gujarati / Hindi. Each arrangement includes a predefined instrumental mood, BPM, scene lengths, colour look, camera motion and timed lighting or zoom transitions. These are full media arrangements, separate from the caption recipes under Auto Edit.
+Open **All tools → Reel templates** for **36 ready-made reels** across Travel, Celebration, Business, Lifestyle, Creator, Fashion and Gujarati / Hindi. Each arrangement includes a predefined instrumental mood, BPM, scene lengths, colour look, camera motion and timed lighting or zoom transitions. These are full media arrangements, separate from the caption recipes under Auto Edit.
 
 Choose a template, select JPG/PNG/WebP photos and/or supported videos, arrange the file order, optionally enter a title, and click **Build reel automatically**. With no selection, it uses the original project video. Media cycles to fill the scene slots; selecting more files extends the arrangement on the same beat pattern so every file is included. A short video repeats within its slot rather than leaving blank frames. Photos use a centred 9:16 crop. **New project** and the editor dropzone also accept a photo to start a project without a source video; the normal no-audio flow opens an empty transcript.
 
@@ -89,7 +99,7 @@ Split or add a clip before adding Zoom-through Cut; it targets a real compositio
 
 ### Gujarati transcription
 
-Choose **ગુજરાતી · Gujarati captions** in the transcription or retranscription dialog to select Gujarati (`gu`) and original script, including when server processing is enabled. Local processing selects **Whisper Large v3 Turbo on CPU** with word timestamps (roughly 0.9 GB initial download, cached when storage permits). Groq server processing uses the full **Whisper Large v3** for explicit Gujarati even when its general default is Turbo, reserving usage at the full model's rate under the existing budget cap. Other server providers keep their configured model. Accuracy depends on recording quality, dialect and background music; review names and unclear speech. These configuration checks are not a measured Gujarati accuracy benchmark. Existing projects need **Change language / Retranscribe** to replace old captions; Undo restores the previous transcript.
+Choose **ગુજરાતી** in the transcription or retranscription dialog to select Gujarati (`gu`) and original script, including when server processing is enabled. Local processing selects **Whisper Large v3 Turbo on CPU** with word timestamps (roughly 0.9 GB initial download, cached when storage permits). Groq server processing uses the full **Whisper Large v3** for explicit Gujarati even when its general default is Turbo, reserving usage at the full model's rate under the existing budget cap. Other server providers keep their configured model. Accuracy depends on recording quality, dialect and background music; review names and unclear speech. These configuration checks are not a measured Gujarati accuracy benchmark. Existing projects need **Change language / Retranscribe** to replace old captions; Undo restores the previous transcript.
 
 ### Audio to subtitles
 
@@ -379,3 +389,7 @@ When a long window degenerates, recovery tries each affected region once in slic
 [Coolify processing setup](services/transcription/README.md) adds audio-only transcription with a warm faster-whisper model and an optional separate server export service. Both verify the caller's Supabase identity; server export also checks project ownership. They stay disabled until their public runtime `TRANSCRIPTION_URL` / `RENDER_URL` settings are supplied. No server secret is embedded in the web app. Deployment and real audio/export benchmarks are required before enabling them for users.
 
 Creative preview reuses an available low-resolution proxy while keeping audio from the original source. Device export explicitly discards the proxy and renders from original media. Server exports render the saved cloud project with the same compositor; MP4 conversion adds a second encode. Upload throughput remains bounded by the network and storage service, and processing speed depends on the chosen hardware.
+
+### Unified editor
+
+The editor opens with editable captions and a single full-reel preview. Six labeled tools—Video, Captions, Style, Music, Effects and Trim—sit at the left on desktop and at the bottom on phones. Phone controls scroll beneath a persistent preview. Use All tools for Auto Edit, reel templates, B-roll and detailed caption settings. Save, Undo, Redo and Export stay in the top toolbar. The timeline is expandable below the preview.

@@ -8,13 +8,12 @@ test('inspect editor workspaces at desktop and phone sizes', async ({ page }) =>
   await bootEditorWithCaptions(page, bytes, doc);
   for (const width of [1440, 768, 375, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const name of ['Captions', 'Creative', 'Timeline']) {
-      await page.getByRole('tab', { name, exact: true }).click();
-      if (name === 'Creative') await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-      if (name === 'Timeline') await expect(page.getByText('0.9s', { exact: true })).toBeVisible();
+    for (const name of ['Video', 'Captions', 'Style', 'Music', 'Effects', 'Trim']) {
+      await page.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name, exact: true }).click();
+      if (name === 'Video') await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
       await page.screenshot({ animations: 'disabled', path: test.info().outputPath(`${name}-${width}.png`) });
       const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-      for (const button of await page.getByRole('tablist', { name: 'Editor workspace', exact: true }).getByRole('tab').all()) {
+      for (const button of await page.getByRole('navigation', { name: 'Creative tools' }).getByRole('button').all()) {
         const box = await button.boundingBox();
         expect(box!.x).toBeGreaterThanOrEqual(0);
         expect(box!.x + box!.width).toBeLessThanOrEqual(width);
@@ -40,10 +39,9 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await page.getByRole('tab', { name: 'Captions', exact: true }).click();
+  await page.locator('[data-tool="Captions"]').click();
   const name = page.getByRole('textbox', { name: 'Project name', exact: true });
   await expect(name).toBeEnabled();
   const original = await name.inputValue();
@@ -60,14 +58,12 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   await name.press('Escape');
   await expect(name).toHaveValue('Confirmed project name');
 
-  const tabs = page.getByRole('tablist', { name: 'Editor workspace', exact: true });
-  await tabs.getByRole('tab', { name: 'Captions', exact: true }).focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(tabs.getByRole('tab', { name: 'Creative', exact: true })).toBeFocused();
-  await expect(tabs.getByRole('tab', { name: 'Creative', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await page.keyboard.press('End');
-  await expect(tabs.getByRole('tab', { name: 'Timeline', exact: true })).toBeFocused();
-  await page.keyboard.press('Home');
+  const tools = page.getByRole('navigation', { name: 'Creative tools' });
+  await tools.getByRole('button', { name: 'Captions', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await expect(tools.getByRole('button', { name: 'Style', exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(tools.getByRole('button', { name: 'Style', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
   await page.getByRole('button', { name: /Theme:/ }).click();
   await page.getByRole('button', { name: /Theme:/ }).click();
@@ -75,24 +71,11 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   await expect(page.locator('html')).not.toHaveClass(/theme-transitioning/);
   await page.screenshot({ animations: 'disabled', path: test.info().outputPath('editor-dark.png') });
   await page.setViewportSize({ width: 320, height: 700 });
-  const separator = page.getByRole('separator', { name: 'Resize editor panel' });
-  await separator.focus();
-  const before = Number(await separator.getAttribute('aria-valuenow'));
-  await separator.press('ArrowUp');
-  await expect(separator).toHaveAttribute('aria-valuenow', String(before + 5));
-  await separator.press('Home');
-  await expect(separator).toHaveAttribute('aria-valuenow', await separator.getAttribute('aria-valuemin') as string);
-
-  await page.getByRole('button', { name: 'Playback options', exact: true }).click();
-  const options = page.getByRole('group', { name: 'Playback options', exact: true });
-  await expect(options.getByRole('button', { name: 'Next word' })).toBeVisible();
-  await options.getByRole('button', { name: 'Next word' }).focus();
-  await page.keyboard.press('Escape');
-  await expect(options).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Playback options', exact: true })).toBeFocused();
-  const time = page.locator('.time-display');
-  const line = await time.evaluate(el => ({ height: el.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(el).fontSize) }));
-  expect(line.height).toBeLessThanOrEqual(line.fontSize * 2);
+  const playhead = page.getByRole('slider', { name: 'Reel playhead', exact: true });
+  await expect(playhead).toBeEnabled();
+  await playhead.fill('0.5');
+  await playhead.press('Home');
+  await expect(playhead).toHaveValue('0');
   await page.getByRole('button', { name: 'Export', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -106,10 +89,9 @@ test('failed save-and-leave keeps edits available and reports the failure on a s
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(page.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
-  await page.getByRole('tab', { name: 'Captions', exact: true }).click();
+  await page.locator('[data-tool="Captions"]').click();
   const name = page.getByRole('textbox', { name: 'Project name', exact: true });
   await name.fill('Untitled');
   await name.press('Enter');
@@ -142,11 +124,9 @@ test('caption sections remain reachable on a phone', async ({ page }) => {
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
   for (const label of ['Choose style', 'Transcript', 'Typography', 'Colors', 'Position', 'Motion', 'Effects', 'Layout', 'Code']) {
-    if (['Choose style', 'Transcript', 'Motion'].includes(label)) {
-      await page.getByRole('tablist', { name: 'Editor sections' }).getByRole('tab', { name: label, exact: true }).click();
-    } else {
-      await page.getByLabel('More caption tools', { exact: true }).selectOption({ label });
-    }
+    await page.getByRole('button', { name: 'All tools', exact: true }).click();
+    const names: Record<string, string> = { Transcript: 'Edit words', Motion: 'Animation' };
+    await page.getByRole('dialog', { name: 'All tools' }).getByRole('button', { name: names[label] ?? label, exact: true }).click();
     await expect(page.getByRole('tabpanel', { name: label, exact: true })).toBeVisible();
     await page.screenshot({ animations: 'disabled', path: test.info().outputPath(`section-${label}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
@@ -183,24 +163,24 @@ test('admin table, search and edit form fit long account details on a phone', as
   await expect(page.getByRole('region', { name: 'Edit user', exact: true })).toHaveCount(0);
 });
 
-test('beginner guide is keyboard accessible and fits a small phone', async ({ page }) => {
+test('beginner tool menu is keyboard accessible and fits a small phone', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  const guide = page.locator('details').filter({ hasText: 'How to make your reel' });
-  const toggle = guide.locator('summary');
+  await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+  const guide = page.getByRole('dialog', { name: 'All tools' });
+  const toggle = page.getByRole('button', { name: 'All tools', exact: true });
   await toggle.focus();
   await page.keyboard.press('Enter');
-  await expect(guide).toHaveAttribute('open', '');
-  await expect(guide).toContainText('Save only keeps project edits.');
+  await expect(guide).toBeVisible();
+  await expect(guide.getByRole('searchbox')).toBeFocused();
+  await expect(guide).toContainText('Voice & music');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-  const tabs = page.getByRole('tablist', { name: 'Editor workspace', exact: true });
-  await expect(tabs).toBeVisible();
-  await page.screenshot({ animations: 'disabled', path: test.info().outputPath('beginner-guide-phone.png') });
-  await toggle.press('Enter');
-  await expect(guide).not.toHaveAttribute('open', '');
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+  await page.screenshot({ animations: 'disabled', path: test.info().outputPath('beginner-tools-phone.png') });
+  await page.keyboard.press('Escape');
+  await expect(guide).toBeHidden();
+  await expect(toggle).toBeFocused();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
 });
 
@@ -208,17 +188,16 @@ test('Space activates focused controls without triggering global playback', asyn
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  const guide = page.locator('details').filter({ hasText: 'How to make your reel' });
-  await guide.locator('summary').focus();
+  await page.getByRole('button', { name: 'All tools', exact: true }).focus();
   await page.keyboard.press('Space');
-  await expect(guide).toHaveAttribute('open', '');
-  await expect(page.getByRole('button', { name: 'Play video', exact: true })).toBeVisible();
-  const volume = page.getByRole('slider', { name: 'Video volume', exact: true });
-  await volume.fill('0.5');
-  await volume.press('ArrowUp');
-  await expect(volume).toHaveValue('0.51');
-  await volume.press('ArrowDown');
-  await expect(volume).toHaveValue('0.5');
+  await expect(page.getByRole('dialog', { name: 'All tools' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'All tools' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Preview', exact: true }).focus();
+  await page.keyboard.press('Space');
+  await expect(page.getByRole('button', { name: 'Stop preview', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Stop preview', exact: true }).click();
   await page.getByRole('button', { name: 'Export', exact: true }).focus();
   await page.keyboard.press('Space');
   await expect(page.getByRole('dialog', { name: 'Export video', exact: true })).toBeVisible();

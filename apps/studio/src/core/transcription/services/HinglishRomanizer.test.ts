@@ -9,6 +9,9 @@ describe('Roman Hinglish captions', () => {
     expect(romanizer.text('मैं अभी Instagram पर रील्स बना रहा हूँ।')).toBe('main abhi Instagram par reels bana raha hoon.');
     expect(romanizer.text('इसके लिए आप ये कर सकते हैं!')).toBe('iske liye aap ye kar sakte hain!');
   });
+  it('restores common English loanwords without changing existing English casing', () => {
+    expect(romanizer.text('ऑनलाइन बिजनेस के लिए कंटेंट और मार्केटिंग — YouTube')).toBe('online business ke liye content aur marketing — YouTube');
+  });
   it('handles unknown Hindi words, digits, and punctuation', () => {
     expect(romanizer.text('कमल, भारत १२३!')).toBe('kamal, bhaarat 123!');
     expect(romanizer.text('रचना')).toBe('rachnaa');

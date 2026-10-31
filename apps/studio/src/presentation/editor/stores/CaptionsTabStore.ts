@@ -16,7 +16,7 @@ export type CaptionsTabId =
  * subscribers only see real edges.
  */
 export class CaptionsTabStore extends EventTarget {
-  private _activeTabId: CaptionsTabId = 'templates';
+  private _activeTabId: CaptionsTabId = 'transcript';
 
   get activeTabId(): CaptionsTabId {
     return this._activeTabId;

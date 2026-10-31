@@ -311,7 +311,8 @@ export function EditorHost({
     controllerRef.current = controller;
     keyboardRef.current = keyboard;
     controller.start();
-    keyboard.start();
+    // The composite workspace owns playback; this source surface still hydrates media.
+    if (el.dataset['previewEngine'] !== 'composite') keyboard.start();
   }, [store, cutAwareDocumentBuilder, previewSurface]);
 
   useEffect(() => {

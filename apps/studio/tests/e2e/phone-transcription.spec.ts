@@ -45,9 +45,11 @@ test('phone server transcription avoids local model controls and opens Roman Hin
   await expect(dialog.getByText('No speech model needs to be downloaded to this device.', { exact: false })).toBeVisible();
   await expect(dialog.getByRole('button', { name: /Large v3 Turbo|Accuracy · Medium|Balanced · Small/ })).toHaveCount(0);
   await expect(dialog.getByText('Advanced', { exact: true })).toHaveCount(0);
+  await dialog.getByRole('button', { name: /हिन्दी/ }).click();
+  await dialog.getByLabel('Caption language & script', { exact: true }).selectOption('roman-hinglish');
   await page.screenshot({ animations: 'disabled', path: test.info().outputPath('phone-server-start.png') });
   await dialog.getByTestId('start-flow-primary').click();
-  await expect(page.getByRole('tablist', { name: 'Editor workspace', exact: true })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('navigation', { name: 'Creative tools', exact: true })).toBeVisible({ timeout: 30000 });
   expect(await page.evaluate(() => window.__tscapsE2E!.documentWords().map(w => w.text))).toEqual(['aaj', 'video']);
   expect(server.requests()).toBe(1);
 });
@@ -57,10 +59,10 @@ test('Gujarati shortcut overrides saved Hinglish and sends Gujarati to server', 
     { text: 'ગુજરાતી', start: 0, end: 0.4 }, { text: 'video', start: 0.4, end: 0.8 },
   ] } }), 'gu');
   const dialog = page.getByRole('dialog', { name: 'Start your video' });
-  await dialog.getByRole('button', { name: 'ગુજરાતી · Gujarati captions', exact: true }).click();
-  await expect(dialog.getByLabel('Caption language & script', { exact: true })).toHaveValue('original');
+  await dialog.getByRole('button', { name: /ગુજરાતી/ }).click();
+  await expect(dialog.getByLabel('Caption language & script', { exact: true })).toHaveCount(0);
   await dialog.getByTestId('start-flow-primary').click();
-  await expect(page.getByRole('tablist', { name: 'Editor workspace', exact: true })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('navigation', { name: 'Creative tools', exact: true })).toBeVisible({ timeout: 30000 });
   expect(await page.evaluate(() => window.__tscapsE2E!.documentWords().map(w => w.text))).toEqual(['ગુજરાતી', 'video']);
   expect(server.requests()).toBe(1);
 });
@@ -68,6 +70,7 @@ test('Gujarati shortcut overrides saved Hinglish and sends Gujarati to server', 
 test('phone server failure shows a specific error and retry succeeds', async ({ page }) => {
   let failing = true;
   const server = await phoneSetup(page, () => failing ? { status: 503, json: { detail: 'Unavailable' } } : { json: { words } });
+  await page.getByRole('button', { name: /हिन्दी/ }).click();
   await page.getByTestId('start-flow-primary').click();
   const dialog = page.getByRole('dialog', { name: 'Start your video' });
   await expect(dialog.getByRole('alert')).toBeVisible();
@@ -75,7 +78,7 @@ test('phone server failure shows a specific error and retry succeeds', async ({ 
   await expect(dialog.getByTestId('start-flow-primary')).toBeEnabled();
   failing = false;
   await dialog.getByTestId('start-flow-primary').click();
-  await expect(page.getByRole('tablist', { name: 'Editor workspace', exact: true })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('navigation', { name: 'Creative tools', exact: true })).toBeVisible({ timeout: 30000 });
   expect(server.requests()).toBe(2);
 });
 
@@ -89,10 +92,29 @@ test('phone can replace a saved large local model with a smaller model while pre
   const dialog = page.getByRole('dialog', { name: 'Start your video' });
   await expect(dialog).toBeVisible();
   await page.screenshot({ animations: 'disabled', path: test.info().outputPath('local-phone-before-switch.png') });
+  await dialog.getByRole('button', { name: /हिन्दी/ }).click();
+  await dialog.getByLabel('Caption language & script', { exact: true }).selectOption('roman-hinglish');
   await expect(dialog.getByRole('button', { name: 'Mobile-friendly · Base', exact: true })).toBeVisible();
   await dialog.getByRole('button', { name: 'Mobile-friendly · Base', exact: true }).click();
-  await expect(dialog.getByRole('button', { name: 'Mobile-friendly · Base', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(dialog.getByText('Base is selected:', { exact: false })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Advanced', exact: true }).click();
+  await expect(dialog.getByLabel('Model', { exact: true })).toHaveValue('base');
   await expect(dialog.getByLabel('Caption language & script', { exact: true })).toHaveValue('roman-hinglish');
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tscaps:transcribe-preference')!))).toMatchObject({ model: 'base', backend: 'auto', captionStyle: 'roman-hinglish' });
 });
+
+for (const sample of [
+  { language: 'hi', button: /हिन्दी/, text: 'नमस्ते' },
+  { language: 'en', button: /English/, text: 'Hello' },
+]) {
+  test(`${sample.language} sends the chosen language and preserves native words`, async ({ page }) => {
+    const server = await phoneSetup(page, () => ({ json: { language: sample.language, words: [
+      { text: sample.text, start: 0, end: 0.4 }, { text: 'video', start: 0.4, end: 0.8 },
+    ] } }), sample.language);
+    const dialog = page.getByRole('dialog', { name: 'Start your video' });
+    await dialog.getByRole('button', { name: sample.button }).click();
+    await dialog.getByTestId('start-flow-primary').click();
+    await expect(page.getByRole('navigation', { name: 'Creative tools', exact: true })).toBeVisible({ timeout: 30000 });
+    expect(await page.evaluate(() => window.__tscapsE2E!.documentWords().map(w => w.text))).toEqual([sample.text, 'video']);
+    expect(server.requests()).toBe(1);
+  });
+}

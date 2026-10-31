@@ -15,6 +15,15 @@ export type EditorModeId = 'captions' | 'creative' | 'timeline';
 export class EditorWorkspaceStore extends EventTarget {
   private _activeModeId: EditorModeId = 'captions';
   private _isInspectorOpen = false;
+  private _activeCreativeTool = 'Captions';
+
+  get activeCreativeTool(): string { return this._activeCreativeTool; }
+
+  setActiveCreativeTool(tool: string): void {
+    if (tool === this._activeCreativeTool) return;
+    this._activeCreativeTool = tool;
+    this.dispatchEvent(new Event('change'));
+  }
 
   get activeModeId(): EditorModeId {
     return this._activeModeId;

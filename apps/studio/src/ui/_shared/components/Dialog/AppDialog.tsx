@@ -12,6 +12,7 @@ export type AppDialogExit = 'fade' | 'bottom-right';
 interface AppDialogProps {
   open: boolean;
   onClose: () => void;
+  onCloseAutoFocus?: (event: Event) => void;
   /** When true, ESC / outside-click won't close. Use for in-progress operations. */
   locked?: boolean;
   /** When false, click / pointer-down outside the content won't close. ESC and explicit cancel still work. Default true. */
@@ -99,6 +100,7 @@ const CLOSE_BTN =
 export function AppDialog({
   open,
   onClose,
+  onCloseAutoFocus,
   locked = false,
   closeOnOutsideClick = true,
   size = 'md',
@@ -117,6 +119,7 @@ export function AppDialog({
       <Dialog.Portal>
         <Dialog.Overlay className={`${OVERLAY_BASE} ${layer.overlay}`} />
         <Dialog.Content
+          onCloseAutoFocus={onCloseAutoFocus}
           className={`${CONTENT_BASE} ${layer.content} ${SIZE_CLASS[size]} ${EXIT_CLASS[exit]}`}
           onEscapeKeyDown={(e) => { if (locked) e.preventDefault(); }}
           onPointerDownOutside={(e) => { if (locked || !closeOnOutsideClick) e.preventDefault(); }}

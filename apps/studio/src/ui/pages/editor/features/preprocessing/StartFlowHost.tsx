@@ -80,6 +80,7 @@ export function StartFlowHost({ onBack }: StartFlowHostProps) {
   return (
     <StartDialog
       open
+      initialLanguage={state.error ? ranked.lastUsedCode ?? '' : ''}
       preference={state.transcribePreference}
       isMobileDevice={userAgentInspector.isMobile()}
       error={state.error}

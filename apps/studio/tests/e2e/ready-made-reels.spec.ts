@@ -65,7 +65,6 @@ test('starts with only a photo and builds from the current source without transc
   const png = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 80; c.height = 120; const ctx = c.getContext('2d')!; ctx.fillStyle = '#28b663'; ctx.fillRect(0, 0, 80, 120); return c.toDataURL('image/png').split(',')[1]!; });
   await page.locator('input[type="file"][accept*="image/jpeg"]').first().setInputFiles({ name: 'memory.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
   await expect(page.getByTestId('no-audio-track-notice')).toBeVisible({ timeout: 30000 });
-  await page.getByLabel('Caption language & script', { exact: true }).selectOption('original');
   await page.getByLabel('Language', { exact: true }).fill('English');
   await page.getByRole('option', { name: /^English/ }).first().click();
   await page.getByTestId('start-flow-primary').click();

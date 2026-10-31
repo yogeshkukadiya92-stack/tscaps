@@ -191,16 +191,16 @@ export const ProjectsListPage = memo(function ProjectsListPage({
             </div>
           </div>
 
-          <section className="workspace-support" aria-label={t("Contact support")}>
-            <strong><Headphones size={18} aria-hidden="true" /><UiText text="Contact support" /></strong>
-            <a href="tel:+919825344428"><Phone size={16} aria-hidden="true" /><span>9825344428</span></a>
-            <a href="mailto:yogeshkukadiya92@gmail.com"><Mail size={16} aria-hidden="true" /><span>yogeshkukadiya92@gmail.com</span></a>
-          </section>
-
           <section className={`workspace-start ${count > 0 ? 'workspace-start--compact' : ''}`} aria-label={t("Start editing")}>
             <div className="workspace-start-copy"><span className="workspace-eyebrow"><UiText text="Your next reel" /></span><h2><UiText text="A great reel starts with your video." /></h2><p><UiText text="Upload a video. Check your captions. Pick a style. Export." /></p><button className={BTN_PRIMARY} onClick={handleNewClick}><Plus size={16} /><UiText text=" New project " /><ArrowUpRight size={16} /></button><span className="workspace-drop-hint"><UiText text="or drop a video file anywhere" /></span></div>
             <div className="workspace-film" aria-hidden="true"><div className="workspace-film-frame"><span><UiText text="YOUR STORY." /></span><strong><UiText text="IN MOTION." /></strong><span className="workspace-film-caption"><UiText text="Every word. Every frame." /></span></div><div className="workspace-film-track"><Scissors size={13} /><i /><i /><i /><Captions size={14} /></div></div>
           </section>
+          <details className="workspace-support" aria-label={t("Contact support")}>
+            <summary><Headphones size={18} aria-hidden="true" /><UiText text="Contact support" /></summary>
+            <a href="tel:+919825344428"><Phone size={16} aria-hidden="true" /><span>9825344428</span></a>
+            <a href="mailto:yogeshkukadiya92@gmail.com"><Mail size={16} aria-hidden="true" /><span>yogeshkukadiya92@gmail.com</span></a>
+          </details>
+
           <div className="workspace-library-header"><div><h2><UiText text="Project library " /><span>{count}</span></h2><p><UiText text="Pick up where you left off." /></p></div></div>
           <div className="workspace-toolbar">
             <label className="workspace-search"><Search size={16} /><input ref={searchInputRef} type="search" placeholder={t("Search projects…")} aria-label={t("Search projects")} value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label={t("Clear project search")} onClick={() => { setQuery(''); searchInputRef.current?.focus(); }}><X size={16} /></button>}</label>

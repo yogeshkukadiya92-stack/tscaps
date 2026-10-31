@@ -2,14 +2,18 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { bootEditor, bootEditorWithCaptions, setVideoBytes } from './support/editorBoot';
 
-test('Roman Hinglish defaults, accuracy selection persists, and other languages stay available', async ({ page }) => {
+test('Native script defaults, Roman Hinglish is opt-in, and accuracy selection persists', async ({ page }) => {
   await bootEditor(page);
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   await setVideoBytes(page, bytes);
   const dialog = page.getByRole('dialog', { name: 'Start your video' });
-  await expect(dialog.getByLabel('Caption language & script', { exact: true })).toHaveValue('roman-hinglish');
-  await expect(dialog.getByRole('button', { name: 'Balanced · Small', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await dialog.getByRole('button', { name: 'Accuracy · Medium', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Hinglish · Accuracy', exact: true }).click();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tscaps:transcribe-preference')!))).toMatchObject({ model: 'large-v3-turbo', backend: 'wasm', captionStyle: 'roman-hinglish' });
+  await dialog.getByRole('button', { name: /हिन्दी/ }).click();
+  await expect(dialog.getByLabel('Caption language & script', { exact: true })).toHaveValue('original');
+  await dialog.getByLabel('Caption language & script', { exact: true }).selectOption('roman-hinglish');
+  await dialog.getByRole('button', { name: 'Advanced', exact: true }).click();
+  await dialog.getByLabel('Model', { exact: true }).selectOption('medium');
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('tscaps:transcribe-preference')!));
   expect(stored.model).toBe('medium'); expect(stored.captionStyle).toBe('roman-hinglish');
   await dialog.screenshot({ path: test.info().outputPath('hinglish-default.png') });
@@ -24,7 +28,7 @@ test('existing Hindi captions convert to Roman Hinglish and Undo restores the sc
     { text: 'video', start: 0.8, end: 1.2 }, { text: 'करेंगे', start: 1.2, end: 1.8 },
   ] }] }] }] };
   await bootEditorWithCaptions(page, bytes, document);
-  await page.getByRole('tab', { name: 'Transcript', exact: true }).click();
+  await page.locator('[data-tool="Captions"]').click();
   const before = await page.evaluate(() => window.__tscapsE2E!.documentWords());
   await page.getByRole('button', { name: 'Convert Hindi to Roman Hinglish' }).click();
   const textarea = page.locator('textarea[data-segment-id]').first();

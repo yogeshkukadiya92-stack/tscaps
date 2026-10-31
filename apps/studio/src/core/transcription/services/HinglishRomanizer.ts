@@ -29,6 +29,10 @@ const SPELLINGS: Readonly<Record<string, string>> = {
   फॉलो: 'follow', डाउनलोड: 'download', अपलोड: 'upload', म्यूजिक: 'music',
   टेक्स्ट: 'text', स्पीड: 'speed', फिल्टर: 'filter', फ़िल्टर: 'filter',
   ऐप: 'app', एप: 'app', फोन: 'phone', फ़ोन: 'phone', मोबाइल: 'mobile',
+  बिजनेस: 'business', बिज़नेस: 'business', ऑनलाइन: 'online', मार्केटिंग: 'marketing',
+  कंटेंट: 'content', क्रिएटर: 'creator', क्वालिटी: 'quality', ऑडियो: 'audio',
+  सेटिंग: 'setting', सेटिंग्स: 'settings', प्रोफाइल: 'profile', प्रोडक्ट: 'product',
+  वेबसाइट: 'website', लिंक: 'link', कोर्स: 'course', फ्री: 'free',
   ट्रांजिशन: 'transition', टेम्पलेट: 'template', एआई: 'AI',
 };
 

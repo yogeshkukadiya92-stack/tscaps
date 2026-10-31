@@ -136,7 +136,9 @@ export function StartDialog({
   const subtitleInputRef = useRef<HTMLInputElement>(null);
   const fromSubtitleFile = inBrowserTranscription && subtitleFile !== null;
   const romanHinglish = inBrowserTranscription && preference.captionStyle === 'roman-hinglish'
-    && (!language || language === AUTO_DETECT_LANGUAGE_VALUE || language === 'hi');
+    && language === 'hi';
+  const hinglishAccuracy = romanHinglish && (serverProcessing
+    || (preference.model === 'large-v3-turbo' && preference.backend === 'wasm'));
 
   const pickSubtitleFile = () => subtitleInputRef.current?.click();
 
@@ -156,8 +158,12 @@ export function StartDialog({
     }
   };
 
-  const handleLanguageChange = (next: string) => {
+  const handleLanguageChange = (next: string, originalScript = false) => {
     setLanguage(next);
+    if ((next !== language || originalScript) && inBrowserTranscription) {
+      updatePreference.execute({ ...preference, captionStyle: 'original',
+        ...(!serverProcessing && next === 'gu' ? { model: 'large-v3-turbo', backend: 'wasm' } as const : {}) });
+    }
     if (languageError !== null) setLanguageError(null);
   };
 
@@ -215,34 +221,26 @@ export function StartDialog({
       ) : (
         <>
           {inBrowserTranscription && serverProcessing && <p className="text-xs text-fg-secondary m-0"><UiText text="We create captions from your speech. You can correct words and choose a style next. No speech model needs to be downloaded to this device." /></p>}
-          {inBrowserTranscription && !serverProcessing && <div className="flex flex-col gap-2">
-            {isMobileDevice && <>
-              <button type="button" className={preference.model === 'base' && preference.backend === 'auto' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
-                aria-pressed={preference.model === 'base' && preference.backend === 'auto'}
-                onClick={() => updatePreference.execute({ ...preference, model: 'base', backend: 'auto' })}><UiText text="Mobile-friendly · Base" /></button>
-              <p className="text-xs text-fg-muted m-0"><UiText text="Uses a smaller model on this phone. If Medium or Large fails, select this and start again. Your language and script stay selected." /></p>
-            </>}
-            <button type="button" className={preference.model === 'small' && preference.backend === 'auto' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
-              aria-pressed={preference.model === 'small' && preference.backend === 'auto'}
-              onClick={() => updatePreference.execute({ ...preference, model: 'small', backend: 'auto' })}><UiText text="Fast · Small" /></button>
-            <p className="text-xs text-fg-muted m-0"><UiText text="Faster captions with a smaller download. Review the words after processing." /></p>
-            <button type="button" className={preference.model === 'large-v3-turbo' && preference.backend === 'wasm' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
-              aria-pressed={preference.model === 'large-v3-turbo' && preference.backend === 'wasm'}
-              onClick={() => updatePreference.execute({ ...preference, model: 'large-v3-turbo', backend: 'wasm' })}><UiText text="Best accuracy · Large v3 Turbo" /></button>
-            <p className="text-xs text-fg-muted m-0"><UiText text="Uses the large multilingual model on CPU. Keeps your selected speech language and script. About 0.9 GB first download; needs more memory and time. Select the language actually spoken for reliable results." /></p>
-          </div>}
-          {inBrowserTranscription && languages.some(item => item.code === 'gu') && <div className="flex flex-col gap-2">
-            <button type="button" className={language === 'gu' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM}
-              aria-pressed={language === 'gu'} onClick={() => {
-                updatePreference.execute({ ...preference, captionStyle: 'original',
+          {inBrowserTranscription && <fieldset className="m-0 p-0 border-0 min-w-0">
+            <legend className="text-sm font-medium text-fg-primary mb-2"><UiText text="Speech language" /></legend>
+            <div className="grid grid-cols-3 gap-2">
+              {[{ code: 'gu', label: 'ગુજરાતી', sample: 'કેમ છો?' }, { code: 'hi', label: 'हिन्दी', sample: 'आप कैसे हैं?' }, { code: 'en', label: 'English', sample: 'How are you?' }].filter(item => languages.some(entry => entry.code === item.code)).map(item => (
+                <button key={item.code} type="button" aria-pressed={language === item.code}
+                  className={`${language === item.code ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} flex-col py-3`}
+                  onClick={() => handleLanguageChange(item.code, true)}><span>{item.label}</span><span className="text-xs opacity-80">{item.sample}</span></button>
+              ))}
+            </div>
+            {languages.some(item => item.code === 'hi') && <button type="button"
+              className={`${hinglishAccuracy ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} w-full mt-2`}
+              aria-pressed={hinglishAccuracy}
+              onClick={() => {
+                setLanguage('hi'); setLanguageError(null);
+                updatePreference.execute({ ...preference, captionStyle: 'roman-hinglish',
                   ...(!serverProcessing ? { model: 'large-v3-turbo', backend: 'wasm' } as const : {}) });
-                handleLanguageChange('gu');
-              }}><UiText text="ગુજરાતી · Gujarati captions" /></button>
-            <p className="text-xs text-fg-muted m-0">{serverProcessing
-              ? t('Gujarati speech → ગુજરાતી captions. Sends Gujarati as the speech language; English words may stay in English.')
-              : t('Gujarati speech → ગુજરાતી captions with Large v3 Turbo on CPU. About 0.9 GB first download; needs more memory and time.')}</p>
-          </div>}
-          {inBrowserTranscription && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary"><UiText text="Caption language & script" /><select aria-label={t("Caption language & script")} className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"
+              }}><UiText text="Hinglish · Accuracy" /></button>}
+            <p className="text-xs text-fg-muted mt-2 mb-0"><UiText text="Choose what you speak. Captions keep the original language; this does not translate your video." /></p>
+          </fieldset>}
+          {inBrowserTranscription && language === 'hi' && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary"><UiText text="Caption language & script" /><select aria-label={t("Caption language & script")} className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"
               value={romanHinglish ? 'roman-hinglish' : 'original'} onChange={event => {
                 updatePreference.execute({ ...preference, captionStyle: event.target.value as 'roman-hinglish' | 'original' });
                 if (event.target.value === 'roman-hinglish') handleLanguageChange('hi');
@@ -255,14 +253,8 @@ export function StartDialog({
           {romanHinglish ? <div className="flex flex-col gap-2">
             <p className="text-xs text-fg-secondary m-0"><UiText text="Hindi + English speech → Roman captions. Example: “aaj hum video edit karenge”. English words stay in English." /></p>
             <p className="text-xs text-fg-muted m-0"><UiText text="Hindi words are romanized after transcription. Review names and spellings in the Transcript editor." /></p>
-            {!serverProcessing && <div className="flex flex-wrap gap-2">
-              <button type="button" className={preference.model === 'small' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'small'}
-                onClick={() => updatePreference.execute({ ...preference, model: 'small' })}><UiText text="Balanced · Small" /></button>
-              <button type="button" className={preference.model === 'medium' ? BTN_PRIMARY_SM : BTN_SECONDARY_SM} aria-pressed={preference.model === 'medium'}
-                onClick={() => updatePreference.execute({ ...preference, model: 'medium' })}><UiText text="Accuracy · Medium" /></button>
-            </div>}
-            {!serverProcessing && <p className="text-2xs text-fg-muted m-0">{preference.model === 'base' ? t('Base is selected: a smaller download that uses less memory on your phone. Review the captions for accuracy.') : preference.model === 'tiny' ? t('Tiny is selected: the smallest download, with lower accuracy. Review the captions carefully.') : preference.model === 'medium' ? t('Medium has a larger first download and needs more memory and processing time.') : preference.model === 'large-v3-turbo' ? t('Large v3 Turbo is selected for accuracy. Failed regions get one recovery pass using shorter audio slices.') : t('Small uses less memory and runs faster; select Best accuracy above for the large multilingual model.')}</p>}
-          </div> : <LanguagePicker
+          </div> : null}
+          <LanguagePicker
             id="td-language"
             label={t("Language")}
             languages={languages}
@@ -273,7 +265,7 @@ export function StartDialog({
             lastUsedCode={lastUsedCode}
             placeholder={t("Select a language")}
             errorMessage={languageError ?? undefined}
-          />}
+          />
           {serverProcessing && language === 'gu' && <label className="flex flex-col gap-1.5 text-xs text-fg-secondary"><UiText text="Names & technical words (optional)" /><input aria-label={t("Names & technical words")} maxLength={1024}
               className="bg-surface-1 border border-edge-medium rounded-sm p-2 text-sm text-fg-primary"
               placeholder={t("Names, brands or specialist words, separated by commas")}
@@ -283,6 +275,11 @@ export function StartDialog({
           </label>}
 
 
+          {inBrowserTranscription && !serverProcessing && <p className="text-xs text-fg-muted m-0" role="status">
+            {preference.model === 'large-v3-turbo'
+              ? t('Large multilingual model. Downloads about 0.9 GB on CPU; GPU needs several GB of memory and a larger download. First run can take several minutes. Review captions for errors.')
+              : t('Faster captions with a smaller download. Review the words after processing.')}
+          </p>}
           {extraFields}
         </>
       )}
@@ -291,6 +288,12 @@ export function StartDialog({
         <p className="text-xs text-danger m-0" role="alert">{subtitleFileError}</p>
       )}
 
+      {inBrowserTranscription && !serverProcessing && !fromSubtitleFile && isMobileDevice && (
+        <button type="button" className={BTN_SECONDARY_SM}
+          onClick={() => updatePreference.execute({ ...preference, model: 'base', backend: 'auto' })}>
+          <UiText text="Mobile-friendly · Base" />
+        </button>
+      )}
       {inBrowserTranscription && !serverProcessing && !fromSubtitleFile && (
         <AdvancedSection
           open={advancedOpen}
