@@ -1,0 +1,26 @@
+# This Dockerfile only needs the web workspace and shared billing contracts.
+# Keep the context small even when local media and dependencies are present.
+**
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!packages/
+!packages/engine/
+!packages/engine/**
+!templates/
+!templates/**
+!apps/
+!apps/studio/
+!apps/studio/**
+!supabase/
+!supabase/functions/
+!supabase/functions/_shared/
+!supabase/functions/_shared/**
+
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/test-results
+**/playwright-report
+**/.DS_Store
