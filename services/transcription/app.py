@@ -4,6 +4,7 @@ import os
 import re
 import wave
 import tempfile
+import time
 from uuid import UUID
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.background import BackgroundTask
@@ -34,12 +35,10 @@ async def lifespan(app: FastAPI):
             num_workers=1,
         ))
         app.state.engine = BatchedInferencePipeline(model=model)
-    if app.state.provider == 'groq' and os.getenv('ENABLE_TRANSCRIPTION', 'true') == 'true':
-        from gujarati_transcription import enabled
-        if enabled():
-            from gujarati_alignment import alignment_model
-            await run_in_threadpool(alignment_model)
+    # Groq/forced alignment runs in a spawned child. Loading native models in
+    # the API threadpool and later using them on another thread can stall encode.
     app.state.busy = False
+    app.state.busy_since = None
     app.state.render_busy = False
     app.state.http = httpx.AsyncClient(timeout=15, follow_redirects=False)
     yield
@@ -67,7 +66,7 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['POST',
 async def health():
     from gujarati_transcription import enabled
     from gujarati_alignment import last_failure
-    return {'gujarati_alignment_failure': last_failure, 'gujarati_alignment_version': 10, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'busy': app.state.busy, 'render_busy': app.state.render_busy}
+    return {'gujarati_alignment_failure': last_failure, 'gujarati_alignment_version': 10, 'gujarati_audio_assist': enabled() if app.state.provider == 'groq' else False, 'ready': True, 'transcription': hasattr(app.state, 'engine') or (app.state.provider == 'groq' and bool(os.getenv('GROQ_API_KEY'))), 'inference_isolation': app.state.provider == 'groq', 'busy': app.state.busy, 'busy_seconds': round(time.monotonic() - app.state.busy_since, 1) if app.state.busy and getattr(app.state, 'busy_since', None) is not None else 0, 'render_busy': app.state.render_busy}
 
 
 async def authorize(request: Request):
@@ -122,6 +121,7 @@ async def transcribe(request: Request, language: str | None = None, keywords: st
     if app.state.busy:
         raise HTTPException(429, 'Transcription server busy; retry shortly', headers={'Retry-After': '10'})
     app.state.busy = True
+    app.state.busy_since = time.monotonic()
     try:
         body = bytearray()
         async with asyncio.timeout(120):
@@ -129,11 +129,19 @@ async def transcribe(request: Request, language: str | None = None, keywords: st
                 if len(body) + len(chunk) > MAX_BYTES:
                     raise HTTPException(413, 'Audio exceeds 30 minutes')
                 body.extend(chunk)
+        if app.state.provider == 'groq':
+            from isolated_inference import run_isolated
+            try:
+                pcm = decode_wave(bytes(body))
+            except (ValueError, EOFError, wave.Error) as error:
+                raise HTTPException(400, 'Expected a valid mono 16 kHz PCM16 WAV') from error
+            return await run_isolated(pcm, language, keywords)
         return await run_in_threadpool(infer, bytes(body), language, keywords)
     except TimeoutError:
         raise HTTPException(408, 'Audio upload timed out')
     finally:
         app.state.busy = False
+        app.state.busy_since = None
 
 
 @app.post('/render')

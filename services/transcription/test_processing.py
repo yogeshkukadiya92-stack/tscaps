@@ -106,3 +106,19 @@ def test_failed_alignment_draft_is_only_returned_to_its_authenticated_caller(cli
     assert 'words' not in response.json()
     assert 'વાત છે' not in client.get('/health').text
     assert app.state.busy is False
+
+
+def test_inference_timeout_releases_slot_and_preserves_budget_errors(client, monkeypatch):
+    app.state.provider = 'groq'
+    async def timed_out(*args, **kwargs):
+        raise HTTPException(504, 'Transcription timed out')
+    from fastapi import HTTPException
+    monkeypatch.setattr('isolated_inference.run_isolated', timed_out)
+    response = client.post('/transcribe?language=gu', content=wav(), headers={'Authorization': 'Bearer valid', 'Content-Type': 'audio/wav'})
+    assert response.status_code == 504
+    assert app.state.busy is False and app.state.busy_since is None
+    async def success(*args, **kwargs):
+        return {'words': [{'text': 'hello', 'start': 0, 'end': 0.5}], 'language': 'hi'}
+    monkeypatch.setattr('isolated_inference.run_isolated', success)
+    response = client.post('/transcribe?language=hi', content=wav(), headers={'Authorization': 'Bearer valid', 'Content-Type': 'audio/wav'})
+    assert response.status_code == 200 and app.state.busy is False
