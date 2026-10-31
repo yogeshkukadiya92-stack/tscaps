@@ -8,6 +8,8 @@ declare global {
 
 let client: SupabaseClient | null | undefined;
 let recoveryRedirect = false;
+const recoveryHash = typeof window === 'undefined' ? null : new URLSearchParams(window.location.hash.slice(1)).get('recovery_token');
+export const pendingRecoveryToken = recoveryHash && /^[a-f0-9]{56}$/.test(recoveryHash) ? recoveryHash : null;
 export function hasPasswordRecoveryRedirect(): boolean { return recoveryRedirect; }
 export function getSupabaseUrl(): string | null {
   return window.__REELSTUDIO_CONFIG__?.supabaseUrl || import.meta.env.VITE_SUPABASE_URL || null;

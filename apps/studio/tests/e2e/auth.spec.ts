@@ -104,3 +104,28 @@ test('recovery link lets the account owner validate and save a new password', as
   await expect(page.getByRole('heading', { name: 'Your projects', exact: true })).toBeVisible();
   expect(updates).toBe(1);
 });
+
+test('recovery confirmation requires a click before consuming the token', async ({ page }) => {
+  await page.route('**/config.js', route => route.fulfill({ contentType: 'application/javascript', body: 'window.__REELSTUDIO_CONFIG__={supabaseUrl:"https://auth.example.test",supabaseAnonKey:"public-test-key"};' }));
+  const user = { id: USER_ID, aud: 'authenticated', email: 'admin@example.test', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() };
+  let verifies = 0;
+  await page.route('https://auth.example.test/**', async route => {
+    if (route.request().url().includes('/verify')) {
+      verifies++;
+      expect(route.request().method()).toBe('POST');
+      expect(route.request().postDataJSON()).toMatchObject({ token_hash: 'a'.repeat(56), type: 'recovery' });
+      return route.fulfill({ json: { access_token: token(), refresh_token: 'test-refresh', expires_in: 3600, token_type: 'bearer', user } });
+    }
+    return route.fulfill({ json: [] });
+  });
+  await page.goto('/signin#recovery_token=' + 'a'.repeat(56));
+  const continueButton = page.getByRole('button', { name: 'Continue to reset password', exact: true });
+  await expect(continueButton).toBeVisible();
+  await page.reload();
+  await expect(continueButton).toBeVisible();
+  expect(verifies).toBe(0);
+  await continueButton.click();
+  await expect(page.getByRole('heading', { name: 'Set a new password', exact: true })).toBeVisible();
+  expect(verifies).toBe(1);
+  expect(new URL(page.url()).hash).toBe('');
+});

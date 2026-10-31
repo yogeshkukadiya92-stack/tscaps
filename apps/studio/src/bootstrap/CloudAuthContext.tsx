@@ -3,8 +3,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { Navigate, useLocation } from 'react-router-dom';
 import { PublicSite } from '@ui/pages/marketing/PublicSite';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient, hasPasswordRecoveryRedirect } from '@core/auth/infrastructure/SupabaseClient';
+import { getSupabaseClient, hasPasswordRecoveryRedirect, pendingRecoveryToken } from '@core/auth/infrastructure/SupabaseClient';
 import type { AppModules } from '@bootstrap/AppModules';
+import { RecoveryLinkScreen } from '@ui/pages/auth/RecoveryLinkScreen';
 import { AuthScreen } from '@ui/pages/auth/AuthScreen';
 
 interface CloudAuthState { client: SupabaseClient | null; session: Session | null }
@@ -19,6 +20,7 @@ export function CloudAuthGate({ modules, children }: { modules: AppModules; chil
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(client === null);
   const [error, setError] = useState('');
+  const [recoveryToken, setRecoveryToken] = useState(pendingRecoveryToken);
   const [recovering, setRecovering] = useState(hasPasswordRecoveryRedirect);
   useEffect(() => {
     if (!client) return;
@@ -50,6 +52,7 @@ export function CloudAuthGate({ modules, children }: { modules: AppModules; chil
 
   return <CloudAuthContext.Provider value={{ client, session }}>
     {!ready ? <div className="h-dvh grid place-items-center bg-surface-0 text-fg-muted" role="status"><UiText text="Opening your account…" /></div>
+       : recoveryToken && client ? <RecoveryLinkScreen client={client} token={recoveryToken} onVerified={() => { setRecovering(true); setRecoveryToken(null); }} />
        : recovering && session ? <AuthScreen initialError={error} recovering onRecovered={() => setRecovering(false)} />
       : publicPath ? (authPath && session ? <Navigate to={typeof location.state?.returnTo === 'string' && location.state.returnTo.startsWith('/') && !location.state.returnTo.startsWith('//') ? location.state.returnTo : modules.routing.routes.projectsList()} replace /> : <PublicSite initialError={error} />)
       : client && !session ? <Navigate to="/signin" state={{ returnTo: location.pathname + location.search }} replace />
