@@ -22,6 +22,12 @@ import { LinkedSheetsPropagationToast } from '@ui/pages/editor/components/Linked
 import { AppNoticeToast } from '@ui/pages/editor/components/AppNoticeToast';
 import '@ui/pages/editor/components/EditorWorkspace.css';
 
+/** The usual path through a reel, numbered so a first-time user knows what comes next. `null` opens export. */
+const WORKFLOW_STEPS: { tool: string | null; label: string }[] = [
+  { tool: 'Clips', label: 'Add video' }, { tool: 'Captions', label: 'Fix words' },
+  { tool: 'Style', label: 'Pick style' }, { tool: 'Audio', label: 'Add music' }, { tool: null, label: 'Download' },
+];
+
 interface EditorPageProps {
   state: EditorState;
   containerRef: Ref<HTMLDivElement>;
@@ -91,6 +97,7 @@ export function EditorPage({ state, containerRef, library, appNoticeChannel, toa
     />
   );
 
+  const canExport = state.document !== null && state.sheets.length > 0;
   const chooseTool = (tool: string) => {
     if (tool === 'Captions') captionTabs.setActiveTab('transcript');
     if (tool === 'Style') captionTabs.setActiveTab('templates');
@@ -101,12 +108,21 @@ export function EditorPage({ state, containerRef, library, appNoticeChannel, toa
       <div className={`flex flex-col flex-1 min-h-0 w-full ${!state.document ? 'hidden' : ''}`}>
         {banner}
         <EditorToolbar canUndo={state.canUndo && !draftPreviewActive} canRedo={state.canRedo && !draftPreviewActive}
-          showExport={state.document !== null && state.sheets.length > 0}
+          showExport={canExport}
           exportDisabled={exportDisabled || draftPreviewActive} onOpenExportSettings={onOpenExportSettings}
           projectName={state.projectName} canRename={state.projectId !== null} onRenameProject={onRenameProject}
           onBack={onBack} dirty={state.dirty} saveStatus={saveStatus} canSave={canSave && !draftPreviewActive} onSave={onSave} />
         <div className="simple-workflow">
-          <p><UiText text="Add video → Edit captions → Choose style → Export" /></p>
+          <ol className="simple-steps" aria-label={t('Steps to make your reel')}>
+            {WORKFLOW_STEPS.map((step, index) => {
+              const exportStep = step.tool === null;
+              return <li key={step.label}><button type="button" aria-current={step.tool === creativeTool ? 'step' : undefined}
+                disabled={exportStep && (!canExport || exportDisabled || draftPreviewActive)}
+                onClick={() => exportStep ? onOpenExportSettings() : chooseTool(step.tool!)}>
+                <span className="simple-step-number" aria-hidden>{index + 1}</span><span className="simple-step-label"><UiText text={step.label} /></span>
+              </button></li>;
+            })}
+          </ol>
           <EditorToolFinder disabled={!state.projectId} onCaption={tab => { captionTabs.setActiveTab(tab); workspace.setActiveCreativeTool(tab === 'transcript' ? 'Captions' : 'Style'); }} onCreative={chooseTool} />
         </div>
         {state.document && <CreativeStudio activeTool={creativeTool} onToolChange={chooseTool} state={state}

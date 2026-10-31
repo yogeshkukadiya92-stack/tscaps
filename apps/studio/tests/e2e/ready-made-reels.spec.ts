@@ -9,7 +9,7 @@ test('builds a photo and video reel with music, undo, persistence and a playable
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });
   await gallery.getByRole('searchbox').fill('before / after');
   await gallery.getByRole('button', { name: 'Use Before / After template', exact: true }).click();
@@ -71,7 +71,7 @@ test('starts with only a photo and builds from the current source without transc
   await expect(page.getByTestId('start-flow-primary')).toBeHidden({ timeout: 60000 });
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });
   await expect(gallery.getByText(/No files selected/)).toBeVisible();
   await gallery.getByRole('button', { name: 'Build reel automatically' }).click();

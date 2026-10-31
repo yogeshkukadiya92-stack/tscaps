@@ -148,7 +148,7 @@ test('ready editing skills prepare and apply without a prompt or paid AI calls',
   await tools.getByRole('button', { name: 'Audio', exact: true }).click();
   await page.getByLabel('Normalize voice level', { exact: true }).check();
   await expect(page.getByLabel('Normalize voice level', { exact: true })).toBeChecked();
-  await tools.getByRole('button', { name: 'Auto Edit', exact: true }).click();
+  await page.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Auto Edit', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search editing skills' }).fill('cinematic');
   await expect(page.getByRole('button', { name: 'Preview Cinematic', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Preview Complete reel', exact: true })).toHaveCount(0);
@@ -171,7 +171,7 @@ test('professional studio renders a downloadable reel after switching tools', as
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Look', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Look', exact: true }).click();
   await studio.getByRole('button', { name: 'Noir', exact: true }).click();
   await studio.getByText('Render & download', { exact: true }).click();
   await studio.getByLabel('Export format', { exact: true }).selectOption('webm');

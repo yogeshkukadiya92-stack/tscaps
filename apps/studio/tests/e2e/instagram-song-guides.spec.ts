@@ -8,7 +8,7 @@ test('searches actual song metadata and builds a silent montage for Instagram au
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });
   await gallery.getByRole('button', { name: 'Gujarati / Hindi', exact: true }).click();
   await expect(gallery.getByRole('button', { name: /^Watch .* sample$/ })).toHaveCount(6);

@@ -8,7 +8,7 @@ test('content format drafts, selection and effects survive project save and reop
   await bootEditorWithCaptions(page, bytes, doc);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = page.getByTestId('content-formats');
   await expect(gallery).toBeVisible();
   await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
@@ -35,7 +35,7 @@ test('content format drafts, selection and effects survive project save and reop
   });
   await page.goto(`/project/${id}?e2e=1`);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   await expect(gallery.getByTestId('content-language')).toHaveValue('gu');
   await expect(gallery.getByLabel('Opening hook')).toHaveValue('તમારી વાર્તા અહીંથી શરૂ થાય છે');
   await expect(gallery.getByRole('spinbutton').first()).toHaveValue('1');
