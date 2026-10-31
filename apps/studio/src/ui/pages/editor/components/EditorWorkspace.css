@@ -167,3 +167,7 @@
   .simple-steps button:not([aria-current]) { padding-right: 5px; }
   .simple-steps button:not([aria-current]) .simple-step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+/* Short desktop screens: the tool column scrolls; the two groups must never squeeze into each other. */
+@media (min-width: 1024px) {
+  .simple-editor .studio-tools > nav { flex-shrink: 0; }
+}

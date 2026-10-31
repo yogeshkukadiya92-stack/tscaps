@@ -7,7 +7,6 @@ test('builds a photo and video reel with music, undo, persistence and a playable
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });
@@ -25,14 +24,13 @@ test('builds a photo and video reel with music, undo, persistence and a playable
   const photoPixel = await studio.locator('canvas').evaluate((c: HTMLCanvasElement) => Array.from(c.getContext('2d')!.getImageData(c.width / 2, c.height / 2, 1, 1).data));
   expect(photoPixel[0]).toBeGreaterThan(photoPixel[1]! * 2);
   await expect(studio.getByLabel('Reel playhead', { exact: true })).toHaveAttribute('max', '15.999');
-  await studio.getByRole('button', { name: 'Undo', exact: true }).click();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(studio.getByLabel('Reel playhead', { exact: true })).not.toHaveAttribute('max', '15.999');
-  await studio.getByRole('button', { name: 'Redo', exact: true }).click();
+  await page.getByRole('button', { name: 'Redo', exact: true }).click();
   await expect(studio.getByLabel('Reel playhead', { exact: true })).toHaveAttribute('max', '15.999');
   await studio.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(studio.getByText('Creative edits and media saved with this project.')).toBeVisible();
   await page.reload();
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled({ timeout: 60000 });
   await expect(studio.getByLabel('Reel playhead', { exact: true })).toHaveAttribute('max', '15.999');
   await studio.getByText('Render & download', { exact: true }).click();
@@ -69,7 +67,6 @@ test('starts with only a photo and builds from the current source without transc
   await page.getByRole('option', { name: /^English/ }).first().click();
   await page.getByTestId('start-flow-primary').click();
   await expect(page.getByTestId('start-flow-primary')).toBeHidden({ timeout: 60000 });
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });

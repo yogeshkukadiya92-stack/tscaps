@@ -7,7 +7,6 @@ test('voice enhancement previews, persists and exports audible audio', async ({ 
   const bytes = await readFile(new URL('./fixtures/auto-edit-pauses.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  await page.locator('#workspace-tab-creative').click();
   const studio = page.locator('[data-ui="creative-studio"]');
   await studio.locator('[data-tool="Timing"]').click();
   await studio.getByRole('textbox', { name: 'End value', exact: true }).fill('2');
@@ -27,7 +26,6 @@ test('voice enhancement previews, persists and exports audible audio', async ({ 
     try { return await new Promise<string>((resolve, reject) => { const request = db.transaction('projects').objectStore('projects').getAll(); request.onsuccess = () => resolve(request.result[0].id); request.onerror = () => reject(request.error); }); } finally { db.close(); }
   });
   await page.goto(`/project/${id}?e2e=1`);
-  await page.locator('#workspace-tab-creative').click();
   await studio.locator('[data-tool="Audio"]').click();
   await expect(studio.getByLabel('Voice enhancement', { exact: true })).toHaveValue('natural');
   await expect(studio.getByLabel('Electric hum removal', { exact: true })).toHaveValue('50');

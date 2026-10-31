@@ -6,7 +6,6 @@ test('content format drafts, selection and effects survive project save and reop
   const bytes = await readFile(new URL('./fixtures/auto-edit-pauses.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = page.getByTestId('content-formats');
@@ -34,7 +33,6 @@ test('content format drafts, selection and effects survive project save and reop
     try { return await new Promise<string>((resolve, reject) => { const request = db.transaction('projects').objectStore('projects').getAll(); request.onsuccess = () => resolve(request.result[0].id); request.onerror = () => reject(request.error); }); } finally { db.close(); }
   });
   await page.goto(`/project/${id}?e2e=1`);
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   await expect(gallery.getByTestId('content-language')).toHaveValue('gu');
   await expect(gallery.getByLabel('Opening hook')).toHaveValue('તમારી વાર્તા અહીંથી શરૂ થાય છે');
