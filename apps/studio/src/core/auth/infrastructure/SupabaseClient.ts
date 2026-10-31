@@ -7,6 +7,8 @@ declare global {
 }
 
 let client: SupabaseClient | null | undefined;
+let recoveryRedirect = false;
+export function hasPasswordRecoveryRedirect(): boolean { return recoveryRedirect; }
 export function getSupabaseUrl(): string | null {
   return window.__REELSTUDIO_CONFIG__?.supabaseUrl || import.meta.env.VITE_SUPABASE_URL || null;
 }
@@ -24,6 +26,8 @@ export function getSupabaseClient(): SupabaseClient | null {
     const payload = JSON.parse(atob(key.split('.')[1]!.replace(/-/g, '+').replace(/_/g, '/'))) as { role?: string };
     if (payload.role !== 'anon') throw new Error('The browser requires the Supabase anon key.');
   }
+  // Capture before Supabase consumes the URL and emits recovery during bootstrap.
+  recoveryRedirect = new URLSearchParams(window.location.hash.slice(1)).get('type') === 'recovery';
   client = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'reelstudio-auth' } });
   return client;
 }

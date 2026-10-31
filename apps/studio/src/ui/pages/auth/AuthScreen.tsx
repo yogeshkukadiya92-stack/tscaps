@@ -10,7 +10,6 @@ const INPUT = 'w-full rounded-md border border-edge-medium bg-surface-1 text-fg-
 export function AuthScreen({ initialError, recovering, onRecovered, initialMode = 'signin' }: { initialError: string; recovering: boolean; onRecovered: () => void; initialMode?: Mode }) {
   const { t } = useTranslation();
   const { client } = useCloudAuth();
-  const emailEnabled = window.__REELSTUDIO_CONFIG__?.emailEnabled !== false;
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -88,7 +87,7 @@ export function AuthScreen({ initialError, recovering, onRecovered, initialMode 
           {notice && <p className="text-sm text-accent m-0" role="status"><UiText text={notice} /></p>}
           <button className={BTN_PRIMARY} type="submit" disabled={pending}>{pending ? t('Please wait…') : recovering ? t('Save new password') : mode === 'signup' ? t('Create account') : mode === 'reset' ? t('Send reset link') : t('Sign in')}<ArrowRight size={16} /></button>
         </form>
-        {!recovering && emailEnabled && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? t('Back to sign in') : t('Forgot password?')}</button>}
+        {!recovering && <button className={BTN_SECONDARY} disabled={pending} onClick={() => switchMode(mode === 'reset' ? 'signin' : 'reset')}>{mode === 'reset' ? t('Back to sign in') : t('Forgot password?')}</button>}
         {!client && <Link to="/projects" className="text-sm text-accent"><UiText text="Open local studio →" /></Link>}
         <p className="flex items-center justify-center gap-2 text-xs text-fg-muted m-0"><LockKeyhole size={14} /><UiText text="Your projects and source videos are private." /></p>
       </div>

@@ -47,7 +47,60 @@ test('mobile auth page fits the viewport', async ({ page }) => {
   await page.route('**/config.js', route => route.fulfill({ contentType: 'application/javascript', body: 'window.__REELSTUDIO_CONFIG__={supabaseUrl:"https://auth.example.test",supabaseAnonKey:"public-test-key",emailEnabled:false};' }));
   await page.goto('/projects');
   await expect(page.getByRole('heading', { name: 'Welcome to ReelStudio' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Forgot password?' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Forgot password?' })).toBeVisible();
   await page.screenshot({ path: test.info().outputPath('auth-mobile.png') });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+
+test('password recovery stays available with email confirmations disabled and supports retry', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.route('**/config.js', route => route.fulfill({ contentType: 'application/javascript', body: 'window.__REELSTUDIO_CONFIG__={supabaseUrl:"https://auth.example.test",supabaseAnonKey:"public-test-key",emailEnabled:false};' }));
+  let attempts = 0;
+  await page.route('https://auth.example.test/auth/v1/recover**', async route => {
+    expect(route.request().postDataJSON().email).toBe('admin@example.test');
+    expect(new URL(route.request().url()).searchParams.get('redirect_to')).toBe(new URL('/projects', page.url()).href);
+    attempts++;
+    await route.fulfill(attempts === 1
+      ? { status: 500, json: { msg: 'Error sending recovery email' } }
+      : { status: 200, json: {} });
+  });
+  await page.goto('/signin');
+  await page.getByLabel('Email', { exact: true }).fill('admin@example.test');
+  await page.getByRole('button', { name: 'Forgot password?', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Reset your password', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Email', { exact: true })).toHaveValue('admin@example.test');
+  await page.getByRole('button', { name: 'Send reset link', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Error sending recovery email');
+  await page.getByRole('button', { name: 'Send reset link', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('If this email has an account');
+  await page.getByRole('button', { name: 'Back to sign in', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome to ReelStudio', exact: true })).toBeVisible();
+});
+
+test('recovery link lets the account owner validate and save a new password', async ({ page }) => {
+  await page.route('**/config.js', route => route.fulfill({ contentType: 'application/javascript', body: 'window.__REELSTUDIO_CONFIG__={supabaseUrl:"https://auth.example.test",supabaseAnonKey:"public-test-key"};' }));
+  const user = { id: USER_ID, aud: 'authenticated', email: 'admin@example.test', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() };
+  let updates = 0;
+  await page.route('https://auth.example.test/**', async route => {
+    if (route.request().url().includes('/auth/v1/user')) {
+      if (route.request().method() === 'PUT') {
+        expect(route.request().postDataJSON().password).toBe('new-strong-password');
+        updates++;
+      }
+      return route.fulfill({ json: user });
+    }
+    return route.fulfill({ json: [] });
+  });
+  await page.goto(`/projects#access_token=${token()}&refresh_token=test-refresh&expires_in=3600&token_type=bearer&type=recovery`);
+  await expect(page.getByRole('heading', { name: 'Set a new password', exact: true })).toBeVisible();
+  await page.getByLabel('New password', { exact: true }).fill('new-strong-password');
+  await page.getByLabel('Confirm password', { exact: true }).fill('different-password');
+  await page.getByRole('button', { name: 'Save new password', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveText('The passwords do not match.');
+  expect(updates).toBe(0);
+  await page.getByLabel('Confirm password', { exact: true }).fill('new-strong-password');
+  await page.getByRole('button', { name: 'Save new password', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Your projects', exact: true })).toBeVisible();
+  expect(updates).toBe(1);
 });

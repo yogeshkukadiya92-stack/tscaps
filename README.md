@@ -393,3 +393,9 @@ Creative preview reuses an available low-resolution proxy while keeping audio fr
 ### Unified editor
 
 The editor opens with editable captions and a single full-reel preview. Six labeled tools—Video, Captions, Style, Music, Effects and Trim—sit at the left on desktop and at the bottom on phones. Phone controls scroll beneath a persistent preview. Use All tools for Auto Edit, reel templates, B-roll and detailed caption settings. Save, Undo, Redo and Export stay in the top toolbar. The timeline is expandable below the preview.
+
+### Forgotten account or admin password
+
+Admin users sign in with the same account authentication as other users. Open `/signin`, choose **Forgot password?**, enter the account email, and choose **Send reset link**. Open the email link and enter and confirm a new password of at least 10 characters. The existing account and admin role are preserved. Recovery remains available when email confirmations are disabled; confirmation policy and password recovery are separate features.
+
+The Supabase Auth service must have working email delivery (SMTP), and its redirect allowlist must permit the production `/projects` URL. The app reports email delivery failures and allows retry. Recovery links require a valid Supabase recovery session; the app captures the recovery intent before Supabase consumes the URL during bootstrap so fast responses cannot skip the password form. The browser contains only the public Supabase key.
