@@ -1,0 +1,220 @@
+{
+  "ok": false,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "duplicate_media_discovery_risk",
+        "severity": "warning",
+        "message": "Detected 2 matching img entries with the same source/start/duration.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/Users/yogeshaihub/Downloads/tscaps-main/brag-output/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Avoid duplicated media nodes that can be discovered twice during compilation."
+      },
+      {
+        "code": "negative_z_index",
+        "severity": "warning",
+        "message": "`z-index: -1` paints the element behind its nearest stacking context's own content. With no stacking-context ancestor that context is the composition root itself, so an opaque background there hides it entirely: in the DOM, laid out, and absent from the picture. A transparent root leaves it visible. Siblings at `z-index: 0` or above are unaffected.",
+        "selector": "#hook .highlight-fill",
+        "dataAttributes": {},
+        "sourceFile": "/Users/yogeshaihub/Downloads/tscaps-main/brag-output/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Give the element's parent a stacking context - `isolation: isolate` is the cheapest, and `transform`, `filter`, `opacity` below 1, `contain: paint` and `will-change` all work too. The negative-z child then paints above that parent's background and renders normally. Or express paint order through DOM order - an earlier sibling paints behind a later one - and raise the elements that should sit in front rather than lowering this one."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": false,
+    "errorCount": 2,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "http_error",
+        "severity": "error",
+        "message": "404 loading assets/music/audio-data.js",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "reelstudio",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-duration": "33",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0,
+        "url": "http://127.0.0.1:62121/assets/music/audio-data.js"
+      },
+      {
+        "code": "request_failed",
+        "severity": "error",
+        "message": "Failed to load assets/music/audio-data.js: net::ERR_ABORTED",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "reelstudio",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-duration": "33",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0,
+        "url": "http://127.0.0.1:62121/assets/music/audio-data.js"
+      }
+    ]
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 21.5,
+        "selector": "#creative-screen > img:nth-of-type(1)",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": 79.32,
+          "top": 349.33,
+          "right": 1402.02,
+          "bottom": 982.68,
+          "width": 1322.7,
+          "height": 633.35
+        },
+        "containerSelector": "#creative-screen",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 88,
+          "top": 355,
+          "right": 1388,
+          "bottom": 978,
+          "width": 1300,
+          "height": 623
+        },
+        "overflow": {
+          "left": 8.68,
+          "right": 14.02,
+          "top": 5.67,
+          "bottom": 4.68
+        },
+        "dataAttributes": {
+          "data-hf-authored-opacity": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 79.32,
+          "y": 349.33,
+          "width": 1322.7,
+          "height": 633.35
+        },
+        "firstSeen": 21.5,
+        "lastSeen": 21.5,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          21.5
+        ]
+      }
+    ],
+    "duration": 33,
+    "samples": [
+      1.8,
+      5.5,
+      10.5,
+      15.5,
+      21.5,
+      27,
+      31.5
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 1,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1.8,
+      5.5,
+      15.5,
+      21.5,
+      31.5
+    ],
+    "checked": 81,
+    "passed": 81
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": true,
+    "files": [
+      ".hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/frame-00-at-1.8s.png",
+      ".hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/frame-01-at-5.5s.png",
+      ".hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/frame-02-at-15.5s.png",
+      ".hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/frame-03-at-21.5s.png",
+      ".hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/frame-04-at-31.5s.png"
+    ],
+    "times": [
+      1.8,
+      5.5,
+      15.5,
+      21.5,
+      31.5
+    ],
+    "findingFiles": [
+      "/Users/yogeshaihub/Downloads/tscaps-main/brag-output/composition/.hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/finding-00-http_error.png",
+      "/Users/yogeshaihub/Downloads/tscaps-main/brag-output/composition/.hyperframes/artifacts/snapshots/5f4f2f38-98dc-440a-9d55-0a64cdf2979c/finding-01-request_failed.png"
+    ]
+  }
+}

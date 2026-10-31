@@ -1,0 +1,13 @@
+◆  Capturing 2 frames at [10.5s, 27s] from composition
+[hyperframes] browserGpuMode probe → hardware (WebGL renderer vendor="Google Inc. (Apple)" renderer="ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)")
+
+   Fonts: 2 loaded
+   Note: added an end-of-timeline frame at 32.01s. Short beats between your --at times may still be skipped — pass them explicitly.
+   Revision: aa299714-a0a2-48ee-b9c5-eb27be80a5c9 (recorded-revision)
+   State: /Users/yogeshaihub/Downloads/tscaps-main/brag-output/composition/.hyperframes/video-state.json
+
+◇  3 snapshots saved to /Users/yogeshaihub/Downloads/tscaps-main/brag-output/qc-extra
+   /Users/yogeshaihub/Downloads/tscaps-main/brag-output/qc-extra/frame-00-at-10.5s.png
+   /Users/yogeshaihub/Downloads/tscaps-main/brag-output/qc-extra/frame-01-at-27s.png
+   /Users/yogeshaihub/Downloads/tscaps-main/brag-output/qc-extra/frame-02-at-32.01s.png
+   /Users/yogeshaihub/Downloads/tscaps-main/brag-output/qc-extra/contact-sheet.jpg (grid view for AI review)

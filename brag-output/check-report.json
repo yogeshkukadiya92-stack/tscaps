@@ -1,0 +1,89 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "duration": 33,
+    "samples": [
+      1.8,
+      5.5,
+      10.5,
+      15.5,
+      21.5,
+      27,
+      31.5
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 0,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1.8,
+      5.5,
+      15.5,
+      21.5,
+      31.5
+    ],
+    "checked": 81,
+    "passed": 81
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  },
+  "saved": {
+    "id": "b621b552-847c-41e1-a5e1-14e1ae8947bc",
+    "revision": "aa299714-a0a2-48ee-b9c5-eb27be80a5c9",
+    "report": "/Users/yogeshaihub/Downloads/tscaps-main/brag-output/composition/.hyperframes/artifacts/checks/b621b552-847c-41e1-a5e1-14e1ae8947bc.json",
+    "attribution": "recorded-revision"
+  },
+  "_meta": {
+    "version": "0.8.172",
+    "latestVersion": "0.8.172",
+    "updateAvailable": false
+  }
+}
