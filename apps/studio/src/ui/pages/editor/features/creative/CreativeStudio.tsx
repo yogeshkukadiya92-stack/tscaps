@@ -111,6 +111,8 @@ const MORE_TOOLS: StudioTool[] = [
   { id: 'Look', label: 'Look', hint: 'Colors & text', icon: SunMedium },
 ];
 const TOOL_HELP: Record<string, string> = {
+  Captions: 'Click any line to fix a word. Your changes show in the preview right away.',
+  Style: 'Click a style to apply it. Use Fine-tune to change font, colors or position.',
   Clips: 'Add more videos, set where each one starts and ends, and change their order.',
   Audio: 'Add a song, set the volume and make your voice clearer.',
   Effects: 'Pick an effect to add movement or text cards to your reel.',

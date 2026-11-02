@@ -20,8 +20,8 @@ for (const viewport of [{ width: 1024, height: 768 }, { width: 1280, height: 650
     expect(p!.height).toBeGreaterThan(d!.height);
     await design.getByRole('button', { name: 'Lyra', exact: true }).click();
     await expect(design.getByRole('button', { name: 'Lyra', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    await design.getByRole('combobox', { name: 'More caption tools' }).selectOption('typography');
-    await expect(design.getByRole('combobox', { name: 'More caption tools' })).toHaveValue('typography');
+    await design.getByRole('group', { name: 'More caption tools' }).getByRole('button', { name: 'Typography', exact: true }).click();
+    await expect(design.getByRole('group', { name: 'More caption tools' }).getByRole('button', { name: 'Typography', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await design.getByRole('tab', { name: 'Transcript', exact: true }).click();
     await expect(design.getByRole('tab', { name: 'Transcript', exact: true })).toHaveAttribute('data-state', 'active');
     await design.getByRole('tab', { name: 'Choose style', exact: true }).click();

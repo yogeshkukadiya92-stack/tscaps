@@ -171,3 +171,21 @@
 @media (min-width: 1024px) {
   .simple-editor .studio-tools > nav { flex-shrink: 0; }
 }
+
+/* Caption fine-tune options shown as buttons instead of a hidden "Customize…" menu. */
+.caption-section-navigation { flex-wrap: wrap; }
+.caption-more-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; padding: 4px 2px 2px; }
+.caption-more-tools-label { font-size: 12px; font-weight: 600; color: rgb(var(--color-fg-muted)); margin-right: 2px; }
+.caption-more-tools button { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 10px; border: 1px solid var(--edge-subtle); border-radius: 999px; background: rgb(var(--color-surface-1)); color: rgb(var(--color-fg-secondary)); font-size: 12px; cursor: pointer; }
+.caption-more-tools button svg { width: 14px; height: 14px; }
+.caption-more-tools button:hover { color: rgb(var(--color-fg-primary)); border-color: rgb(var(--color-accent) / .5); }
+.caption-more-tools button[aria-pressed=true] { color: rgb(var(--color-accent)); border-color: rgb(var(--color-accent)); background: rgb(var(--color-accent) / .08); }
+.caption-more-tools button:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 2px; }
+@media (max-width: 640px) { .caption-more-tools button { min-height: 40px; } }
+/* Captions and Style keep their help tip above a panel that fills the rest of the height. */
+.simple-editor .studio-inspector[data-active-tool='Captions'], .simple-editor .studio-inspector[data-active-tool='Style'] { display: flex; flex-direction: column; }
+.simple-editor .studio-inspector[data-active-tool='Captions'] > .studio-tool-help, .simple-editor .studio-inspector[data-active-tool='Style'] > .studio-tool-help { margin: 12px 12px 0; flex-shrink: 0; }
+.simple-editor .studio-inspector[data-active-tool='Captions'] > fieldset, .simple-editor .studio-inspector[data-active-tool='Style'] > fieldset { flex: 1; min-height: 0; height: auto; }
+@media (max-width: 1023px) {
+  .simple-editor .studio-inspector[data-active-tool='Captions'] > .studio-tool-help, .simple-editor .studio-inspector[data-active-tool='Style'] > .studio-tool-help { display: none; }
+}
