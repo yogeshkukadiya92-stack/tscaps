@@ -30,9 +30,9 @@ async function setup(page: Page, respond: () => { status?: number; json: unknown
   await page.evaluate(async values => { await window.__tscapsE2E!.setVideo(new Blob([new Uint8Array(values)], { type: 'video/mp4' })); window.__tscapsE2E!.setVideoLayout(128, 128); }, [...bytes]);
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await setDocumentJson(page, doc);
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await page.locator('[data-tool="Auto"]').click();
   await page.getByText('AI custom instructions · Credits', { exact: true }).click();
   return { requests: () => requests };
 }
@@ -139,13 +139,13 @@ test('ready editing skills prepare and apply without a prompt or paid AI calls',
   await page.getByText('AI custom instructions · Credits', { exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 1000 });
   const tools = page.getByRole('navigation', { name: 'Creative tools' });
-  await tools.getByRole('button', { name: 'Clips', exact: true }).click();
+  await page.locator('[data-tool="Clips"]').click();
   await expect(page.getByLabel('Clip 1 start', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Split', exact: true }).click();
   await expect(page.getByTestId('creative-clip')).toHaveCount(2);
   await page.locator('.studio-timeline-disclosure > summary').click();
   await expect(page.getByRole('region', { name: 'Creative timeline' })).toContainText('2 video segments');
-  await tools.getByRole('button', { name: 'Audio', exact: true }).click();
+  await page.locator('[data-tool="Audio"]').click();
   await page.getByLabel('Normalize voice level', { exact: true }).check();
   await expect(page.getByLabel('Normalize voice level', { exact: true })).toBeChecked();
   await page.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Auto Edit', exact: true }).click();
@@ -168,7 +168,6 @@ test('professional studio renders a downloadable reel after switching tools', as
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Look', exact: true }).click();

@@ -6,7 +6,6 @@ test('searches actual song metadata and builds a silent montage for Instagram au
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = studio.getByRole('region', { name: 'Ready-made reels', exact: true });

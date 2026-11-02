@@ -6,9 +6,8 @@ test('content formats retain language drafts and apply editable timed cards', as
   const bytes = await readFile(new URL('./fixtures/auto-edit-pauses.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   const studio = page.getByRole('region', { name: 'Creative Studio', exact: true });
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   const gallery = page.getByTestId('content-formats');
   await expect(gallery).toBeVisible();
   await gallery.getByTestId('content-language').selectOption('gu');
@@ -43,7 +42,7 @@ test('content formats retain language drafts and apply editable timed cards', as
   const download = page.waitForEvent('download');
   await studio.getByRole('button', { name: 'Download reel', exact: true }).click();
   await (await download).saveAs('/tmp/reelstudio-content-formats.webm');
-  await studio.getByRole('navigation', { name: 'Creative tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
+  await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Templates', exact: true }).click();
   await expect(gallery.getByLabel('Opening hook')).toHaveValue('તમારી વાર્તા અહીંથી શરૂ થાય છે');
   await page.setViewportSize({ width: 390, height: 844 });
   await gallery.scrollIntoViewIfNeeded();
