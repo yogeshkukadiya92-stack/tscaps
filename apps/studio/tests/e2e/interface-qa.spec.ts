@@ -40,7 +40,7 @@ test('editor keyboard controls, rename cancellation, themes and export dialog re
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
   await page.locator('[data-tool="Captions"]').click();
   const name = page.getByRole('textbox', { name: 'Project name', exact: true });
   await expect(name).toBeEnabled();
@@ -89,8 +89,8 @@ test('failed save-and-leave keeps edits available and reports the failure on a s
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc);
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(page.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   await page.locator('[data-tool="Captions"]').click();
   const name = page.getByRole('textbox', { name: 'Project name', exact: true });
   await name.fill('Untitled');

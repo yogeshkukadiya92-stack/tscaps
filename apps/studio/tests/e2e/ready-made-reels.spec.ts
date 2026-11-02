@@ -28,12 +28,12 @@ test('builds a photo and video reel with music, undo, persistence and a playable
   await expect(studio.getByLabel('Reel playhead', { exact: true })).not.toHaveAttribute('max', '15.999');
   await page.getByRole('button', { name: 'Redo', exact: true }).click();
   await expect(studio.getByLabel('Reel playhead', { exact: true })).toHaveAttribute('max', '15.999');
-  await studio.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(studio.getByText('Creative edits and media saved with this project.')).toBeVisible();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   await page.reload();
   await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled({ timeout: 60000 });
   await expect(studio.getByLabel('Reel playhead', { exact: true })).toHaveAttribute('max', '15.999');
-  await studio.getByText('Render & download', { exact: true }).click();
+  await studio.getByText('More download options', { exact: true }).click();
   await studio.getByLabel('Export format', { exact: true }).selectOption('webm');
   await studio.getByRole('button', { name: 'Render edited reel', exact: true }).click();
   await expect(studio.getByRole('button', { name: 'Download reel', exact: true })).toBeVisible({ timeout: 150000 });

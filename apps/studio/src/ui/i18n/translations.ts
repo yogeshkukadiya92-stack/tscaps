@@ -1,5 +1,7 @@
 /** Authored interface copy. User content is never translated. */
 export const translations: Record<string, { hi: string; gu: string }> = {
+"More download options": {"hi": "डाउनलोड के और विकल्प", "gu": "ડાઉનલોડના વધુ વિકલ્પ"},
+"Use Export at the top for a normal download": {"hi": "सामान्य डाउनलोड के लिए ऊपर Export इस्तेमाल करें", "gu": "સામાન્ય ડાઉનલોડ માટે ઉપર Export વાપરો"},
 "Click any line to fix a word. Your changes show in the preview right away.": {"hi": "कोई भी लाइन क्लिक करके शब्द सुधारें। बदलाव तुरंत प्रीव्यू में दिखेंगे।", "gu": "કોઈપણ લાઇન પર ક્લિક કરીને શબ્દ સુધારો. ફેરફાર તરત પ્રીવ્યૂમાં દેખાશે."},
 "Click a style to apply it. Use Fine-tune to change font, colors or position.": {"hi": "स्टाइल लागू करने के लिए उस पर क्लिक करें। फ़ॉन्ट, रंग या जगह बदलने के लिए बारीक बदलाव इस्तेमाल करें।", "gu": "સ્ટાઇલ લાગુ કરવા તેના પર ક્લિક કરો. ફોન્ટ, રંગ કે જગ્યા બદલવા ઝીણા ફેરફાર વાપરો."},
 "Fine-tune:": {"hi": "बारीक बदलाव:", "gu": "ઝીણા ફેરફાર:"},

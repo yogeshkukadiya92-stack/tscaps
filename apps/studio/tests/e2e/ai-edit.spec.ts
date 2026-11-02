@@ -32,7 +32,7 @@ async function setup(page: Page, respond: () => { status?: number; json: unknown
   await setDocumentJson(page, doc);
   await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
   await page.getByText('AI custom instructions · Credits', { exact: true }).click();
   return { requests: () => requests };
 }
@@ -173,7 +173,7 @@ test('professional studio renders a downloadable reel after switching tools', as
   await expect(studio.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await studio.getByRole('navigation', { name: 'More tools' }).getByRole('button', { name: 'Look', exact: true }).click();
   await studio.getByRole('button', { name: 'Noir', exact: true }).click();
-  await studio.getByText('Render & download', { exact: true }).click();
+  await studio.getByText('More download options', { exact: true }).click();
   await studio.getByLabel('Export format', { exact: true }).selectOption('webm');
   await studio.getByRole('button', { name: 'Render edited reel', exact: true }).click();
   await expect(studio.getByRole('button', { name: 'Download reel', exact: true })).toBeVisible({ timeout: 60000 });

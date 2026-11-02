@@ -25,8 +25,8 @@ test('searches actual song metadata and builds a silent montage for Instagram au
   await guide.getByRole('button', { name: 'Build for Instagram song (no music)', exact: true }).click();
   await expect(studio.getByText(/Mela Memories is ready to preview/)).toBeVisible({ timeout: 30000 });
   await expect(gallery.getByRole('checkbox', { name: 'Include preset instrumental music', exact: true })).not.toBeChecked();
-  await studio.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(studio.getByText('Creative edits and media saved with this project.')).toBeVisible();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   const saved = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => { const r = indexedDB.open('tscaps'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
     try {

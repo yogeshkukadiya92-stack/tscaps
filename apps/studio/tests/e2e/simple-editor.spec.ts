@@ -29,7 +29,7 @@ test('one editor exposes every primary tool on desktop and phone, edits captions
   await words.blur();
   await expect.poll(() => page.evaluate(() => window.__tscapsE2E!.documentWords().map(word => word.text).join(' '))).toContain('Simple captions');
   await page.getByRole('button', { name: 'Save project', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   await page.getByRole('button', { name: 'Export', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Export video', exact: true })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();

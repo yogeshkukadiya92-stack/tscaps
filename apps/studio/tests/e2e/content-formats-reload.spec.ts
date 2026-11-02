@@ -26,8 +26,8 @@ test('content format drafts, selection and effects survive project save and reop
   for (let i = 0; i < await timings.count(); i++) await timings.nth(i).fill('1');
   await gallery.getByRole('button', { name: 'Apply to reel', exact: true }).click();
   await expect(gallery.getByRole('status')).toContainText('Format applied');
-  await studio.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(studio.getByText('Creative edits and media saved with this project.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   const id = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('tscaps'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
     try { return await new Promise<string>((resolve, reject) => { const request = db.transaction('projects').objectStore('projects').getAll(); request.onsuccess = () => resolve(request.result[0].id); request.onerror = () => reject(request.error); }); } finally { db.close(); }

@@ -19,8 +19,8 @@ test('auto color grading analyzes real frames, saves and resets correction', asy
   await studio.locator('.studio-export > summary').click();
   await studio.locator('[data-ui="creative-render"]').click();
   await expect(studio.locator('[data-ui="creative-download"]')).toBeVisible({ timeout: 45000 });
-  await studio.locator('[data-ui="creative-save"]').click();
-  await expect(studio.locator('[data-ui="creative-save-status"][data-saved="true"]')).toBeVisible();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   const id = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('tscaps'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
     try { return await new Promise<string>((resolve, reject) => { const request = db.transaction('projects').objectStore('projects').getAll(); request.onsuccess = () => resolve(request.result[0].id); request.onerror = () => reject(request.error); }); } finally { db.close(); }

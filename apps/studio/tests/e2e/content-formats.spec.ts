@@ -36,7 +36,7 @@ test('content formats retain language drafts and apply editable timed cards', as
     return accents;
   })).toBeGreaterThan(5);
   await page.screenshot({ path: '/tmp/reelstudio-content-formats-preview.png' });
-  await studio.getByText('Render & download', { exact: true }).click();
+  await studio.getByText('More download options', { exact: true }).click();
   await studio.getByLabel('Export format', { exact: true }).selectOption('webm');
   await studio.getByRole('button', { name: 'Render edited reel', exact: true }).click();
   await expect(studio.getByRole('button', { name: 'Download reel', exact: true })).toBeEnabled({ timeout: 60000 });

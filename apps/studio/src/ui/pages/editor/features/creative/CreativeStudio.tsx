@@ -479,13 +479,12 @@ function StudioSession({ file, state, project, onDraftPreviewChange, captionCont
         <p data-ui="preview-time" className="text-xs text-fg-muted m-0">{Math.floor(time / 60)}:{String(Math.floor(time % 60)).padStart(2, '0')} / {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}</p>
         <div className="flex gap-2 flex-wrap">
           <button data-ui="creative-preview" data-playing={playing} className={`${BTN_PRIMARY} inline-flex items-center gap-2`} disabled={!ready || locked} onClick={() => playing ? stop() : void preview()}>{playing ? <Square size={14} aria-hidden /> : <Play size={14} aria-hidden />}{playing ? t('Stop preview') : t('Preview')}</button>
-          <button data-ui="creative-save" className={BTN_SECONDARY} disabled={editingLocked} onClick={() => void save()}><UiText text="Save changes" /></button>
         </div>
         {settings.speed !== 1 && <p className="text-xs text-fg-muted m-0"><UiText text="Speed changes also change voice pitch in the mixed reel." /></p>}
         {error && <p role="alert" className="text-sm text-danger break-words"><UiText text={error} /></p>}
         {notice && <p data-ui="creative-save-status" data-saved={notice === 'Creative edits and media saved with this project.'} role="status" className="text-xs text-fg-secondary"><UiText text={notice} /></p>}
         {uploading && <p role="status" className="text-xs"><UiText text="Preparing and saving media…" /></p>}
-        <details className="studio-disclosure studio-export"><summary><UiText text="Render & download" /></summary>
+        <details className="studio-disclosure studio-export"><summary><span><UiText text="More download options" /></span><small className="block text-fg-muted"><UiText text="Use Export at the top for a normal download" /></small></summary>
         <label className="text-xs"><UiText text="Export format" /><select data-ui="creative-export-format" aria-label={t("Export format")} className={INPUT} value={format} disabled={locked} onChange={event => { setFormat(event.target.value as 'mp4' | 'webm'); setResult(null); }}><option value="mp4"><UiText text="MP4 · H.264 / AAC" /></option><option value="webm"><UiText text="WebM · VP9 / Opus" /></option></select></label>
         {busy ? <><p role="status">{serverRendering ? t('Rendering on server…') : t("Rendering {0}%", { 0: progress.toFixed(0) })}</p><button className={BTN_SECONDARY} onClick={() => exportAbort.current?.abort()}><UiText text="Cancel export" /></button></>
           : <><button data-ui="creative-render" className={BTN_PRIMARY} disabled={editingLocked || duration < 0.1} onClick={() => void render()}><UiText text="Render edited reel" /></button>

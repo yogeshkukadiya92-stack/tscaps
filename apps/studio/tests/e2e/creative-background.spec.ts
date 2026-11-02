@@ -22,8 +22,8 @@ test('person background color and photo render, export and survive reopening', a
   await expect(studio.getByLabel('Background style', { exact: true })).toHaveValue('image');
   await expect(studio.locator('[data-ui="creative-preview"]')).toBeEnabled({ timeout: 90000 });
   await expect.poll(pixel).toEqual([0, 255, 0, 255]);
-  await studio.locator('[data-ui="creative-save"]').click();
-  await expect(studio.locator('[data-ui="creative-save-status"][data-saved="true"]')).toBeVisible();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Save project', exact: true })).toHaveText('Save');
   await studio.locator('.studio-export > summary').click();
   await studio.locator('[data-ui="creative-render"]').click();
   await expect(studio.locator('[data-ui="creative-download"]')).toBeVisible({ timeout: 90000 });
