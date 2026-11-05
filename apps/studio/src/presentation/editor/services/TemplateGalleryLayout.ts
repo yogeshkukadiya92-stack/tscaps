@@ -1,3 +1,4 @@
+import { isDistinctCaptionStyle } from '@presentation/editor/services/CaptionStyleSelection';
 import type { Template } from '@core/templates/domain/Template';
 import {
   TEMPLATE_CATEGORIES,
@@ -43,9 +44,10 @@ export class TemplateGalleryLayout {
 
   /** Sections in display order. Empty ones are dropped. */
   build(input: TemplateGalleryInput): TemplateGallerySectionView[] {
+    const distinct = this.distinctInput(input);
     const sections = [
-      ...this.originSections(input),
-      ...this.familySections(input),
+      ...this.originSections(distinct),
+      ...this.familySections(distinct),
     ];
     return sections.filter((section) => section.templates.length > 0);
   }
@@ -61,8 +63,12 @@ export class TemplateGalleryLayout {
     const matches = (template: Template) => template.metadata.name.toLowerCase().includes(needle);
     return [
       ...this.favoritesFirst(input.userTemplates.filter(matches), input.favoriteIds),
-      ...this.favoritesFirst(input.builtins.filter(matches), input.favoriteIds),
+      ...this.favoritesFirst(input.builtins.filter(template => isDistinctCaptionStyle(template.metadata.id)).filter(matches), input.favoriteIds),
     ];
+  }
+
+  private distinctInput(input: TemplateGalleryInput): TemplateGalleryInput {
+    return { ...input, builtins: input.builtins.filter(template => isDistinctCaptionStyle(template.metadata.id)) };
   }
 
   private originSections(input: TemplateGalleryInput): TemplateGallerySectionView[] {

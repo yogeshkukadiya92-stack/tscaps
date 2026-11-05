@@ -231,13 +231,15 @@ export const CaptionsPanel = memo(function CaptionsPanel(props: CaptionsPanelPro
           </Tabs.Trigger>;
         })}
       </Tabs.List>
+      <details className="caption-fine-tune" open={!['transcript', 'templates', 'motion'].includes(activeTab) || undefined}>
+        <summary><UiText text="Fine-tune style" /></summary>
       <div className="caption-more-tools" role="group" aria-label={t("More caption tools")}>
-        <span className="caption-more-tools-label" aria-hidden><UiText text="Fine-tune:" /></span>
         {RAIL.filter(entry => !['transcript', 'templates', 'motion'].includes(entry.id)).map(entry =>
           <button type="button" key={entry.id} aria-pressed={activeTab === entry.id} onClick={() => tabStore.setActiveTab(entry.id)}>
             {entry.icon}<span><UiText text={entry.label} /></span>
           </button>)}
       </div>
+      </details>
       </div>
     </Tabs.Root>
   );

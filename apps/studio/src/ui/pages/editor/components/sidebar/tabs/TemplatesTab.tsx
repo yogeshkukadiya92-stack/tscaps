@@ -205,9 +205,11 @@ export const TemplatesTab = memo(function TemplatesTab({ sheetScope, templates, 
   );
 
   return (
-    <EditorTab title={t("Choose caption style")} headerAction={headerAction}>
-      <p className="mt-1 mb-2 text-sm text-fg-secondary"><UiText text="Choose a style below and check the preview." /></p>
-      <p className="mb-3 text-xs text-accent" role="status"><UiText text="Applied to " />{sheetScope.activeSheet.name}: <strong>{sheetScope.activeSheet.template.metadata.name}</strong></p>
+    <EditorTab title={t("Choose caption style")} hideTitleRow>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <p className="text-xs text-accent min-w-0 [overflow-wrap:anywhere]" role="status"><UiText text="Applied to " />{sheetScope.activeSheet.name}: <strong>{sheetScope.activeSheet.template.metadata.name}</strong></p>
+        <div className="flex shrink-0 items-center">{headerAction}</div>
+      </div>
       <TemplateSelector
         templates={templates}
         userTemplates={userTemplates}

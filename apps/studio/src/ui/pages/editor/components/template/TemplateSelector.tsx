@@ -1,7 +1,8 @@
+import { RECOMMENDED_CAPTION_STYLE_IDS } from '@presentation/editor/services/CaptionStyleSelection';
 import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { TemplatePreviewLanguageContext, TEMPLATE_PREVIEW_LANGUAGES, type TemplatePreviewLanguage } from '@ui/_shared/contexts/TemplatePreviewLanguageContext';
 import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
-import { ChevronLeft, Search } from 'lucide-react';
+import { ChevronLeft, Search, X } from 'lucide-react';
 import type { Template } from '@core/templates/domain/Template';
 import type { TemplateLibraryView } from '@core/templates/store/TemplateLibraryStore';
 import { TEMPLATE_CATEGORIES } from '@core/templates/domain/TemplateCategory';
@@ -83,9 +84,10 @@ export const TemplateSelector = memo(function TemplateSelector({
   library,
   sectionAdornments,
 }: TemplateSelectorProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [query, setQuery] = useState('');
-  const [previewLanguage, setPreviewLanguage] = useState<TemplatePreviewLanguage>('en');
+  const [showAll, setShowAll] = useState(false);
+  const [previewLanguage, setPreviewLanguage] = useState<TemplatePreviewLanguage>(locale);
   const [openedSectionId, setOpenedSectionId] = useState<TemplateGallerySectionId | null>(null);
 
   const [layout] = useState(() => new TemplateGalleryLayout());
@@ -112,6 +114,8 @@ export const TemplateSelector = memo(function TemplateSelector({
   );
 
   const sections = useMemo(() => layout.build(galleryInput), [layout, galleryInput]);
+  const recommended = useMemo(() => RECOMMENDED_CAPTION_STYLE_IDS.flatMap(id => templates.filter(template => template.metadata.id === id)), [templates]);
+  const visibleSections = showAll ? sections : sections.filter(section => section.id === 'saved' || section.id === 'favorites');
   const searchResults = useMemo(() => layout.search(galleryInput, query), [layout, galleryInput, query]);
 
   // A section can empty out while it is open (its last favorite removed,
@@ -172,12 +176,18 @@ export const TemplateSelector = memo(function TemplateSelector({
       <div className={SEARCH_FIELD_CLASS}>
         <Search size={13} className="text-fg-faint shrink-0 group-focus-within/search:text-fg-muted transition-colors duration-quick ease-standard" />
         <input
-          type="text"
+          type="search"
+          aria-label={t("Search templates")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("Search templates")}
           className="flex-1 min-w-0 bg-transparent border-none outline-none text-fg-secondary text-xs placeholder:text-fg-faint"
         />
+        {query && <button type="button" aria-label={t("Clear style search")} onClick={() => setQuery('')} className="p-1 text-fg-muted"><X size={16} /></button>}
+      </div>
+      <div role="group" aria-label={t("Browse caption styles")} className="caption-browse-switch">
+        <button type="button" aria-pressed={!showAll} onClick={() => { setShowAll(false); setOpenedSectionId(null); setQuery(''); }}><UiText text="Recommended" /></button>
+        <button type="button" aria-pressed={showAll} onClick={() => { setShowAll(true); setOpenedSectionId(null); setQuery(''); }}><UiText text="All styles" /></button>
       </div>
 
       <div role="group" aria-label={t("Caption preview language")} className="flex flex-wrap gap-2">
@@ -188,7 +198,7 @@ export const TemplateSelector = memo(function TemplateSelector({
             {language.label}
           </button>
         ))}
-        <p className="w-full text-xs text-fg-muted"><UiText text="Preview premium styles in your language. Hover to see motion." /></p>
+        <p className="caption-preview-language-hint w-full text-xs text-fg-muted"><UiText text="Preview premium styles in your language. Hover to see motion." /></p>
       </div>
 
       {query.trim() !== '' ? (
@@ -222,7 +232,8 @@ export const TemplateSelector = memo(function TemplateSelector({
         </div>
       ) : (
         <div className={`flex flex-col ${BETWEEN_SECTIONS_DIVIDERS}`}>
-          {sections.map((section) => (
+          {!showAll && <TemplateGallerySection id="premium-captions" label={t("Start with these styles")} templates={recommended} rows={null} newTemplateIds={new Set()} renderCard={renderCard} />}
+          {visibleSections.map((section) => (
             <TemplateGallerySection
               key={section.id}
               id={section.id}

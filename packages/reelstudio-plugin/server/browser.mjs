@@ -37,9 +37,10 @@ export class ReelBrowser {
     const page = this.page;
     const target = projectUrl(this.config.origin, projectId);
     if (!page || page.isClosed() || page.url().split('?')[0] !== target) throw new Error('Open this project with open_project first, then sign in or restore missing media in the plugin browser.');
+    // The unified editor opens the creative workspace directly.
+    // Older installations still expose a workspace tab.
     const tab = page.locator('#workspace-tab-creative');
-    await tab.waitFor({ state: 'visible', timeout: 15000 });
-    if (await tab.getAttribute('aria-selected') !== 'true') await tab.click();
+    if (await tab.isVisible() && await tab.getAttribute('aria-selected') !== 'true') await tab.click();
     const workspace = page.locator('[data-ui=creative-studio]');
     await workspace.waitFor({ state: 'visible', timeout: 30000 });
     await page.waitForFunction(() => {
@@ -78,8 +79,19 @@ export class ReelBrowser {
     const statuses = await panel.getByRole('status').allTextContents();
     if (!await panel.locator('[data-ui=auto-applied]').count()) throw new Error('No completed Auto Edit was reported. Inspect the project before retrying.');
     // Persist the same editable project used by the normal UI.
-    await workspace.locator('[data-ui=creative-save]').click();
-    await workspace.locator('[data-ui=creative-save-status][data-saved=true]').waitFor({ state: 'visible', timeout: 120000 });
+    const save = this.page.locator('[data-ui=project-save]');
+    if (await save.count()) {
+      if (await save.isEnabled()) await save.click();
+      await this.page.waitForFunction(() => {
+        const button = document.querySelector('[data-ui=project-save]');
+        return button && (button.getAttribute('data-save-status') === 'error'
+          || (button.getAttribute('data-dirty') === 'false' && button.getAttribute('data-save-status') !== 'saving'));
+      }, null, { timeout: 120000 });
+      if (await save.getAttribute('data-save-status') === 'error') throw new Error('Could not save the edited project. Retry saving in ReelStudio before closing it.');
+    } else {
+      await workspace.locator('[data-ui=creative-save]').click();
+      await workspace.locator('[data-ui=creative-save-status][data-saved=true]').waitFor({ state: 'visible', timeout: 120000 });
+    }
     return { projectId, previewUrl: projectUrl(this.config.origin, projectId), editable: true, saved: true, summary: statuses };
   }
   async preview(projectId, play) {

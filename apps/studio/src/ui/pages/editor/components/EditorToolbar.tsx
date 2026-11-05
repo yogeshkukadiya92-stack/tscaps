@@ -137,6 +137,9 @@ export const EditorToolbar = memo(function EditorToolbar({
         <button
           type="button"
           className={SAVE_BTN}
+          data-ui="project-save"
+          data-save-status={saveStatus}
+          data-dirty={dirty}
           onClick={onSave}
           disabled={!dirty || saveStatus === 'saving'}
           aria-label={t("Save project")}

@@ -135,6 +135,7 @@ export function ProjectsHost() {
       await refresh();
     } catch (cause) {
       setError(new ProjectDeleteFailedError({ cause }));
+      throw cause;
     }
   }, [projects, refresh]);
 

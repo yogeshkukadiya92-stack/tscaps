@@ -7,7 +7,7 @@ import type { OverlaySelectionController } from '@presentation/editor/controller
 import type { PlaybackTimeBinder } from '@presentation/editor/controllers/PlaybackTimeBinder';
 import type { AppNoticeChannel } from '@core/errors/services/AppNoticeChannel';
 import type { TemplateLibraryView } from '@core/templates/store/TemplateLibraryStore';
-import { useTranslation, UiText } from '@ui/i18n/Locale';
+import { UiText, useTranslation } from '@ui/i18n/Locale';
 import { useSheets } from '@ui/_shared/contexts/modules/SheetsContext';
 import { useVideos } from '@ui/_shared/contexts/modules/VideosContext';
 import { useEditorWorkspaceStore } from '@ui/pages/editor/contexts/EditorWorkspaceContext';
@@ -21,12 +21,6 @@ import { Toast } from '@ui/_shared/components/Toast/Toast';
 import { LinkedSheetsPropagationToast } from '@ui/pages/editor/components/LinkedSheetsPropagationToast';
 import { AppNoticeToast } from '@ui/pages/editor/components/AppNoticeToast';
 import '@ui/pages/editor/components/EditorWorkspace.css';
-
-/** The usual path through a reel, numbered so a first-time user knows what comes next. `null` opens export. */
-const WORKFLOW_STEPS: { tool: string | null; label: string }[] = [
-  { tool: 'Clips', label: 'Add video' }, { tool: 'Captions', label: 'Fix words' },
-  { tool: 'Style', label: 'Pick style' }, { tool: 'Audio', label: 'Add music' }, { tool: null, label: 'Download' },
-];
 
 interface EditorPageProps {
   state: EditorState;
@@ -113,16 +107,7 @@ export function EditorPage({ state, containerRef, library, appNoticeChannel, toa
           projectName={state.projectName} canRename={state.projectId !== null} onRenameProject={onRenameProject}
           onBack={onBack} dirty={state.dirty} saveStatus={saveStatus} canSave={canSave && !draftPreviewActive} onSave={onSave} />
         <div className="simple-workflow">
-          <ol className="simple-steps" aria-label={t('Steps to make your reel')}>
-            {WORKFLOW_STEPS.map((step, index) => {
-              const exportStep = step.tool === null;
-              return <li key={step.label}><button type="button" aria-current={step.tool === creativeTool ? 'step' : undefined}
-                disabled={exportStep && (!canExport || exportDisabled || draftPreviewActive)}
-                onClick={() => exportStep ? onOpenExportSettings() : chooseTool(step.tool!)}>
-                <span className="simple-step-number" aria-hidden>{index + 1}</span><span className="simple-step-label"><UiText text={step.label} /></span>
-              </button></li>;
-            })}
-          </ol>
+          <div className="simple-editor-intro"><strong><UiText text="Make it yours" /></strong><span><UiText text="Edit words, choose a style, then export." /></span></div>
           <EditorToolFinder disabled={!state.projectId} onCaption={tab => { captionTabs.setActiveTab(tab); workspace.setActiveCreativeTool(tab === 'transcript' ? 'Captions' : 'Style'); }} onCreative={chooseTool} />
         </div>
         {state.document && <CreativeStudio activeTool={creativeTool} onToolChange={chooseTool} state={state}

@@ -10,6 +10,7 @@ interface ConfirmDialogProps {
   danger?: boolean;
   /** When true, both buttons are disabled and the confirm button shows a spinner. */
   loading?: boolean;
+  error?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -20,6 +21,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   danger = false,
   loading = false,
+  error,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -28,11 +30,13 @@ export function ConfirmDialog({
     <AppDialog
       open={open}
       onClose={onCancel}
+      locked={loading}
       size="sm"
       title={t("Confirm")}
       titleSrOnly
       description={message}
     >
+      {error && <p role="alert" className="text-sm text-danger m-0 [overflow-wrap:anywhere]"><UiText text={error} /></p>}
       <AppDialogActions>
         <button type="button" className={BTN_SECONDARY_SM} onClick={onCancel} disabled={loading}><UiText text="Cancel" /></button>
         <button

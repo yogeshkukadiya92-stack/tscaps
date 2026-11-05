@@ -11,7 +11,6 @@ async function boot(page: import('@playwright/test').Page) {
   const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
   const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
   await bootEditorWithCaptions(page, bytes, doc, { width: 128, height: 128 });
-  await page.getByRole('tab', { name: 'Creative', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled({ timeout: 30000 });
   const projectId = new URL(page.url()).pathname.split('/').pop()!;
   return projectId;
@@ -40,6 +39,7 @@ test('plugin applies a real template, saves editable changes, opens preview and 
     expect(await browser.preview(projectId, true)).toMatchObject({ opened: true, playing: true });
     await page.getByTestId('app-language').selectOption('en');
     await page.getByRole('button', { name: 'Stop preview', exact: true }).click();
+    await page.locator('[data-tool="Effects"]').click();
     await expect(page.getByLabel('Effect 1 intensity')).toBeEnabled();
     const exported = service.start('export_reel', projectId, () => browser.export(projectId, format));
     await expect.poll(() => service.get(exported.id).status, { timeout: 90000 }).not.toBe('running');
@@ -58,7 +58,7 @@ test('plugin applies a real template, saves editable changes, opens preview and 
     }, [...bytes]);
     expect(decoded.width).toBe(128); expect(decoded.duration).toBeGreaterThan(1); expect(decoded.rms).toBeGreaterThan(0.01);
     await page.reload();
-    await page.getByRole('tab', { name: 'Creative', exact: true }).click();
+    await page.locator('[data-tool="Auto"]').click();
     const advanced = page.locator('details').filter({ hasText: 'Templates & advanced settings' });
     if (await advanced.getAttribute('open') === null) await advanced.locator('summary').click();
     await expect(page.getByRole('region', { name: 'Auto Edit', exact: true }).getByRole('status')).toContainText('Template: Arcade Pop');
@@ -71,10 +71,26 @@ test('plugin refuses missing project context and an active comparison', async ({
   const browser = new ReelBrowser(pluginConfig({ REELSTUDIO_URL: new URL(page.url()).origin }), context);
   await expect(browser.preview(projectId, false)).rejects.toThrow('open_project first');
   browser.page = page; browser.projectId = projectId;
+  await page.locator('[data-tool="Auto"]').click();
   const panel = page.getByRole('region', { name: 'Auto Edit', exact: true });
   await panel.getByText('Templates & advanced settings', { exact: true }).click();
   await panel.getByRole('button', { name: 'Analyze auto edit', exact: true }).click();
   await panel.getByRole('button', { name: 'Preview before / after', exact: true }).click();
   await expect(browser.export(projectId, 'mp4')).rejects.toThrow('Close the draft');
   await expect(browser.open('5886d0ed-9757-45b6-9c46-05612133cc2e')).rejects.toThrow('another project');
+});
+
+test('plugin reports a save failure instead of claiming the edit was saved', async ({ page, context }) => {
+  const projectId = await boot(page);
+  const browser = new ReelBrowser(pluginConfig({ REELSTUDIO_URL: new URL(page.url()).origin }), context);
+  browser.page = page; browser.projectId = projectId;
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'projects') throw new DOMException('Test storage full', 'QuotaExceededError');
+      return put.apply(this, args);
+    };
+  });
+  await expect(browser.autoEdit({ projectId, style: 'energetic' }, [])).rejects.toThrow('Could not save the edited project');
+  await expect(page.locator('[data-ui=project-save]')).toHaveAttribute('data-dirty', 'true');
 });

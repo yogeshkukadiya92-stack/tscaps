@@ -1,5 +1,12 @@
 /** Authored interface copy. User content is never translated. */
 export const translations: Record<string, { hi: string; gu: string }> = {
+  "Fine-tune style": {"hi": "स्टाइल में बदलाव करें", "gu": "સ્ટાઇલમાં ફેરફાર કરો"},
+  "Edit words, choose a style, then export.": {"hi": "शब्द सुधारें, स्टाइल चुनें और एक्सपोर्ट करें।", "gu": "શબ્દો સુધારો, સ્ટાઇલ પસંદ કરો અને એક્સપોર્ટ કરો."},
+  "Start with these styles": {"hi": "इन स्टाइल से शुरू करें", "gu": "આ સ્ટાઇલથી શરૂ કરો"},
+  "All styles": {"hi": "सभी स्टाइल", "gu": "બધી સ્ટાઇલ"},
+  "Recommended": {"hi": "सुझाए गए", "gu": "પસંદ કરેલા"},
+  "Browse caption styles": {"hi": "कैप्शन स्टाइल देखें", "gu": "કૅપ્શન સ્ટાઇલ જુઓ"},
+  "Clear style search": {"hi": "स्टाइल खोज साफ़ करें", "gu": "સ્ટાઇલ શોધ સાફ કરો"},
 "More download options": {"hi": "डाउनलोड के और विकल्प", "gu": "ડાઉનલોડના વધુ વિકલ્પ"},
 "Use Export at the top for a normal download": {"hi": "सामान्य डाउनलोड के लिए ऊपर Export इस्तेमाल करें", "gu": "સામાન્ય ડાઉનલોડ માટે ઉપર Export વાપરો"},
 "Click any line to fix a word. Your changes show in the preview right away.": {"hi": "कोई भी लाइन क्लिक करके शब्द सुधारें। बदलाव तुरंत प्रीव्यू में दिखेंगे।", "gu": "કોઈપણ લાઇન પર ક્લિક કરીને શબ્દ સુધારો. ફેરફાર તરત પ્રીવ્યૂમાં દેખાશે."},
@@ -5406,6 +5413,10 @@ export const translations: Record<string, { hi: string; gu: string }> = {
   "Couldn't delete this project": {
     "hi": "यह प्रोजेक्ट हटाया नहीं जा सका",
     "gu": "આ પ્રોજેક્ટ કાઢી શકાયો નહીં"
+  },
+  "This project couldn't be deleted. Please try again.": {
+    "hi": "यह प्रोजेक्ट हटाया नहीं जा सका। कृपया फिर से कोशिश करें।",
+    "gu": "આ પ્રોજેક્ટ કાઢી શકાયો નહીં. કૃપા કરીને ફરી પ્રયાસ કરો."
   },
   "Couldn't open this project": {
     "hi": "यह प्रोजेक्ट खुल नहीं सका",

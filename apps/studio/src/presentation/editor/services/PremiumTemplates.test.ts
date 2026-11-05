@@ -1,3 +1,4 @@
+import { isDistinctCaptionStyle } from '@presentation/editor/services/CaptionStyleSelection';
 import { describe, expect, it } from 'vitest';
 import { SvgFilterDefinitionsParser, TagConditionParser } from '@tscaps/engine';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -43,7 +44,7 @@ const loader = new LocalFileTemplateLoader(
 const ids = Object.keys(BUILTIN_TEMPLATE_ASSETS).filter((id) => id.startsWith('premium-'));
 
 describe('premium caption library', () => {
-  it('loads all presets through the editor loader and groups them into one tile gallery', async () => {
+  it('loads legacy presets but offers only distinct looks in the gallery', async () => {
     expect(ids).toHaveLength(60);
     const templates = await Promise.all(ids.map((id) => loader.load(id)));
     const sections = new TemplateGalleryLayout().build({
@@ -51,7 +52,7 @@ describe('premium caption library', () => {
     });
     expect(sections).toHaveLength(1);
     expect(sections[0]?.id).toBe('premium-captions');
-    expect(sections[0]?.templates).toHaveLength(60);
+    expect(sections[0]?.templates.map(t => t.metadata.id)).toEqual(ids.filter(isDistinctCaptionStyle));
     for (const id of ids) {
       const config = BUILTIN_TEMPLATE_ASSETS[id]!.config;
       expect(fonts.knows(config.typography!.fontStack!), id).toBe(true);
@@ -63,14 +64,14 @@ describe('premium caption library', () => {
     expect(fonts.stackFor('hind').familyFor('devanagari')).toBe('Hind');
   });
 
-  it('loads all eight phrase-driven layouts in the Dynamic gallery', async () => {
+  it('loads all eight phrase-driven layouts and offers seven distinct choices', async () => {
     const dynamicIds = folders.filter(id => id.startsWith('dynamic-'));
     expect(dynamicIds).toHaveLength(8);
     const templates = await Promise.all(dynamicIds.map(id => loader.load(id)));
     const sections = new TemplateGalleryLayout().build({
       builtins: templates, userTemplates: [], favoriteIds: new Set(),
     });
-    expect(sections.map(section => [section.id, section.templates.length])).toEqual([['dynamic', 8]]);
+    expect(sections.map(section => [section.id, section.templates.length])).toEqual([['dynamic', 7]]);
     for (const id of dynamicIds) {
       expect(BUILTIN_TEMPLATE_ASSETS[id]!.css).toContain('--segment-index');
     }

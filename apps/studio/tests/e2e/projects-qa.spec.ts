@@ -85,3 +85,38 @@ test('project dashboard handles search, sort, list view and narrow screens', asy
   await expect(page).toHaveURL(/\/projects$/);
   expect(errors).toEqual([]);
 });
+
+test('pending deletion cannot be dismissed and a failed deletion can be retried in place', async ({ page }) => {
+  await setup(page, () => ({ json: rows }));
+  let finish: (() => void) | undefined;
+  let attempts = 0;
+  await page.route('https://auth.example.test/rest/v1/reelstudio_projects**', async route => {
+    if (route.request().method() !== 'PATCH') return route.fulfill({ json: rows });
+    attempts++;
+    await new Promise<void>(resolve => { finish = resolve; });
+    await route.fulfill({ status: 500, json: { message: 'Temporary outage' } });
+  });
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.getByRole('button', { name: 'Project actions', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect.poll(() => attempts).toBe(1);
+  await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveAttribute('data-state', 'open');
+  await page.mouse.click(2, 2);
+  await expect(dialog).toHaveAttribute('data-state', 'open');
+  finish!();
+  await expect(dialog.getByRole('alert')).toContainText("couldn't be deleted");
+  await expect(dialog.getByRole('button', { name: 'Delete', exact: true })).toBeEnabled();
+  expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.screenshot({ path: test.info().outputPath('delete-failure-mobile.png') });
+  await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect.poll(() => attempts).toBe(2);
+  finish!();
+  await expect(dialog.getByRole('alert')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.workspace-project-card')).toHaveCount(2);
+});

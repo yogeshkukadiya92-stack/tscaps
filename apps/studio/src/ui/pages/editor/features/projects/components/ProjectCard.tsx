@@ -30,19 +30,24 @@ export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete
   const thumbUrl = useThumbnailRenderUrl(project.thumbnail);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleConfirmDelete = async () => {
+    if (deleting) return;
     setDeleting(true);
+    setDeleteError('');
     try {
       await onDelete(project.id);
+      setConfirmOpen(false);
+    } catch {
+      setDeleteError("This project couldn't be deleted. Please try again.");
     } finally {
       setDeleting(false);
-      setConfirmOpen(false);
     }
   };
 
-  const requestDelete = () => setConfirmOpen(true);
+  const requestDelete = () => { setDeleteError(''); setConfirmOpen(true); };
   const requestExport = () => { if (onExport) onExport(project.id); };
 
   return (
@@ -88,6 +93,7 @@ export const ProjectCard = memo(function ProjectCard({ project, onOpen, onDelete
         confirmLabel="Delete"
         danger
         loading={deleting}
+        error={deleteError}
         onConfirm={() => { void handleConfirmDelete(); }}
         onCancel={() => setConfirmOpen(false)}
       />

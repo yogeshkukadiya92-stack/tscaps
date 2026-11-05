@@ -203,3 +203,32 @@ test('Space activates focused controls without triggering global playback', asyn
   await page.keyboard.press('Space');
   await expect(page.getByRole('dialog', { name: 'Export video', exact: true })).toBeVisible();
 });
+
+test('save failure notices leave the mobile editing tools reachable', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  const bytes = await readFile(new URL('./fixtures/sample-with-audio.mp4', import.meta.url));
+  const doc = JSON.parse(await readFile(new URL('./fixtures/document.json', import.meta.url), 'utf8'));
+  await bootEditorWithCaptions(page, bytes, doc);
+  const save = page.getByRole('button', { name: 'Save project', exact: true });
+  await save.click();
+  await expect(save).toBeDisabled();
+  await expect(save).toHaveText('Save');
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'projects') throw new DOMException('Test storage full', 'QuotaExceededError');
+      return put.apply(this, args);
+    };
+  });
+  const name = page.getByRole('textbox', { name: 'Project name', exact: true });
+  await name.fill('Unsaved edit');
+  await name.press('Enter');
+  await save.click();
+  const notice = page.getByRole('status').filter({ hasText: "Couldn't save your project" });
+  await expect(notice).toBeVisible();
+  const tools = page.getByRole('navigation', { name: 'Creative tools' });
+  await expect.poll(async () => (await notice.boundingBox())!.y + (await notice.boundingBox())!.height).toBeLessThanOrEqual((await tools.boundingBox())!.y);
+  await tools.getByRole('button', { name: 'Music', exact: true }).click();
+  await expect(tools.getByRole('button', { name: 'Music', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.screenshot({ path: test.info().outputPath('save-notice-mobile.png') });
+});

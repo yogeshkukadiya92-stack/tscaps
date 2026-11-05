@@ -32,7 +32,8 @@ async function setup(page: Page, respond: () => { status?: number; json: unknown
   await setDocumentJson(page, doc);
   await expect(page.getByRole('button', { name: 'Preview', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Save project', exact: true }).click();
-  await page.locator('[data-tool="Auto"]').click();
+  await page.getByRole('button', { name: 'All tools', exact: true }).click();
+  await page.getByRole('dialog', { name: 'All tools' }).getByRole('button', { name: 'Auto Edit', exact: true }).click();
   await page.getByText('AI custom instructions · Credits', { exact: true }).click();
   return { requests: () => requests };
 }
